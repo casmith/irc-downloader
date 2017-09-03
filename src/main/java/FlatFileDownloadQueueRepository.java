@@ -16,8 +16,7 @@ public class FlatFileDownloadQueueRepository implements DownloadQueueRepository 
 
     @Override
     public Queue<FileRequest> list() {
-        try {
-            ObjectInputStream queue = new ObjectInputStream(new FileInputStream(this.fileName));
+        try (ObjectInputStream queue = new ObjectInputStream(new FileInputStream(this.fileName))) {
             return (Queue<FileRequest>) queue.readObject();
         } catch (IOException | ClassNotFoundException e) {
             LOGGER.warn("Failed to load queue. Returning an empty one.");
@@ -27,8 +26,7 @@ public class FlatFileDownloadQueueRepository implements DownloadQueueRepository 
 
     @Override
     public void save(Queue<FileRequest> downloadQueue) {
-        try {
-            ObjectOutputStream queue = new ObjectOutputStream(new FileOutputStream(this.fileName));
+        try (ObjectOutputStream queue = new ObjectOutputStream(new FileOutputStream(this.fileName))) {
             queue.writeObject(downloadQueue);
         } catch (IOException e) {
             LOGGER.error("Failed to save queue", e);
