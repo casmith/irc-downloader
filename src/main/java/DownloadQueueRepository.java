@@ -1,9 +1,9 @@
-import java.util.List;
+import java.util.Queue;
 
 /**
  * Created by clay on 9/3/17.
  */
 public interface DownloadQueueRepository {
-    List<FileRequest> list();
-    void save(List<FileRequest> downloadQueue);
+    Queue<FileRequest> list();
+    void save(Queue<FileRequest> downloadQueue);
 }

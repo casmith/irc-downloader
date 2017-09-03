@@ -2,8 +2,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.util.Collections;
-import java.util.List;
+import java.util.LinkedList;
+import java.util.Queue;
 
 public class FlatFileDownloadQueueRepository implements DownloadQueueRepository {
 
@@ -15,18 +15,18 @@ public class FlatFileDownloadQueueRepository implements DownloadQueueRepository 
     }
 
     @Override
-    public List<FileRequest> list() {
+    public Queue<FileRequest> list() {
         try {
             ObjectInputStream queue = new ObjectInputStream(new FileInputStream(this.fileName));
-            return (List<FileRequest>) queue.readObject();
+            return (Queue<FileRequest>) queue.readObject();
         } catch (IOException | ClassNotFoundException e) {
             LOGGER.warn("Failed to load queue. Returning an empty one.");
-            return Collections.emptyList();
+            return new LinkedList<>();
         }
     }
 
     @Override
-    public void save(List<FileRequest> downloadQueue) {
+    public void save(Queue<FileRequest> downloadQueue) {
         try {
             ObjectOutputStream queue = new ObjectOutputStream(new FileOutputStream(this.fileName));
             queue.writeObject(downloadQueue);
