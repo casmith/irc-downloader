@@ -9,7 +9,6 @@ import static org.junit.Assert.assertEquals;
 
 public class FlatFileDownloadQueueRepositoryTests {
 
-
     private FlatFileDownloadQueueRepository repository;
 
     @Before
