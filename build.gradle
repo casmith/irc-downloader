@@ -24,3 +24,9 @@ jacocoTestReport {
         html.enabled true
     }
 }
+
+task zip(type: Zip) {
+    from configurations.runtime.allArtifacts.files
+    from configurations.runtime
+    into(project.name + '-' + project.version)
+}
