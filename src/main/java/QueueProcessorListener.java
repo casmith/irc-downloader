@@ -1,45 +1,46 @@
-import com.google.common.collect.ImmutableSortedSet;
+import org.pircbotx.PircBotX;
 import org.pircbotx.hooks.ListenerAdapter;
 import org.pircbotx.hooks.events.JoinEvent;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
+import java.util.Queue;
 
 public class QueueProcessorListener extends ListenerAdapter {
 
     private String channel;
-    private String fileName;
+    private DownloadQueueRepository queueRepository;
 
     public QueueProcessorListener(String channel, String fileName) {
         this.channel = channel;
-        this.fileName = fileName;
+        this.queueRepository = new FlatFileDownloadQueueRepository(fileName);
     }
 
     @Override
     public void onJoin(JoinEvent event) throws Exception {
-
-        String serverNick = event.getBot().getNick();
+        PircBotX bot = event.getBot();
+        String serverNick = bot.getNick();
         if (event.getUser() != null) {
             String nick = event.getUser().getNick();
-            if (serverNick.equals(nick)) {
-                ImmutableSortedSet<String> usersNicks = event.getChannel().getUsersNicks();
-                usersNicks.forEach(System.out::println);
-
-                if (event.getChannel().getName().toLowerCase().equals(this.channel)) {
-                    BufferedReader fileReader = new BufferedReader(new FileReader(fileName));
-                    String s = fileReader.readLine();
-                    while (s != null) {
-                        // skip commented-out lines
-                        if (!s.startsWith("//")) {
-                            System.out.println("Requesting " + s);
-                            event.getBot().send().message(this.channel, s);
-                            sleep(30);
-                        }
-                        s = fileReader.readLine();
-                    }
-                }
+            String channel = event.getChannel().getName().toLowerCase();
+            if (serverNick.equals(nick) && channel.equals(this.channel)) {
+                processQueue(bot);
             }
         }
+    }
+
+    private void processQueue(PircBotX bot) {
+        FileRequest request = dequeue();
+        while (request != null) {
+            bot.send().message(this.channel, request.toString());
+            sleep(30);
+            request = dequeue();
+        }
+    }
+
+    private FileRequest dequeue() {
+        Queue<FileRequest> queue = queueRepository.get();
+        FileRequest request = queue.poll();
+        queueRepository.save(queue);
+        return request;
     }
 
     private void sleep(int s) {

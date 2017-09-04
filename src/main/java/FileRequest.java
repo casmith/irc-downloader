@@ -26,6 +26,10 @@ public class FileRequest implements Serializable {
         return fileName;
     }
 
+    public String toString() {
+        return "!" + this.getNick() + " " + this.getFileName();
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

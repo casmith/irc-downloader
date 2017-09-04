@@ -28,7 +28,7 @@ public class FlatFileDownloadQueueRepositoryTests {
         this.repository.save(queue);
 
         // load the queue again
-        Queue<FileRequest> list = this.repository.list();
+        Queue<FileRequest> list = this.repository.get();
 
         // they should match
         assertEquals(queue, list);

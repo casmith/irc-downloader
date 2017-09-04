@@ -8,16 +8,22 @@ import java.io.IOException;
 public class Client {
     public static void main(String[] args) throws IOException, IrcException {
 
-        final boolean useIdent = true;
+        boolean useIdent;
+
+        String server = args[0];
+        String nick = args[1];
+        String channel = args[2];
+        String ident = args[3];
+        if (ident == null) {
+            useIdent = true;
+        } else {
+            useIdent = Boolean.parseBoolean(ident);
+        }
 
         //Before anything else
         if (useIdent) {
             IdentServer.startServer();
         }
-
-        String server = args[0];
-        String nick = args[1];
-        String channel = args[2];
 
         Configuration configuration = new Configuration.Builder()
                 .addServer(server)
@@ -26,7 +32,7 @@ public class Client {
                 .setLogin(nick)
                 .addAutoJoinChannel(channel)
                 .setIdentServerEnabled(useIdent)
-                .addListener(new QueueProcessorListener(channel, "queue.txt"))
+                .addListener(new QueueProcessorListener(channel, "queue.dat"))
                 .addListener(new IncomingFileTransferListener())
                 .buildConfiguration();
 

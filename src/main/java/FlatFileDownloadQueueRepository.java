@@ -15,7 +15,7 @@ public class FlatFileDownloadQueueRepository implements DownloadQueueRepository 
     }
 
     @Override
-    public Queue<FileRequest> list() {
+    public Queue<FileRequest> get() {
         try (ObjectInputStream queue = new ObjectInputStream(new FileInputStream(this.fileName))) {
             return (Queue<FileRequest>) queue.readObject();
         } catch (IOException | ClassNotFoundException e) {
