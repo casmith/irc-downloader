@@ -1,9 +1,6 @@
 import java.io.File;
 import java.util.*;
 
-/**
- * Created by clay on 9/7/17.
- */
 public class ListGenerator {
 
     public static void main(String[] args) {
