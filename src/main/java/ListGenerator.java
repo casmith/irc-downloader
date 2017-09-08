@@ -7,8 +7,7 @@ import java.util.*;
 public class ListGenerator {
 
     public static void main(String[] args) {
-        String pathname = "/Users/clay/Rock and Metal";
-//        pathname = "/Users/clay/Rock and Metal/Arch Enemy/2001 - Wages of Sin";
+        String pathname = args[0];
         ListGenerator listGenerator = new ListGenerator(new File(pathname));
         listGenerator.generate();
     }
