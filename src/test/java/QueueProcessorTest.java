@@ -3,9 +3,6 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
-/**
- * Created by clay on 9/3/17.
- */
 public class QueueProcessorTest {
 
     private QueueProcessor queueProcessor;
@@ -18,7 +15,7 @@ public class QueueProcessorTest {
         downloadQueue.enqueue("!someguy Metallica - Ride the Lightning.mp3");
         downloadQueue.enqueue("!someguy Metallica - Master of Puppets.mp3");
 
-        queueProcessor = new QueueProcessor(downloadQueue, 0);
+        queueProcessor = new QueueProcessor(downloadQueue, null, 0, "#somechannel");
     }
 
     @Test

@@ -2,16 +2,18 @@ import org.pircbotx.PircBotX;
 import org.pircbotx.hooks.ListenerAdapter;
 import org.pircbotx.hooks.events.JoinEvent;
 
-import java.util.Queue;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 public class QueueProcessorListener extends ListenerAdapter {
 
     private String channel;
-    private DownloadQueueRepository queueRepository;
+    private String listPath;
 
-    public QueueProcessorListener(String channel, String fileName) {
+    public QueueProcessorListener(String channel, String listPath) {
         this.channel = channel;
-        this.queueRepository = new FlatFileDownloadQueueRepository(fileName);
+        this.listPath = listPath;
     }
 
     @Override
@@ -28,27 +30,17 @@ public class QueueProcessorListener extends ListenerAdapter {
     }
 
     private void processQueue(PircBotX bot) {
-        FileRequest request = dequeue();
-        while (request != null) {
-            bot.send().message(this.channel, request.toString());
-            sleep(30);
-            request = dequeue();
-        }
-    }
+        DownloadQueue downloadQueue = new DownloadQueue();
 
-    private FileRequest dequeue() {
-        Queue<FileRequest> queue = queueRepository.get();
-        FileRequest request = queue.poll();
-        queueRepository.save(queue);
-        return request;
-    }
-
-    private void sleep(int s) {
         try {
-            Thread.sleep(s * 1000);
-        } catch (InterruptedException e) {
+            Files.readAllLines(Paths.get(this.listPath)).forEach(downloadQueue::enqueue);
+        } catch (IOException e) {
             e.printStackTrace();
         }
+
+        QueueProcessor queueProcessor = new QueueProcessor(downloadQueue, bot, 10, this.channel);
+        queueProcessor.run();
     }
+
 }
 

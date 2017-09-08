@@ -13,7 +13,8 @@ public class Client {
         String server = args[0];
         String nick = args[1];
         String channel = args[2];
-        String ident = args[3];
+        String ident = args.length > 3 ? args[3] : null;
+        String listPath = args.length > 4 ? args[4] : null;
         if (ident == null) {
             useIdent = true;
         } else {
@@ -32,7 +33,7 @@ public class Client {
                 .setLogin(nick)
                 .addAutoJoinChannel(channel)
                 .setIdentServerEnabled(useIdent)
-                .addListener(new QueueProcessorListener(channel, "queue.dat"))
+                .addListener(new QueueProcessorListener(channel, listPath))
                 .addListener(new IncomingFileTransferListener())
                 .buildConfiguration();
 

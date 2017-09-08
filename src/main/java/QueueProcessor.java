@@ -1,21 +1,21 @@
+import org.pircbotx.PircBotX;
+
 public class QueueProcessor implements Runnable {
 
+    private final PircBotX bot;
+    private final String channel;
     private int quiet = 0;
     private DownloadQueue downloadQueue;
+    private boolean previouslyEmpty = false;
 
-    public static void main(String[] args) {
-        DownloadQueue downloadQueue = new DownloadQueue();
-        downloadQueue.enqueue("!someguy Metallica - Am I Evil.mp3");
-        downloadQueue.enqueue("!someguy Metallica - Ride the Lightning.mp3");
-        downloadQueue.enqueue("!someguy Metallica - Master of Puppets.mp3");
-
-        QueueProcessor queueProcessor = new QueueProcessor(downloadQueue, 1000);
-        queueProcessor.run();
-    }
-
-    public QueueProcessor(DownloadQueue downloadQueue, int quiet) {
-        this.quiet = quiet;
+    public QueueProcessor(DownloadQueue downloadQueue,
+                          PircBotX bot,
+                          int quietSeconds,
+                          String channel) {
+        this.bot = bot;
+        this.quiet = quietSeconds;
         this.downloadQueue = downloadQueue;
+        this.channel = channel;
     }
 
     @Override
@@ -29,7 +29,17 @@ public class QueueProcessor implements Runnable {
 
     public void processQueue() {
         FileRequest request = downloadQueue.request();
-        System.out.println("Requesting " + request.toString());
+        if (request != null) {
+            this.previouslyEmpty = false;
+            if (bot != null) {
+                bot.send().message(this.channel, request.toString());
+            }
+        } else {
+            if (!this.previouslyEmpty) {
+                System.out.println("Queue empty");
+                this.previouslyEmpty = true;
+            }
+        }
     }
 
     private void sleep(int s) {
