@@ -1,6 +1,5 @@
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -19,10 +18,10 @@ public class ListSearcher {
                 lines.add(line);
             }
         }
-        System.out.println("Initalized with " + lines.size() + " lines");
+        System.out.println("Initialized with " + lines.size() + " lines");
     }
 
-    public List<String> search(final String regex) throws IOException {
+    public List<String> search(final String regex) {
         return lines.stream()
                 .filter(s -> s.matches(regex))
                 .collect(Collectors.toList());
