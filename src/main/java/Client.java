@@ -1,45 +1,26 @@
-import org.pircbotx.Configuration;
-import org.pircbotx.IdentServer;
-import org.pircbotx.PircBotX;
-import org.pircbotx.exception.IrcException;
-
-import java.io.IOException;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
+import marvin.irc.IrcBot;
+import marvin.irc.IrcBotImpl;
 
 public class Client {
-    public static void main(String[] args) throws IOException, IrcException {
+    public static void main(String[] args) {
 
-        final boolean useIdent = true;
+        Config config = ConfigFactory.load();
 
-        //Before anything else
-        if (useIdent) {
-            IdentServer.startServer();
-        }
+        Config ircConfig = config.getConfig("irc");
+        String password = ircConfig.hasPath("password") ?
+                ircConfig.getString("password") : null;
 
-        String server = args[0];
-        String nick = args[1];
-        String channel = args[2];
-
-        Configuration configuration = new Configuration.Builder()
-                .addServer(server)
-                .setName(nick)
-                .setRealName(nick)
-                .setLogin(nick)
-                .addAutoJoinChannel(channel)
-                .setIdentServerEnabled(useIdent)
-                .addListener(new QueueProcessorListener(channel, "queue.txt"))
-                .addListener(new IncomingFileTransferListener())
-                .buildConfiguration();
-
-        PircBotX bot = new PircBotX(configuration);
-
-        //Connect to the server
+        IrcBot bot = new IrcBotImpl(ircConfig.getString("server"),
+                ircConfig.getInt("port"),
+                ircConfig.getString("nick"),
+                password,
+                ircConfig.getString("channel"));
         try {
-            bot.startBot();
-        } catch (IrcException|IOException ex) {
-            if (useIdent) {
-                IdentServer.stopServer();
-            }
-            System.out.println("Shutting down!");
+            bot.start();
+        } catch (Exception ex) {
+            bot.shutdown();
         }
     }
 }
