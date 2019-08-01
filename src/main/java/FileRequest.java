@@ -8,11 +8,17 @@ public class FileRequest implements Serializable {
     private String fileName;
     private static Pattern pattern = Pattern.compile("^!([A-Za-z0-1]+) (.*\\.mp3)(.*)$");
 
-    public FileRequest(String line) {
+    public FileRequest(String nick, String fileName) {
+        this.nick = nick;
+        this.fileName = fileName;
+    }
+
+    public static FileRequest parse(String line) {
         Matcher matcher = pattern.matcher(line);
         if (matcher.find()) {
-            this.nick = matcher.group(1);
-            this.fileName = matcher.group(2);
+            String nick = matcher.group(1);
+            String fileName = matcher.group(2);
+            return new FileRequest(nick, fileName);
         } else {
             throw new ParseException("Wrong pattern: " + line);
         }

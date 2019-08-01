@@ -8,19 +8,19 @@ public class FileRequestTests {
 
     @Test
     public void testConstructor_shouldParseNick() {
-        FileRequest fileRequest = new FileRequest(EXAMPLE_REQUEST);
+        FileRequest fileRequest = FileRequest.parse(EXAMPLE_REQUEST);
         assertEquals("Metalhead", fileRequest.getNick());
     }
 
     @Test
     public void testConstructor_shouldParseFilename() {
-        FileRequest fileRequest = new FileRequest(EXAMPLE_REQUEST);
+        FileRequest fileRequest = FileRequest.parse(EXAMPLE_REQUEST);
         String expected = "Metallica - Master of Puppets.mp3";
         assertEquals(expected, fileRequest.getFileName());
     }
 
     @Test(expected = ParseException.class)
     public void testConstructorGivenInvalid_shouldThrow() {
-        new FileRequest("blah blah blah");
+        FileRequest.parse("blah blah blah");
     }
 }
