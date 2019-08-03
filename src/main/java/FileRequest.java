@@ -1,7 +1,8 @@
+import java.io.Serializable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class FileRequest {
+public class FileRequest implements Serializable {
 
     private String nick;
     private String fileName;
@@ -29,5 +30,23 @@ public class FileRequest {
 
     public String getFileName() {
         return fileName;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        FileRequest that = (FileRequest) o;
+
+        if (nick != null ? !nick.equals(that.nick) : that.nick != null) return false;
+        return fileName != null ? fileName.equals(that.fileName) : that.fileName == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = nick != null ? nick.hashCode() : 0;
+        result = 31 * result + (fileName != null ? fileName.hashCode() : 0);
+        return result;
     }
 }
