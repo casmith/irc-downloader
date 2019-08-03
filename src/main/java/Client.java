@@ -16,7 +16,9 @@ public class Client {
                 ircConfig.getInt("port"),
                 ircConfig.getString("nick"),
                 password,
-                ircConfig.getString("channel"));
+                ircConfig.getString("channel"),
+                ircConfig.getString("adminpw"),
+                ircConfig.getString("requestChannel"));
         try {
             bot.start();
         } catch (Exception ex) {
