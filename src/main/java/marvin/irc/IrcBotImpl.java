@@ -39,6 +39,9 @@ public class IrcBotImpl implements IrcBot {
                 .addAutoJoinChannel(autoJoinChannel)
                 .addAutoJoinChannel(requestChannel)
                 .setIdentServerEnabled(useIdent)
+                .setAutoReconnectAttempts(10)
+                .setAutoReconnectDelay(5000)
+                .setAutoReconnect(true)
                 .addListener(new QueueProcessorListener(autoJoinChannel, "queue.txt"))
                 .addListener(new IncomingFileTransferListener(eventSource))
                 .addListener(new ListenerAdapter() {
@@ -70,6 +73,7 @@ public class IrcBotImpl implements IrcBot {
             if (event instanceof DownloadCompleteEvent) {
                 DownloadCompleteEvent dce = (DownloadCompleteEvent) event;
                 queueManager.dec(dce.getNick());
+                // TODO: retry on failure
             }
         });
     }
@@ -174,6 +178,7 @@ public class IrcBotImpl implements IrcBot {
         isRunning = false;
         try {
             IdentServer.stopServer();
+            bot.stopBotReconnect();
             bot.send().quitServer();
         } catch (IOException e) {
             throw new IrcBotException("Failed to stop ident server", e);
