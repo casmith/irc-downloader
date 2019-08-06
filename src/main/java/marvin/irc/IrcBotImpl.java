@@ -112,6 +112,7 @@ public class IrcBotImpl implements IrcBot {
         String message = event.getMessage();
         String nick = message.split(" ")[0].substring(1);
         queueManager.enqueue(nick, message);
+        event.respondPrivateMessage("Enqueued '" + message + "'");
     }
 
     private void authenticateUser(PrivateMessageEvent event, String password, String adminPassword) {
