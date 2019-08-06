@@ -1,4 +1,4 @@
-package marvin.irc;
+package marvin.irc.events;
 
 import java.util.ArrayList;
 import java.util.List;

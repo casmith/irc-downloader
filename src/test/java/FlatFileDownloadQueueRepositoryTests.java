@@ -20,9 +20,9 @@ public class FlatFileDownloadQueueRepositoryTests {
     public void testSaveAndList() {
         // save the queue
         Queue<FileRequest> queue = new LinkedList<>(Arrays.asList(
-                new FileRequest("!username filename1.mp3"),
-                new FileRequest("!username filename2.mp3"),
-                new FileRequest("!username filename3.mp3")
+                new FileRequest("filename1.mp3", "username"),
+                new FileRequest("filename2.mp3", "username"),
+                new FileRequest("filename3.mp3", "username")
         ));
 
         this.repository.save(queue);

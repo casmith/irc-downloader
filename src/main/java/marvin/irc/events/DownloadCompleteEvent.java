@@ -1,4 +1,4 @@
-package marvin.irc;
+package marvin.irc.events;
 
 public class DownloadCompleteEvent implements Event {
     private final String fileName;

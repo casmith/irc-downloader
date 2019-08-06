@@ -1,5 +1,7 @@
 package marvin.irc;
 
+import marvin.irc.events.DownloadCompleteEvent;
+import marvin.irc.events.EventSource;
 import org.pircbotx.User;
 import org.pircbotx.hooks.ListenerAdapter;
 import org.pircbotx.hooks.events.IncomingFileTransferEvent;

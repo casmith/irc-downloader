@@ -1,4 +1,4 @@
-package marvin.irc;
+package marvin.irc.events;
 
 public interface Event {
 }
