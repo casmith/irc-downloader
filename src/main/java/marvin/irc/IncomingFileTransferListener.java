@@ -1,6 +1,7 @@
 package marvin.irc;
 
 import org.pircbotx.User;
+import org.pircbotx.dcc.ReceiveFileTransfer;
 import org.pircbotx.hooks.ListenerAdapter;
 import org.pircbotx.hooks.events.IncomingFileTransferEvent;
 import org.slf4j.Logger;
@@ -27,10 +28,17 @@ public class IncomingFileTransferListener extends ListenerAdapter {
             nick = user.getNick();
             sender = user.getNick() + "@" + user.getHostmask();
         }
-
+        boolean success = false;
         LOG.info("Receiving {} from {}", file.getName(), sender);
-        event.accept(file).transfer();
-        LOG.info("Done downloading " + file.getName());
-        this.eventSource.publish(new DownloadCompleteEvent(nick, file.getName()));
+        try {
+            ReceiveFileTransfer accept = event.accept(file);
+            accept.transfer();
+            LOG.info("Done downloading " + file.getName());
+            success = true;
+        } catch (Exception e) {
+            LOG.error("File transfer failed", e);
+        } finally {
+            this.eventSource.publish(new DownloadCompleteEvent(nick, file.getName(), success));
+        }
     }
 }
