@@ -27,7 +27,7 @@ public class IrcBotImpl implements IrcBot {
     private EventSource eventSource = new EventSource();
     private QueueManager queueManager = new QueueManager();
 
-    public IrcBotImpl(String server, int port, String nick, String password, String autoJoinChannel, String adminPassword, String requestChannel) {
+    public IrcBotImpl(String server, int port, String nick, String password, String autoJoinChannel, String adminPassword, String requestChannel, String downloadDirectory) {
         this.adminPassword = adminPassword;
         this.requestChannel = requestChannel;
         configuration = new Configuration.Builder()
@@ -43,7 +43,7 @@ public class IrcBotImpl implements IrcBot {
                 .setAutoReconnectDelay(5000)
                 .setAutoReconnect(true)
                 .addListener(new QueueProcessorListener(autoJoinChannel, "queue.txt"))
-                .addListener(new IncomingFileTransferListener(eventSource))
+                .addListener(new IncomingFileTransferListener(eventSource, downloadDirectory))
                 .addListener(new ListenerAdapter() {
                     @Override
                     public void onPrivateMessage(PrivateMessageEvent event) {

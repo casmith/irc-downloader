@@ -18,7 +18,8 @@ public class Client {
                 password,
                 ircConfig.getString("channel"),
                 ircConfig.getString("adminpw"),
-                ircConfig.getString("requestChannel"));
+                ircConfig.getString("requestChannel"),
+                ircConfig.getString("downloadDirectory"));
         try {
             bot.start();
         } catch (Exception ex) {
