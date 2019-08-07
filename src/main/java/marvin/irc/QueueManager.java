@@ -5,12 +5,14 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Stream;
 
 public class QueueManager {
 
     private static final Logger LOG = LoggerFactory.getLogger(QueueManager.class);
 
     private Map<String, Queue<String>> queues = new HashMap<>();
+    private Map<String, Queue<String>> inProgress = new HashMap<>();
     private Map<String, Integer> limits = new HashMap<>();
     private Map<String, Integer> queued = new HashMap<>();
 
@@ -74,11 +76,35 @@ public class QueueManager {
     }
 
     public void enqueue(String nick, String message) {
-        queues.computeIfAbsent(nick, s -> new LinkedList<>()).offer(message);
+        getQueue(nick).offer(message);
+    }
+
+    public Queue<String> getQueue(String nick) {
+        return queues.computeIfAbsent(nick, s -> new LinkedList<>());
     }
 
     public Map<String, Queue<String>> getQueues() {
         return queues;
     }
 
+    public void addInProgress(String nick, String message) {
+        inProgress.computeIfAbsent(nick, s -> new LinkedList<>()).offer(message);
+    }
+
+    public void retry(String nick, String filename) {
+        Queue<String> messages = inProgress.computeIfAbsent(nick, s -> new LinkedList<>());
+        int count = 0;
+        for(Iterator<String> iter = messages.iterator(); iter.hasNext();) {
+            String message = iter.next();
+            if (message.toLowerCase().contains(filename.toLowerCase())) {
+                count++;
+                iter.remove();
+                LOG.info("Retrying !" + nick + " " + filename);
+                enqueue(nick, message);
+            }
+        }
+        if (count != 1) {
+            LOG.warn("Found " + count + " items to retry for " + nick + ":" + filename);
+        }
+    }
 }

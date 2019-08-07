@@ -63,7 +63,7 @@ public class IrcBotImpl implements IrcBot {
             if (event instanceof DownloadCompleteEvent) {
                 DownloadCompleteEvent dce = (DownloadCompleteEvent) event;
                 queueManager.dec(dce.getNick());
-                // TODO: retry on failure
+                queueManager.retry(dce.getNick(), dce.getFileName());
             }
         });
     }
@@ -139,6 +139,7 @@ public class IrcBotImpl implements IrcBot {
                     if (!queue.isEmpty()) {
                         if (queueManager.inc(nick)) {
                             String message = queue.poll();
+                            queueManager.addInProgress(nick, message);
                             LOG.info("Requesting: {}", message);
                             messageChannel(message);
                         }
