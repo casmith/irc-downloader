@@ -1,5 +1,7 @@
 package marvin.irc;
 
+import marvin.irc.events.DownloadCompleteEvent;
+import marvin.irc.events.EventSource;
 import org.apache.commons.lang3.StringUtils;
 import org.pircbotx.User;
 import org.pircbotx.dcc.ReceiveFileTransfer;
