@@ -54,19 +54,7 @@ public class IrcBotImpl implements IrcBot {
 
                     @Override
                     public void onNotice(NoticeEvent event) throws Exception {
-                        User user = event.getUser();
-                        String nick = "";
-                        if (user != null) {
-                            nick = user.getNick();
-                        }
-
-                        String message = Colors.removeColors(event.getMessage());
-                        LOG.info("NOTICE {} - {}", nick, message);
-                        Pattern pattern = Pattern.compile(".*Allowed: ([0-9]+) of ([0-9]+).*");
-                        Matcher matcher = pattern.matcher(message);
-                        if (matcher.find()) {
-                            queueManager.updateLimit(nick, parseInt(matcher.group(2)));
-                        }
+                        IrcBotImpl.this.onNotice(event);
                     }
                 })
                 .buildConfiguration();
@@ -78,6 +66,22 @@ public class IrcBotImpl implements IrcBot {
                 // TODO: retry on failure
             }
         });
+    }
+
+    private void onNotice(NoticeEvent event) {
+        User user = event.getUser();
+        String nick = "";
+        if (user != null) {
+            nick = user.getNick();
+        }
+
+        String message = Colors.removeColors(event.getMessage());
+        LOG.info("NOTICE {} - {}", nick, message);
+        Pattern pattern = Pattern.compile(".*Allowed: ([0-9]+) of ([0-9]+).*");
+        Matcher matcher = pattern.matcher(message);
+        if (matcher.find()) {
+            queueManager.updateLimit(nick, parseInt(matcher.group(2)));
+        }
     }
 
     private void onPrivateMessage(PrivateMessageEvent event) {
