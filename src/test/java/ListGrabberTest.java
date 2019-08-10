@@ -1,5 +1,4 @@
 import marvin.irc.IrcBot;
-import marvin.irc.MessageHandler;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -9,7 +8,6 @@ import org.mockito.MockitoAnnotations;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.atMostOnce;
-import static org.mockito.Mockito.never;
 
 public class ListGrabberTest {
 
