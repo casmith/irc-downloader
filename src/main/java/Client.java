@@ -10,11 +10,6 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/*
- * Example list string:
- * Type: @Key-Lay for my list of 3189 files (16.2GB) Updated: Aug 2nd == Free Slots: 6/6 == Files in Que: 0 == Total Speed: 0cps == Next Open Slot: NOW == Files served: 471825 == Using SDFind v3.99e
- */
-
 public class Client {
     private static final Logger LOG = LoggerFactory.getLogger(Client.class);
 
