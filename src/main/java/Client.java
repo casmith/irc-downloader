@@ -21,7 +21,7 @@ public class Client {
         String password = ircConfig.hasPath("password") ?
                 ircConfig.getString("password") : null;
 
-        boolean enableListGrag = ircConfig.hasPath("enableListGrab")
+        boolean enableListGrab = ircConfig.hasPath("enableListGrab")
                 && ircConfig.getBoolean("enableListGrab");
 
         IrcBot bot = new IrcBotImpl(ircConfig.getString("server"),
@@ -33,35 +33,25 @@ public class Client {
                 ircConfig.getString("requestChannel"),
                 ircConfig.getString("downloadDirectory"));
 
-        Set<String> lists = new HashSet<>();
+        if (enableListGrab) {
+            ListGrabber listGrabber = new ListGrabber(bot);
+            bot.registerMessageHandler((channelName, nick, message) -> {
+                if (listGrabber.check(message)) {
+                    listGrabber.grab(channelName, message);
+                }
+            });
+        }
 
         bot.registerMessageHandler((channelName, nick, message) -> {
             if (message.startsWith("@" + ircConfig.getString("nick"))) {
                 LOG.warn("List requests are not yet implemented");
             }
-
-            if (enableListGrag) {
-                handleListGrab(bot, lists, channelName, message);
-            }
-
-            return true;
         });
 
         try {
             bot.start();
         } catch (Exception ex) {
             bot.shutdown();
-        }
-    }
-
-    private static void handleListGrab(IrcBot bot, Set<String> lists, String channelName, String message) {
-        Pattern pattern = Pattern.compile("Type: (@.*) for my list");
-        Matcher matcher = pattern.matcher(message);
-        if (matcher.matches()) {
-            String listQuery = matcher.group(1);
-            if (lists.add(listQuery)) {
-                bot.sendToChannel(channelName, listQuery);
-            }
         }
     }
 }
