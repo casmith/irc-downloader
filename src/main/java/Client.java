@@ -33,8 +33,8 @@ public class Client {
                 ircConfig.getInt("port"),
                 ircConfig.getString("nick"),
                 password,
-                ircConfig.getString("channel"),
                 ircConfig.getString("adminpw"),
+                ircConfig.getString("controlChannel"),
                 ircConfig.getString("requestChannel"),
                 ircConfig.getString("downloadDirectory"));
 
