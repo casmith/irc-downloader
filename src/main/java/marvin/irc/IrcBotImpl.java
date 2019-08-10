@@ -57,7 +57,7 @@ public class IrcBotImpl implements IrcBot {
                     }
 
                     @Override
-                    public void onNotice(NoticeEvent event) throws Exception {
+                    public void onNotice(NoticeEvent event) {
                         String message = Colors.removeColors(event.getMessage());
                         LOG.info("NOTICE {} - {}", getNick(event.getUser()), message);
                         Pattern pattern = Pattern.compile(".*Allowed: ([0-9]+) of ([0-9]+).*");
@@ -73,7 +73,6 @@ public class IrcBotImpl implements IrcBot {
                         String nick = getNick(event.getUser());
                         String channelName = event.getChannel().getName();
                         String message = Colors.removeColors(event.getMessage());
-
                         messageHandlers.forEach(handler -> handler.onMessage(channelName, nick, message));
                     }
                 })
@@ -86,6 +85,10 @@ public class IrcBotImpl implements IrcBot {
                 // TODO: retry on failure
             }
         });
+    }
+
+    public String getNick() {
+        return bot.getNick();
     }
 
     private String getNick(User user) {

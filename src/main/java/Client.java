@@ -1,40 +1,32 @@
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+import marvin.IrcBotFactory;
 import marvin.irc.IrcBot;
 import marvin.irc.IrcBotImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 public class Client {
-    private static final Logger LOG = LoggerFactory.getLogger(Client.class);
+    private final Config config;
+    private final Config ircConfig;
+    private final IrcBot bot;
+    private final ListServer listServer;
+    private final ListGrabber listGrabber;
 
     public static void main(String[] args) {
+        new Client().run();
+    }
 
-        Config config = ConfigFactory.load();
+    public Client() {
+        this.config = ConfigFactory.load();
+        this.ircConfig = config.getConfig("irc");
+        this.bot = IrcBotFactory.fromConfig(ircConfig);
+        this.listServer = new ListServer(bot);
+        this.listGrabber = new ListGrabber(bot);
+    }
 
-        Config ircConfig = config.getConfig("irc");
-        String password = ircConfig.hasPath("password") ?
-                ircConfig.getString("password") : null;
-
-        boolean enableListGrab = ircConfig.hasPath("enableListGrab")
-                && ircConfig.getBoolean("enableListGrab");
-
-        IrcBot bot = new IrcBotImpl(ircConfig.getString("server"),
-                ircConfig.getInt("port"),
-                ircConfig.getString("nick"),
-                password,
-                ircConfig.getString("adminpw"),
-                ircConfig.getString("controlChannel"),
-                ircConfig.getString("requestChannel"),
-                ircConfig.getString("downloadDirectory"));
-
-        if (enableListGrab) {
-            ListGrabber listGrabber = new ListGrabber(bot);
+    public void run() {
+        if (isFeatureEnabled("enableListGrab")) {
             bot.registerMessageHandler((channelName, nick, message) -> {
                 if (listGrabber.check(message)) {
                     listGrabber.grab(channelName, message);
@@ -43,8 +35,8 @@ public class Client {
         }
 
         bot.registerMessageHandler((channelName, nick, message) -> {
-            if (message.startsWith("@" + ircConfig.getString("nick"))) {
-                LOG.warn("List requests are not yet implemented");
+            if (listServer.check(message)) {
+                listServer.send(nick);
             }
         });
 
@@ -53,5 +45,10 @@ public class Client {
         } catch (Exception ex) {
             bot.shutdown();
         }
+    }
+
+    private boolean isFeatureEnabled(String feature) {
+        return ircConfig.hasPath(feature)
+                && ircConfig.getBoolean(feature);
     }
 }
