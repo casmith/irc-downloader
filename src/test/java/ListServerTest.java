@@ -1,3 +1,4 @@
+import marvin.ListServer;
 import marvin.irc.IrcBot;
 import org.junit.Before;
 import org.junit.Test;

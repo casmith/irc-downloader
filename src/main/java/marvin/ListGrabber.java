@@ -1,3 +1,5 @@
+package marvin;
+
 import marvin.irc.IrcBot;
 
 import java.util.HashSet;

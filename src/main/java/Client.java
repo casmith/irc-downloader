@@ -1,10 +1,11 @@
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import marvin.IrcBotFactory;
+import marvin.ListGrabber;
+import marvin.ListServer;
+import marvin.handlers.ListGrabberMessageHandler;
+import marvin.handlers.ListServerMessageHandler;
 import marvin.irc.IrcBot;
-import marvin.irc.IrcBotImpl;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class Client {
     private final Config config;
@@ -26,20 +27,18 @@ public class Client {
     }
 
     public void run() {
+        registerHandlers();
+        start();
+    }
+
+    private void registerHandlers() {
         if (isFeatureEnabled("enableListGrab")) {
-            bot.registerMessageHandler((channelName, nick, message) -> {
-                if (listGrabber.check(message)) {
-                    listGrabber.grab(channelName, message);
-                }
-            });
+            bot.registerMessageHandler(new ListGrabberMessageHandler(listGrabber));
         }
+        bot.registerMessageHandler(new ListServerMessageHandler(listServer));
+    }
 
-        bot.registerMessageHandler((channelName, nick, message) -> {
-            if (listServer.check(message)) {
-                listServer.send(nick);
-            }
-        });
-
+    private void start() {
         try {
             bot.start();
         } catch (Exception ex) {
