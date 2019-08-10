@@ -5,12 +5,15 @@ import marvin.irc.events.EventSource;
 import org.pircbotx.*;
 import org.pircbotx.exception.IrcException;
 import org.pircbotx.hooks.ListenerAdapter;
+import org.pircbotx.hooks.events.MessageEvent;
 import org.pircbotx.hooks.events.NoticeEvent;
 import org.pircbotx.hooks.events.PrivateMessageEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -28,6 +31,7 @@ public class IrcBotImpl implements IrcBot {
     private Configuration configuration;
     private EventSource eventSource = new EventSource();
     private QueueManager queueManager = new QueueManager();
+    private List<MessageHandler> messageHandlers = new ArrayList<>();
 
     public IrcBotImpl(String server, int port, String nick, String password, String autoJoinChannel, String adminPassword, String requestChannel, String downloadDirectory) {
         this.adminPassword = adminPassword;
@@ -54,19 +58,23 @@ public class IrcBotImpl implements IrcBot {
 
                     @Override
                     public void onNotice(NoticeEvent event) throws Exception {
-                        User user = event.getUser();
-                        String nick = "";
-                        if (user != null) {
-                            nick = user.getNick();
-                        }
-
                         String message = Colors.removeColors(event.getMessage());
-                        LOG.info("NOTICE {} - {}", nick, message);
+                        LOG.info("NOTICE {} - {}", getNick(event.getUser()), message);
                         Pattern pattern = Pattern.compile(".*Allowed: ([0-9]+) of ([0-9]+).*");
                         Matcher matcher = pattern.matcher(message);
                         if (matcher.find()) {
                             queueManager.updateLimit(nick, parseInt(matcher.group(2)));
                         }
+                    }
+
+                    @Override
+                    public void onMessage(MessageEvent event) throws Exception {
+                        super.onMessage(event);
+                        String nick = getNick(event.getUser());
+                        String channelName = event.getChannel().getName();
+                        String message = Colors.removeColors(event.getMessage());
+
+                        messageHandlers.forEach(handler -> handler.onMessage(channelName, nick, message));
                     }
                 })
                 .buildConfiguration();
@@ -80,9 +88,16 @@ public class IrcBotImpl implements IrcBot {
         });
     }
 
+    private String getNick(User user) {
+        String nick = null;
+        if (user != null) {
+            nick = user.getNick();
+        }
+        return nick;
+    }
+
     private void onPrivateMessage(PrivateMessageEvent event) {
-        User user = event.getUser();
-        String nick = user != null ? user.getNick() : "";
+        String nick = getNick(event.getUser());
         String message = event.getMessage();
         LOG.info("{}: {}", nick, maskPassword(message));
         if (message.startsWith("auth")) {
@@ -186,5 +201,14 @@ public class IrcBotImpl implements IrcBot {
         } catch (IOException e) {
             throw new IrcBotException("Failed to stop ident server", e);
         }
+    }
+
+    public void registerMessageHandler(MessageHandler handler) {
+        this.messageHandlers.add(handler);
+    }
+
+    @Override
+    public void sendToChannel(String channel, String message) {
+        bot.send().message(channel, message);
     }
 }
