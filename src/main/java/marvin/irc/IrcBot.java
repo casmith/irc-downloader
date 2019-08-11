@@ -7,6 +7,10 @@ public interface IrcBot {
     String getNick();
 
     void sendToChannel(String channel, String message);
+    void sendPrivateMessage(String recipient, String message);
 
     void registerMessageHandler(MessageHandler handler);
+    void registerPrivateMessageHandler(PrivateMessageHandler handler);
+
+    void messageChannel(String substring);
 }

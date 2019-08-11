@@ -24,16 +24,14 @@ public class IrcBotImpl implements IrcBot {
     private final boolean useIdent = true;
     private static final Logger LOG = LoggerFactory.getLogger(IrcBotImpl.class);
     private PircBotX bot;
-    private boolean isRunning;
-    private User authorizedUser;
     private String adminPassword;
     private String requestChannel = "#mp3passion";
     private Configuration configuration;
     private EventSource eventSource = new EventSource();
-    private QueueManager queueManager = new QueueManager();
     private List<MessageHandler> messageHandlers = new ArrayList<>();
+    private List<PrivateMessageHandler> privateMessageHandlers = new ArrayList<>();
 
-    public IrcBotImpl(String server, int port, String nick, String password, String autoJoinChannel, String adminPassword, String requestChannel, String downloadDirectory) {
+    public IrcBotImpl(String server, int port, String nick, String password, String autoJoinChannel, String adminPassword, String requestChannel, String downloadDirectory, QueueManager queueManager) {
         this.adminPassword = adminPassword;
         this.requestChannel = requestChannel;
         configuration = new Configuration.Builder()
@@ -102,80 +100,23 @@ public class IrcBotImpl implements IrcBot {
     private void onPrivateMessage(PrivateMessageEvent event) {
         String nick = getNick(event.getUser());
         String message = event.getMessage();
-        LOG.info("{}: {}", nick, maskPassword(message));
-        if (message.startsWith("auth")) {
-            authenticateUser(event, message.split(" ")[1], adminPassword);
-        } else {
-            processMessage(event);
-        }
+        LOG.debug("{}: {}", nick, maskPassword(message));
+        privateMessageHandlers.forEach(handler -> handler.onMessage(nick, message));
     }
 
     private String maskPassword(String message) {
         return message.replace(adminPassword, "********");
     }
 
-    private void processMessage(PrivateMessageEvent event) {
-        String message = event.getMessage();
-        if (event.getUser() != null && event.getUser().equals(authorizedUser)) {
-            if (message.startsWith("!")) {
-                enqueue(event);
-            } else if (message.startsWith("direct")) {
-                messageChannel(message.substring("direct ".length()));
-            } else if (message.equals("die!")) {
-                this.shutdown();
-            }
-        }
-    }
-
-    private void enqueue(PrivateMessageEvent event) {
-        // nick is assumed to be the text between the ! and the first space
-        String message = event.getMessage();
-        String nick = message.split(" ")[0].substring(1);
-        queueManager.enqueue(nick, message);
-        event.respondPrivateMessage("Enqueued '" + message + "'");
-    }
-
-    private void authenticateUser(PrivateMessageEvent event, String password, String adminPassword) {
-        if (password.equals(adminPassword)) {
-            event.respondPrivateMessage("authenticated");
-            authorizedUser = event.getUser();
-        } else {
-            event.respondPrivateMessage("nope");
-        }
-    }
-
     @Override
     public void start() {
-        isRunning = true;
-        new Thread(() -> {
-            while (isRunning) {
-                queueManager.getQueues().forEach((nick, queue) -> {
-                    if (!queue.isEmpty()) {
-                        if (queueManager.inc(nick)) {
-                            String message = queue.poll();
-                            LOG.info("Requesting: {}", message);
-                            messageChannel(message);
-                        }
-                    }
-                });
-                sleep(10);
-            }
-        }).start();
         bot = new PircBotX(configuration);
         startIdentServer();
         startIrcBot();
     }
 
-    private void messageChannel(String requestMessage) {
+    public void messageChannel(String requestMessage) {
         bot.send().message(requestChannel, requestMessage);
-    }
-
-    private void sleep(int seconds) {
-        try {
-            Thread.sleep(1000 * seconds);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
     }
 
     private void startIrcBot() {
@@ -196,7 +137,6 @@ public class IrcBotImpl implements IrcBot {
 
     @Override
     public void shutdown() {
-        isRunning = false;
         try {
             IdentServer.stopServer();
             bot.stopBotReconnect();
@@ -210,8 +150,18 @@ public class IrcBotImpl implements IrcBot {
         this.messageHandlers.add(handler);
     }
 
+    public void registerPrivateMessageHandler(PrivateMessageHandler handler) {
+        this.privateMessageHandlers.add(handler);
+    }
+
+
     @Override
     public void sendToChannel(String channel, String message) {
         bot.send().message(channel, message);
+    }
+
+    @Override
+    public void sendPrivateMessage(String recipient, String message) {
+        bot.send().message(recipient, message);
     }
 }
