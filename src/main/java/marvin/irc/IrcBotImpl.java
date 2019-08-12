@@ -14,10 +14,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import static java.lang.Integer.parseInt;
 
 public class IrcBotImpl implements IrcBot {
 
@@ -25,11 +21,12 @@ public class IrcBotImpl implements IrcBot {
     private static final Logger LOG = LoggerFactory.getLogger(IrcBotImpl.class);
     private PircBotX bot;
     private String adminPassword;
-    private String requestChannel = "#mp3passion";
+    private String requestChannel;
     private Configuration configuration;
     private EventSource eventSource = new EventSource();
     private List<MessageHandler> messageHandlers = new ArrayList<>();
     private List<PrivateMessageHandler> privateMessageHandlers = new ArrayList<>();
+    private List<NoticeHandler> noticeHandlers = new ArrayList<>();
 
     public IrcBotImpl(String server, int port, String nick, String password, String autoJoinChannel, String adminPassword, String requestChannel, String downloadDirectory, QueueManager queueManager) {
         this.adminPassword = adminPassword;
@@ -55,14 +52,11 @@ public class IrcBotImpl implements IrcBot {
                     }
 
                     @Override
-                    public void onNotice(NoticeEvent event) {
+                    public void onNotice(NoticeEvent event) throws Exception {
+                        super.onNotice(event);
                         String message = Colors.removeColors(event.getMessage());
-                        LOG.info("NOTICE {} - {}", getNick(event.getUser()), message);
-                        Pattern pattern = Pattern.compile(".*Allowed: ([0-9]+) of ([0-9]+).*");
-                        Matcher matcher = pattern.matcher(message);
-                        if (matcher.find()) {
-                            queueManager.updateLimit(nick, parseInt(matcher.group(2)));
-                        }
+                        String nick = getNick(event.getUser());
+                        noticeHandlers.forEach(handler -> handler.onNotice(nick, message));
                     }
 
                     @Override
@@ -154,6 +148,9 @@ public class IrcBotImpl implements IrcBot {
         this.privateMessageHandlers.add(handler);
     }
 
+    public void registerNoticeHandler(NoticeHandler handler) {
+        this.noticeHandlers.add(handler);
+    }
 
     @Override
     public void sendToChannel(String channel, String message) {

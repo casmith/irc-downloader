@@ -11,6 +11,7 @@ public interface IrcBot {
 
     void registerMessageHandler(MessageHandler handler);
     void registerPrivateMessageHandler(PrivateMessageHandler handler);
+    void registerNoticeHandler(NoticeHandler handler);
 
     void messageChannel(String substring);
 }

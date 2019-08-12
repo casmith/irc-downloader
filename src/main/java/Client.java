@@ -5,14 +5,16 @@ import marvin.ListGrabber;
 import marvin.ListServer;
 import marvin.handlers.ListGrabberMessageHandler;
 import marvin.handlers.ListServerMessageHandler;
-import marvin.irc.IrcBot;
-import marvin.irc.IrcBotImpl;
-import marvin.irc.PrivateMessageHandler;
-import marvin.irc.QueueManager;
+import marvin.irc.*;
 import org.pircbotx.User;
 import org.pircbotx.hooks.events.PrivateMessageEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static java.lang.Integer.parseInt;
 
 public class Client {
 
@@ -64,6 +66,15 @@ public class Client {
                 }
             } else {
                 processMessage(nick, message);
+            }
+        });
+
+        bot.registerNoticeHandler((nick, message) -> {
+            LOG.info("NOTICE {} - {}", nick, message);
+            Pattern pattern = Pattern.compile(".*Allowed: ([0-9]+) of ([0-9]+).*");
+            Matcher matcher = pattern.matcher(message);
+            if (matcher.find()) {
+                queueManager.updateLimit(nick, parseInt(matcher.group(2)));
             }
         });
     }
