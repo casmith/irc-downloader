@@ -3,8 +3,7 @@ import com.typesafe.config.ConfigFactory;
 import marvin.IrcBotFactory;
 import marvin.ListGrabber;
 import marvin.ListServer;
-import marvin.handlers.ListGrabberMessageHandler;
-import marvin.handlers.ListServerMessageHandler;
+import marvin.handlers.*;
 import marvin.irc.*;
 import org.pircbotx.User;
 import org.pircbotx.hooks.events.PrivateMessageEvent;
@@ -27,7 +26,6 @@ public class Client {
     private final ListGrabber listGrabber;
     private final String adminPassword;
     private final String requestChannel;
-    private String authorizedUser;
     private QueueManager queueManager = new QueueManager();
     private boolean isRunning;
 
@@ -55,47 +53,11 @@ public class Client {
             bot.registerMessageHandler(new ListGrabberMessageHandler(listGrabber));
         }
         bot.registerMessageHandler(new ListServerMessageHandler(listServer));
-        bot.registerPrivateMessageHandler((nick, message) -> {
-            if (message.startsWith("auth")) {
-                String passwordAttempt = message.split(" ")[1];
-                if (passwordAttempt.equals(adminPassword)) {
-                    authorizedUser = nick;
-                    bot.sendPrivateMessage(nick, "Authorized!");
-                } else {
-                    bot.sendPrivateMessage(nick, "Sorry, try again?");
-                }
-            } else {
-                processMessage(nick, message);
-            }
-        });
-
-        bot.registerNoticeHandler((nick, message) -> {
-            LOG.info("NOTICE {} - {}", nick, message);
-            Pattern pattern = Pattern.compile(".*Allowed: ([0-9]+) of ([0-9]+).*");
-            Matcher matcher = pattern.matcher(message);
-            if (matcher.find()) {
-                queueManager.updateLimit(nick, parseInt(matcher.group(2)));
-            }
-        });
-    }
-
-    private void processMessage(String nick, String message) {
-        if (nick.equals(authorizedUser)) {
-            if (message.startsWith("!")) {
-                enqueue(nick, message);
-            } else if (message.startsWith("direct")) {
-                bot.messageChannel(message.substring("direct ".length()));
-            } else if (message.equals("die!")) {
-                bot.shutdown();
-            }
-        }
-    }
-
-    private void enqueue(String sender, String message) {
-        // nick is assumed to be the text between the ! and the first space
-        String nick = message.split(" ")[0].substring(1);
-        queueManager.enqueue(nick, message);
-        bot.sendPrivateMessage(sender, "Enqueued '" + message + "'");
+        bot.registerPrivateMessageHandler(new AuthPrivateMessageHandler(adminPassword, bot));
+        bot.registerPrivateMessageHandler(new DirectPrivateMessageHandler(bot));
+        bot.registerPrivateMessageHandler(new RequestPrivateMessageHandler(bot, queueManager));
+        bot.registerPrivateMessageHandler(new ShutdownPrivateMessageHandler(bot));
+        bot.registerNoticeHandler(new QueueLimitNoticeHandler(queueManager));
     }
 
     private void start() {
