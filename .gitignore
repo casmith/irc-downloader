@@ -6,3 +6,4 @@ gradlew*
 out
 lists
 /*.conf
+**/.DS_Store
