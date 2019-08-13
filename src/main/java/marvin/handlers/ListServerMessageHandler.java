@@ -1,0 +1,20 @@
+package marvin.handlers;
+
+import marvin.ListServer;
+import marvin.irc.MessageHandler;
+
+public class ListServerMessageHandler implements MessageHandler {
+
+    private ListServer listServer;
+
+    public ListServerMessageHandler(ListServer listServer) {
+        this.listServer = listServer;
+    }
+
+    @Override
+    public void onMessage(String channelName, String nick, String message) {
+        if (listServer.check(message)) {
+            listServer.send(nick);
+        }
+    }
+}

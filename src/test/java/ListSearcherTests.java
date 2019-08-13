@@ -11,8 +11,6 @@ public class ListSearcherTests {
 
     @Test
     public void testSearch() throws IOException {
-
-
         File listDirectory = getListsDirectory();
         ListSearcher lists = new ListSearcher(listDirectory);
         List<String> metallica = lists.search("^\\!.*Metallica.*");
