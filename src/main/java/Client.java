@@ -20,13 +20,12 @@ public class Client {
 
     private static final Logger LOG = LoggerFactory.getLogger(Client.class);
 
-    private final Config config;
     private final Config ircConfig;
     private final IrcBot bot;
     private final ListServer listServer;
     private final ListGrabber listGrabber;
     private final String requestChannel;
-    private QueueManager queueManager = new QueueManager();
+    private QueueManager queueManager;
     private UserManager userManager;
     private boolean isRunning;
 
@@ -35,12 +34,13 @@ public class Client {
     }
 
     public Client() {
-        this.config = ConfigFactory.load();
+        Config config = ConfigFactory.load();
         this.ircConfig = config.getConfig("irc");
         this.bot = IrcBotFactory.fromConfig(ircConfig, queueManager);
         this.listServer = new ListServer(bot);
         this.listGrabber = new ListGrabber(bot);
         this.requestChannel = ircConfig.getString("requestChannel");
+        this.queueManager = new QueueManager();
         this.userManager = new UserManager(this.ircConfig.getString("adminpw"));
     }
 
