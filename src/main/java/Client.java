@@ -3,6 +3,7 @@ import com.typesafe.config.ConfigFactory;
 import marvin.IrcBotFactory;
 import marvin.ListGrabber;
 import marvin.ListServer;
+import marvin.UserManager;
 import marvin.handlers.*;
 import marvin.irc.*;
 import org.pircbotx.User;
@@ -24,9 +25,9 @@ public class Client {
     private final IrcBot bot;
     private final ListServer listServer;
     private final ListGrabber listGrabber;
-    private final String adminPassword;
     private final String requestChannel;
     private QueueManager queueManager = new QueueManager();
+    private UserManager userManager;
     private boolean isRunning;
 
     public static void main(String[] args) {
@@ -36,11 +37,11 @@ public class Client {
     public Client() {
         this.config = ConfigFactory.load();
         this.ircConfig = config.getConfig("irc");
-        this.adminPassword = this.ircConfig.getString("adminpw");
         this.bot = IrcBotFactory.fromConfig(ircConfig, queueManager);
         this.listServer = new ListServer(bot);
         this.listGrabber = new ListGrabber(bot);
         this.requestChannel = ircConfig.getString("requestChannel");
+        this.userManager = new UserManager(this.ircConfig.getString("adminpw"));
     }
 
     public void run() {
@@ -53,10 +54,10 @@ public class Client {
             bot.registerMessageHandler(new ListGrabberMessageHandler(listGrabber));
         }
         bot.registerMessageHandler(new ListServerMessageHandler(listServer));
-        bot.registerPrivateMessageHandler(new AuthPrivateMessageHandler(adminPassword, bot));
-        bot.registerPrivateMessageHandler(new DirectPrivateMessageHandler(bot));
-        bot.registerPrivateMessageHandler(new RequestPrivateMessageHandler(bot, queueManager));
-        bot.registerPrivateMessageHandler(new ShutdownPrivateMessageHandler(bot));
+        bot.registerPrivateMessageHandler(new AuthPrivateMessageHandler(bot, userManager));
+        bot.registerPrivateMessageHandler(new DirectPrivateMessageHandler(bot, userManager));
+        bot.registerPrivateMessageHandler(new RequestPrivateMessageHandler(bot, queueManager, userManager));
+        bot.registerPrivateMessageHandler(new ShutdownPrivateMessageHandler(bot, userManager));
         bot.registerNoticeHandler(new QueueLimitNoticeHandler(queueManager));
     }
 

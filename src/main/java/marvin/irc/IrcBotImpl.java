@@ -27,7 +27,6 @@ public class IrcBotImpl implements IrcBot {
     private List<MessageHandler> messageHandlers = new ArrayList<>();
     private List<PrivateMessageHandler> privateMessageHandlers = new ArrayList<>();
     private List<NoticeHandler> noticeHandlers = new ArrayList<>();
-    private String authorizedUser;
 
     public IrcBotImpl(String server, int port, String nick, String password, String autoJoinChannel, String adminPassword, String requestChannel, String downloadDirectory, QueueManager queueManager) {
         this.adminPassword = adminPassword;
@@ -161,14 +160,5 @@ public class IrcBotImpl implements IrcBot {
     @Override
     public void sendPrivateMessage(String recipient, String message) {
         bot.send().message(recipient, message);
-    }
-
-    public void setAuthorizedUser(String authorizedUser) {
-        this.authorizedUser = authorizedUser;
-    }
-
-    @Override
-    public String getAuthorizedUser() {
-        return authorizedUser;
     }
 }

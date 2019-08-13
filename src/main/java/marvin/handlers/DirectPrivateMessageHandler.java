@@ -1,5 +1,6 @@
 package marvin.handlers;
 
+import marvin.UserManager;
 import marvin.irc.IrcBot;
 import marvin.irc.PrivateMessageHandler;
 
@@ -9,14 +10,16 @@ import marvin.irc.PrivateMessageHandler;
 public class DirectPrivateMessageHandler implements PrivateMessageHandler {
 
     private IrcBot ircBot;
+    private UserManager userManager;
 
-    public DirectPrivateMessageHandler(IrcBot ircBot) {
+    public DirectPrivateMessageHandler(IrcBot ircBot, UserManager userManager) {
         this.ircBot = ircBot;
+        this.userManager = userManager;
     }
 
     @Override
     public void onMessage(String nick, String message) {
-        if (!nick.equals(ircBot.getAuthorizedUser())) {
+        if (!userManager.isAuthorized(nick)) {
             return;
         }
         if (message.startsWith("direct")) {

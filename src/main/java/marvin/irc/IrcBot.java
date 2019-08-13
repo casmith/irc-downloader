@@ -14,7 +14,4 @@ public interface IrcBot {
     void registerNoticeHandler(NoticeHandler handler);
 
     void messageChannel(String substring);
-
-    void setAuthorizedUser(String nick);
-    String getAuthorizedUser();
 }

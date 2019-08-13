@@ -1,28 +1,25 @@
 package marvin.handlers;
 
+import marvin.UserManager;
 import marvin.irc.IrcBot;
 import marvin.irc.PrivateMessageHandler;
 
 public class AuthPrivateMessageHandler implements PrivateMessageHandler {
 
-    private String adminPassword;
     private IrcBot bot;
+    private UserManager userManager;
 
-    public AuthPrivateMessageHandler(String adminPassword, IrcBot bot) {
-        this.adminPassword = adminPassword;
+    public AuthPrivateMessageHandler(IrcBot bot, UserManager userManager) {
         this.bot = bot;
+        this.userManager = userManager;
     }
 
     @Override
     public void onMessage(String nick, String message) {
         if (message.startsWith("auth")) {
             String passwordAttempt = message.split(" ")[1];
-            if (passwordAttempt.equals(adminPassword)) {
-                bot.setAuthorizedUser(nick);
-                bot.sendPrivateMessage(nick, "Authorized!");
-            } else {
-                bot.sendPrivateMessage(nick, "Sorry, try again?");
-            }
+            String response = userManager.authenticate(nick, passwordAttempt) ? "Authorized!" : "Sorry, try again?";
+            bot.sendPrivateMessage(nick, response);
         }
     }
 }

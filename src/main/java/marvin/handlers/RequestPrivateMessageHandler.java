@@ -1,5 +1,6 @@
 package marvin.handlers;
 
+import marvin.UserManager;
 import marvin.irc.IrcBot;
 import marvin.irc.PrivateMessageHandler;
 import marvin.irc.QueueManager;
@@ -8,15 +9,17 @@ public class RequestPrivateMessageHandler implements PrivateMessageHandler {
 
     private IrcBot ircBot;
     private QueueManager queueManager;
+    private UserManager userManager;
 
-    public RequestPrivateMessageHandler(IrcBot ircBot, QueueManager queueManager) {
+    public RequestPrivateMessageHandler(IrcBot ircBot, QueueManager queueManager, UserManager userManager) {
         this.ircBot = ircBot;
         this.queueManager = queueManager;
+        this.userManager = userManager;
     }
 
     @Override
     public void onMessage(String nick, String message) {
-        if (!nick.equals(ircBot.getAuthorizedUser())) {
+        if (!userManager.isAuthorized(nick)) {
             return;
         }
         if (message.startsWith("!")) {
@@ -31,4 +34,3 @@ public class RequestPrivateMessageHandler implements PrivateMessageHandler {
         ircBot.sendPrivateMessage(sender, "Enqueued '" + message + "'");
     }
 }
-
