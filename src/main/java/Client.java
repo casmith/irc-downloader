@@ -5,16 +5,10 @@ import marvin.ListGrabber;
 import marvin.ListServer;
 import marvin.UserManager;
 import marvin.handlers.*;
-import marvin.irc.*;
-import org.pircbotx.User;
-import org.pircbotx.hooks.events.PrivateMessageEvent;
+import marvin.irc.IrcBot;
+import marvin.irc.QueueManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import static java.lang.Integer.parseInt;
 
 public class Client {
 
