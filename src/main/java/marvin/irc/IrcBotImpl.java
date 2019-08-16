@@ -29,7 +29,6 @@ public class IrcBotImpl implements IrcBot {
     private final List<PrivateMessageHandler> privateMessageHandlers = new ArrayList<>();
     private final List<NoticeHandler> noticeHandlers = new ArrayList<>();
     private final boolean useIdent = true;
-    private final QueueManager queueManager;
 
     private PircBotX bot;
 
@@ -45,7 +44,6 @@ public class IrcBotImpl implements IrcBot {
         this.adminPassword = adminPassword;
         this.requestChannel = requestChannel;
         this.controlChannel = controlChannel;
-        this.queueManager = queueManager;
         configuration = new Configuration.Builder()
                 .addServer(server, port)
                 .setName(nick)

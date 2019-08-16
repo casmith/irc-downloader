@@ -29,12 +29,12 @@ public class Client {
 
     public Client() {
         Config config = ConfigFactory.load();
+        this.queueManager = new QueueManager();
         this.ircConfig = config.getConfig("irc");
         this.bot = IrcBotFactory.fromConfig(ircConfig, queueManager);
         this.listServer = new ListServer(bot);
         this.listGrabber = new ListGrabber(bot);
         this.requestChannel = ircConfig.getString("requestChannel");
-        this.queueManager = new QueueManager();
         this.userManager = new UserManager(this.ircConfig.getString("adminpw"));
     }
 
