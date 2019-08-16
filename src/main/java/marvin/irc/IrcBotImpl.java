@@ -1,6 +1,7 @@
 package marvin.irc;
 
 import marvin.irc.events.DownloadCompleteEvent;
+import marvin.irc.events.DownloadStartedEvent;
 import marvin.irc.events.EventSource;
 import org.pircbotx.*;
 import org.pircbotx.exception.IrcException;
@@ -28,6 +29,7 @@ public class IrcBotImpl implements IrcBot {
     private final List<PrivateMessageHandler> privateMessageHandlers = new ArrayList<>();
     private final List<NoticeHandler> noticeHandlers = new ArrayList<>();
     private final boolean useIdent = true;
+    private final QueueManager queueManager;
 
     private PircBotX bot;
 
@@ -43,6 +45,7 @@ public class IrcBotImpl implements IrcBot {
         this.adminPassword = adminPassword;
         this.requestChannel = requestChannel;
         this.controlChannel = controlChannel;
+        this.queueManager = queueManager;
         configuration = new Configuration.Builder()
                 .addServer(server, port)
                 .setName(nick)
@@ -83,15 +86,25 @@ public class IrcBotImpl implements IrcBot {
                 .buildConfiguration();
 
         eventSource.subscribe(event -> {
-            if (event instanceof DownloadCompleteEvent) {
-                DownloadCompleteEvent dce = (DownloadCompleteEvent) event;
-                queueManager.dec(dce.getNick());
-                if (!dce.isSuccess()) {
-                    queueManager.retry(dce.getNick(), dce.getFileName());
-                    messageControlChannel("Download {0} from {1} finished");
-                } else {
-                    messageControlChannel("Download {0} from {1} failed, retrying");
+            try {
+                LOG.info("event observed {}", event);
+                if (event instanceof DownloadStartedEvent) {
+                    DownloadStartedEvent dse = (DownloadStartedEvent) event;
+                    messageControlChannel("Download {0} from {1} started", dse.getFileName(), dse.getNick());
                 }
+
+                if (event instanceof DownloadCompleteEvent) {
+                    DownloadCompleteEvent dce = (DownloadCompleteEvent) event;
+                    queueManager.dec(dce.getNick());
+                    if (!dce.isSuccess()) {
+                        messageControlChannel("Download {0} from {1} failed, retrying", dce.getFileName(), dce.getNick());
+                        queueManager.retry(dce.getNick(), dce.getFileName());
+                    } else {
+                        messageControlChannel("Download {0} from {1} finished", dce.getFileName(), dce.getNick());
+                    }
+                }
+            } catch (Exception e) {
+                LOG.debug("Exception occurred {}", e.getMessage(), e);
             }
         });
     }
@@ -131,7 +144,9 @@ public class IrcBotImpl implements IrcBot {
     }
 
     public void messageControlChannel(String message, Object... args) {
-        bot.send().message(controlChannel, formatMessage(message, args));
+        String formattedMessage = formatMessage(message, args);
+        LOG.info("Sending message to {}: {}", controlChannel, formattedMessage);
+        bot.send().message(controlChannel, formattedMessage);
     }
 
     public String formatMessage(String message, Object... args) {
@@ -185,5 +200,9 @@ public class IrcBotImpl implements IrcBot {
     @Override
     public void sendPrivateMessage(String recipient, String message) {
         bot.send().message(recipient, message);
+    }
+
+    public EventSource getEventSource() {
+        return eventSource;
     }
 }
