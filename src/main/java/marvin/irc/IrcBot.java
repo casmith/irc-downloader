@@ -13,5 +13,6 @@ public interface IrcBot {
     void registerPrivateMessageHandler(PrivateMessageHandler handler);
     void registerNoticeHandler(NoticeHandler handler);
 
-    void messageChannel(String substring);
+    void messageChannel(String substring, Object... args);
+    void messageControlChannel(String substring, Object... args);
 }

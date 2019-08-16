@@ -1,6 +1,7 @@
 package marvin.irc;
 
 import marvin.irc.events.DownloadCompleteEvent;
+import marvin.irc.events.DownloadStartedEvent;
 import marvin.irc.events.EventSource;
 import org.apache.commons.lang3.StringUtils;
 import org.pircbotx.User;
@@ -36,6 +37,7 @@ public class IncomingFileTransferListener extends ListenerAdapter {
         boolean success = false;
         File file = getDownloadFile(event.getSafeFilename());
         LOG.info("Receiving {} from {}", file.getName(), sender);
+        this.eventSource.publish(new DownloadStartedEvent(nick, file.getName()));
         try {
             ReceiveFileTransfer accept = event.accept(file);
             accept.transfer();

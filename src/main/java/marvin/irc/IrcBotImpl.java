@@ -12,38 +12,50 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 
 public class IrcBotImpl implements IrcBot {
 
-    private final boolean useIdent = true;
     private static final Logger LOG = LoggerFactory.getLogger(IrcBotImpl.class);
-    private PircBotX bot;
-    private String adminPassword;
-    private String requestChannel;
-    private Configuration configuration;
-    private EventSource eventSource = new EventSource();
-    private List<MessageHandler> messageHandlers = new ArrayList<>();
-    private List<PrivateMessageHandler> privateMessageHandlers = new ArrayList<>();
-    private List<NoticeHandler> noticeHandlers = new ArrayList<>();
+    private final String adminPassword;
+    private final String requestChannel;
+    private final String controlChannel;
+    private final Configuration configuration;
+    private final EventSource eventSource = new EventSource();
+    private final List<MessageHandler> messageHandlers = new ArrayList<>();
+    private final List<PrivateMessageHandler> privateMessageHandlers = new ArrayList<>();
+    private final List<NoticeHandler> noticeHandlers = new ArrayList<>();
+    private final boolean useIdent = true;
 
-    public IrcBotImpl(String server, int port, String nick, String password, String autoJoinChannel, String adminPassword, String requestChannel, String downloadDirectory, QueueManager queueManager) {
+    private PircBotX bot;
+
+    public IrcBotImpl(String server,
+                      int port,
+                      String nick,
+                      String password,
+                      String adminPassword,
+                      String controlChannel,
+                      String requestChannel,
+                      String downloadDirectory,
+                      QueueManager queueManager) {
         this.adminPassword = adminPassword;
         this.requestChannel = requestChannel;
+        this.controlChannel = controlChannel;
         configuration = new Configuration.Builder()
                 .addServer(server, port)
                 .setName(nick)
                 .setRealName(nick)
                 .setLogin(nick)
                 .setServerPassword(password)
-                .addAutoJoinChannel(autoJoinChannel)
+                .addAutoJoinChannel(controlChannel)
                 .addAutoJoinChannel(requestChannel)
                 .setIdentServerEnabled(useIdent)
                 .setAutoReconnectAttempts(10)
                 .setAutoReconnectDelay(5000)
                 .setAutoReconnect(true)
-                .addListener(new QueueProcessorListener(autoJoinChannel, "queue.txt"))
+                .addListener(new QueueProcessorListener(requestChannel, "queue.txt"))
                 .addListener(new IncomingFileTransferListener(eventSource, downloadDirectory))
                 .addListener(new ListenerAdapter() {
                     @Override
@@ -74,7 +86,12 @@ public class IrcBotImpl implements IrcBot {
             if (event instanceof DownloadCompleteEvent) {
                 DownloadCompleteEvent dce = (DownloadCompleteEvent) event;
                 queueManager.dec(dce.getNick());
-                queueManager.retry(dce.getNick(), dce.getFileName());
+                if (!dce.isSuccess()) {
+                    queueManager.retry(dce.getNick(), dce.getFileName());
+                    messageControlChannel("Download {0} from {1} finished");
+                } else {
+                    messageControlChannel("Download {0} from {1} failed, retrying");
+                }
             }
         });
     }
@@ -109,8 +126,16 @@ public class IrcBotImpl implements IrcBot {
         startIrcBot();
     }
 
-    public void messageChannel(String requestMessage) {
-        bot.send().message(requestChannel, requestMessage);
+    public void messageChannel(String message, Object... args) {
+        bot.send().message(requestChannel, formatMessage(message, args));
+    }
+
+    public void messageControlChannel(String message, Object... args) {
+        bot.send().message(controlChannel, formatMessage(message, args));
+    }
+
+    public String formatMessage(String message, Object... args) {
+        return MessageFormat.format(message, args);
     }
 
     private void startIrcBot() {
