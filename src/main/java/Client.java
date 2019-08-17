@@ -1,9 +1,6 @@
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
-import marvin.IrcBotFactory;
-import marvin.ListGrabber;
-import marvin.ListServer;
-import marvin.UserManager;
+import marvin.*;
 import marvin.handlers.*;
 import marvin.irc.IrcBot;
 import marvin.irc.QueueManager;
@@ -33,7 +30,8 @@ public class Client {
         this.ircConfig = config.getConfig("irc");
         this.bot = IrcBotFactory.fromConfig(ircConfig, queueManager);
         this.listServer = new ListServer(bot);
-        this.listGrabber = new ListGrabber(bot);
+        ListManager listManager = new ListManager();
+        this.listGrabber = new ListGrabber(bot, "list-manager.dat");
         this.requestChannel = ircConfig.getString("requestChannel");
         this.userManager = new UserManager(this.ircConfig.getString("adminpw"));
     }
@@ -45,7 +43,8 @@ public class Client {
 
     private void registerHandlers() {
         if (isFeatureEnabled("enableListGrab")) {
-            bot.registerMessageHandler(new ListGrabberMessageHandler(listGrabber));
+            LOG.info("List grabbing is enabled");
+            bot.registerMessageHandler(new ListGrabberMessageHandler(listGrabber, bot));
         }
         bot.registerMessageHandler(new ListServerMessageHandler(listServer));
         bot.registerPrivateMessageHandler(new AuthPrivateMessageHandler(bot, userManager));

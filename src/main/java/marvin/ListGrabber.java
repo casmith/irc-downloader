@@ -2,34 +2,63 @@ package marvin;
 
 import marvin.irc.IrcBot;
 
-import java.util.HashSet;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ListGrabber {
+    private final String listManagerFileName;
     private IrcBot ircBot;
-    private Set<String> lists = new HashSet<>();
-
-    public ListGrabber(IrcBot ircBot) {
+    private ListManager listManager;
+    public ListGrabber(IrcBot ircBot, String listManagerFileName) {
         this.ircBot = ircBot;
+        this.listManagerFileName = listManagerFileName;
+        this.listManager = initializeListManager(listManagerFileName);
+    }
+
+    private ListManager initializeListManager(String listManagerFileName) {
+        ListManager aListManager = loadListManager(listManagerFileName);
+        if (listManager == null) {
+            aListManager = new ListManager();
+        }
+        return aListManager;
+    }
+
+    private ListManager loadListManager(String listManagerFileName) {
+        if (listManagerFileName != null) {
+            return ListManager.load(listManagerFileName);
+        }
+        return null;
     }
 
     public boolean check(String message) {
-        Pattern pattern = Pattern.compile("Type: (@.*) for my list");
-        return pattern.matcher(message).matches();
+        Pattern pattern = getPattern();
+        return pattern.matcher(message.toLowerCase()).matches();
+    }
+
+    private Pattern getPattern() {
+        return Pattern.compile(".*type: (@.*) for my list.*");
     }
 
     public void grab(String channelName, String message) {
-        Pattern pattern = Pattern.compile("Type: (@.*) for my list");
-        Matcher matcher = pattern.matcher(message);
+        Pattern pattern = getPattern();
+        Matcher matcher = pattern.matcher(message.toLowerCase());
         if (!matcher.matches()) {
-            System.out.println("Oh no");
             return;
         }
         String listQuery = matcher.group(1);
-        if (lists.add(listQuery)) {
+        if (listManager.add(listQuery)) {
+            saveListManager();
             ircBot.sendToChannel(channelName, listQuery);
         }
+    }
+
+    private void saveListManager() {
+        if (this.listManagerFileName != null) {
+            ListManager.save(listManager, listManagerFileName);
+        }
+    }
+
+    public static void main(String[] args) {
+        System.out.println(ListManager.load("list-manager.dat"));
     }
 }

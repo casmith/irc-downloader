@@ -19,13 +19,14 @@ public class ListGrabberTest {
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-        listGrabber = new ListGrabber(ircBot);
+        listGrabber = new ListGrabber(ircBot, null);
     }
 
     @Test
     public void check() {
         assertFalse(listGrabber.check("I have a list blah blah @me"));
         assertTrue(listGrabber.check("Type: @marvin for my list"));
+        assertTrue(listGrabber.check("� Type: @Mr_Mp3 For My List Of: 454,164 Files � Slots: 5/5 � Queued: 0 � Speed: 0cps � Next: NOW � Served: 139,868 � List: Aug 15th � Search: ON � Mode: Normal �"));
     }
 
     @Test
