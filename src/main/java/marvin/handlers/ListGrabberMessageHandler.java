@@ -20,9 +20,8 @@ public class ListGrabberMessageHandler implements MessageHandler {
     @Override
     public void onMessage(String channelName, String nick, String message) {
         LOG.debug("{} {}", channelName, message);
-        if (listGrabber.check(message)) {
-            listGrabber.grab(channelName, message);
-            bot.messageControlChannel("Requesting list from {0}", nick);
+        if (listGrabber.grab(channelName, message)) {
+            bot.messageControlChannel("Requested list from {0}", nick);
         }
     }
 }

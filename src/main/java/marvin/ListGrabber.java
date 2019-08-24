@@ -39,17 +39,19 @@ public class ListGrabber {
         return Pattern.compile(".*type: (@.*) for my list.*");
     }
 
-    public void grab(String channelName, String message) {
+    public boolean grab(String channelName, String message) {
         Pattern pattern = getPattern();
         Matcher matcher = pattern.matcher(message.toLowerCase());
         if (!matcher.matches()) {
-            return;
+            return false;
         }
         String listQuery = matcher.group(1);
         if (listManager.add(listQuery)) {
             saveListManager();
             ircBot.sendToChannel(channelName, listQuery);
+            return true;
         }
+        return false;
     }
 
     private void saveListManager() {
