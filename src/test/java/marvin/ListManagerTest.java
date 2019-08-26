@@ -2,8 +2,7 @@ package marvin;
 
 import org.junit.Test;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 public class ListManagerTest {
 
@@ -25,9 +24,9 @@ public class ListManagerTest {
     }
 
     @Test
-    public void test() {
-
-
+    public void testDuplicates() {
+        ListManager listManager = new ListManager();
+        assertTrue(listManager.add("!testguy"));
+        assertFalse(listManager.add("!testguy"));
     }
-
 }

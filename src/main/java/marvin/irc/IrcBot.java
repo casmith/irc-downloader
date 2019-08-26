@@ -1,5 +1,7 @@
 package marvin.irc;
 
+import java.io.File;
+
 public interface IrcBot {
     void start();
     void shutdown();
@@ -15,4 +17,6 @@ public interface IrcBot {
 
     void messageChannel(String substring, Object... args);
     void messageControlChannel(String substring, Object... args);
+
+    void sendFile(String nick, File file);
 }

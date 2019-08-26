@@ -1,11 +1,16 @@
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
-import marvin.*;
+import marvin.IrcBotFactory;
+import marvin.ListGrabber;
+import marvin.ListServer;
+import marvin.UserManager;
 import marvin.handlers.*;
 import marvin.irc.IrcBot;
 import marvin.irc.QueueManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.File;
 
 public class Client {
 
@@ -16,6 +21,7 @@ public class Client {
     private final ListServer listServer;
     private final ListGrabber listGrabber;
     private final String requestChannel;
+    private final String list;
     private QueueManager queueManager;
     private UserManager userManager;
     private boolean isRunning;
@@ -30,10 +36,10 @@ public class Client {
         this.ircConfig = config.getConfig("irc");
         this.bot = IrcBotFactory.fromConfig(ircConfig, queueManager);
         this.listServer = new ListServer(bot);
-        ListManager listManager = new ListManager();
         this.listGrabber = new ListGrabber(bot, "list-manager.dat");
         this.requestChannel = ircConfig.getString("requestChannel");
         this.userManager = new UserManager(this.ircConfig.getString("adminpw"));
+        this.list = ircConfig.getString("list");
     }
 
     public void run() {
@@ -42,11 +48,34 @@ public class Client {
     }
 
     private void registerHandlers() {
-        if (isFeatureEnabled("enableListGrab")) {
+        if (isFeatureEnabled("listGrab")) {
             LOG.info("List grabbing is enabled");
             bot.registerMessageHandler(new ListGrabberMessageHandler(listGrabber, bot));
         }
         bot.registerMessageHandler(new ListServerMessageHandler(listServer));
+        bot.registerMessageHandler((channelName, nick, message) -> {
+            // request file
+            String botNick = this.bot.getNick();
+            String requestPrefix = "!" + botNick;
+            if (channelName.equals(this.requestChannel) && message.startsWith(requestPrefix)) {
+                String fileName = message.replace(requestPrefix, "").trim();
+                bot.sendToChannel(this.requestChannel, "Sending " + fileName + " to " + nick);
+                File file = new File(fileName);
+                // TODO: ensure the file is w/in the music directory, or this could be super dangerous!
+                if (file.exists() && !file.isDirectory()) {
+                    bot.sendFile(nick, file);
+                }
+            }
+
+            // request list
+            String listKeyword = "@" + botNick;
+            LOG.info("{} {} {} {}", this.requestChannel, channelName, message.trim(), listKeyword);
+            if (channelName.equals(this.requestChannel) && message.trim().equals(listKeyword)) {
+                LOG.info("Sending list to {}", nick);
+                bot.sendFile(nick, new File(this.list));
+            }
+        });
+
         bot.registerPrivateMessageHandler(new AuthPrivateMessageHandler(bot, userManager));
         bot.registerPrivateMessageHandler(new DirectPrivateMessageHandler(bot, userManager));
         bot.registerPrivateMessageHandler(new RequestPrivateMessageHandler(bot, queueManager, userManager));
@@ -88,7 +117,7 @@ public class Client {
     }
 
     private boolean isFeatureEnabled(String feature) {
-        return ircConfig.hasPath(feature)
+        return ircConfig.hasPath("features." + feature)
                 && ircConfig.getBoolean(feature);
     }
 }

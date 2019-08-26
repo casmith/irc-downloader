@@ -12,6 +12,7 @@ import org.pircbotx.hooks.events.PrivateMessageEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -202,5 +203,17 @@ public class IrcBotImpl implements IrcBot {
 
     public EventSource getEventSource() {
         return eventSource;
+    }
+
+    @Override
+    public void sendFile(String nick, File file) {
+        User user = bot.getUserChannelDao().getUser(nick);
+        LOG.debug(user.toString());
+        LOG.debug(file.toString());
+        try {
+            user.send().dccFile(file).transfer();
+        } catch (IOException | InterruptedException e) {
+            LOG.error("Failed to send file", e);
+        }
     }
 }
