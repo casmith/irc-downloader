@@ -53,30 +53,16 @@ public class Client {
         if (isFeatureEnabled("listGrab")) {
             LOG.info("List grabbing is enabled");
             bot.registerMessageHandler(new ListGrabberMessageHandler(listGrabber, bot));
-        }
-
-        if (this.isFeatureEnabled("serve")) {
-            LOG.info("List serving is enabled");
-            bot.registerMessageHandler(new ListServerMessageHandler(listServer));
         } else {
-            LOG.info("List serving is disabled");
+            LOG.info("List grabbing is disabled");
         }
 
         if (this.isFeatureEnabled("serve")) {
-            bot.registerMessageHandler((channelName, nick, message) -> {
-                // request file
-                String botNick = this.bot.getNick();
-                String requestPrefix = "!" + botNick;
-                if (channelName.equals(this.requestChannel) && message.startsWith(requestPrefix)) {
-                    String fileName = message.replace(requestPrefix, "").trim();
-                    bot.sendToChannel(this.requestChannel, "Sending " + fileName + " to " + nick);
-                    File file = new File(fileName);
-                    // TODO: ensure the file is w/in the music directory, or this could be super dangerous!
-                    if (file.exists() && !file.isDirectory()) {
-                        bot.sendFile(nick, file);
-                    }
-                }
-            });
+            LOG.info("File serving is enabled");
+            bot.registerMessageHandler(new ListServerMessageHandler(listServer));
+            bot.registerMessageHandler(new FileRequestMessageHandler(bot, requestChannel));
+        } else {
+            LOG.info("File serving is disabled");
         }
 
         bot.registerPrivateMessageHandler(new AuthPrivateMessageHandler(bot, userManager));
