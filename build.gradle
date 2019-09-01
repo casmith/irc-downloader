@@ -3,6 +3,9 @@ version '1.0-SNAPSHOT'
 
 apply plugin: 'java'
 apply plugin: 'jacoco'
+apply plugin: 'application'
+
+mainClassName = "Client"
 
 sourceCompatibility = 1.8
 
@@ -34,3 +37,4 @@ task zip(type: Zip) {
     from configurations.runtime
     into(project.name + '-' + project.version)
 }
+
