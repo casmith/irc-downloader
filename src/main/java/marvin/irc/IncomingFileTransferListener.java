@@ -38,15 +38,22 @@ public class IncomingFileTransferListener extends ListenerAdapter {
         File file = getDownloadFile(event.getSafeFilename());
         LOG.info("Receiving {} from {}", file.getName(), sender);
         this.eventSource.publish(new DownloadStartedEvent(nick, file.getName()));
+        long bytes = -1;
+        long start = System.currentTimeMillis();
         try {
             ReceiveFileTransfer accept = event.accept(file);
             accept.transfer();
-            LOG.info("Done downloading " + file.getAbsolutePath());
+            long ms = System.currentTimeMillis() - start;
+            long seconds = ms / 1000;
+            bytes = accept.getFileSize();
+            long kbps = (bytes - 1024) / seconds;
+            LOG.info("Done downloading {} in {}s ({} KiB/s)", file.getAbsolutePath(), seconds, kbps);
             success = true;
         } catch (Exception e) {
             LOG.error("File transfer failed", e);
         } finally {
-            this.eventSource.publish(new DownloadCompleteEvent(nick, file.getName(), success));
+            long duration = System.currentTimeMillis() - start;
+            this.eventSource.publish(new DownloadCompleteEvent(nick, file.getName(), bytes, duration, success));
         }
     }
 

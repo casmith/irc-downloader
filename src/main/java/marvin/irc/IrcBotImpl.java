@@ -99,7 +99,9 @@ public class IrcBotImpl implements IrcBot {
                         messageControlChannel("Download {0} from {1} failed, retrying", dce.getFileName(), dce.getNick());
                         queueManager.retry(dce.getNick(), dce.getFileName());
                     } else {
-                        messageControlChannel("Download {0} from {1} finished", dce.getFileName(), dce.getNick());
+                        long seconds = dce.getDuration() / 1000;
+                        long kbps = dce.getBytes() / seconds / 1024;
+                        messageControlChannel("Download {0} from {1} finished in {2} seconds ({3} KiB/s)", dce.getFileName(), dce.getNick(), seconds, kbps);
                     }
                 }
             } catch (Exception e) {
