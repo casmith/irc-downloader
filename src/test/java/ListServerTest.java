@@ -16,14 +16,14 @@ public class ListServerTest {
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-        listServer = new ListServer(ircBot);
+        listServer = new ListServer(ircBot, "#requestchannel", "c:\\temp\\list.txt");
     }
 
     @Test
     public void check() {
         when(ircBot.getNick()).thenReturn("marvinbot");
-        assertTrue(listServer.check("@marvinbot"));
-        assertFalse(listServer.check("@notmarvin"));
+        assertTrue(listServer.check("#requestchannel", "@marvinbot"));
+        assertFalse(listServer.check("#requestchannel","@notmarvin"));
     }
 
     @Test
