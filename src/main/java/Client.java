@@ -26,6 +26,7 @@ public class Client {
     private QueueManager queueManager;
     private UserManager userManager;
     private boolean isRunning;
+    private File listRoot;
 
     public static void main(String[] args) {
         new Client().run();
@@ -42,6 +43,7 @@ public class Client {
         this.listServer = new ListServer(bot, this.requestChannel, this.list);
         this.listGrabber = new ListGrabber(bot, "list-manager.dat");
         this.userManager = new UserManager(this.ircConfig.getString("adminpw"));
+        this.listRoot = new File(this.ircConfig.getString("listRoot"));
     }
 
     public void run() {
@@ -60,7 +62,7 @@ public class Client {
         if (this.isFeatureEnabled("serve")) {
             LOG.info("File serving is enabled");
             bot.registerMessageHandler(new ListServerMessageHandler(listServer));
-            bot.registerMessageHandler(new FileRequestMessageHandler(bot, requestChannel));
+            bot.registerMessageHandler(new FileRequestMessageHandler(bot, requestChannel, this.listRoot));
         } else {
             LOG.info("File serving is disabled");
         }

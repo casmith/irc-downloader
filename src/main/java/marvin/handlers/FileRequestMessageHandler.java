@@ -9,26 +9,31 @@ public class FileRequestMessageHandler implements MessageHandler {
 
     private IrcBot bot;
     private String requestChannel;
+    private File listRoot;
 
-    public FileRequestMessageHandler(IrcBot bot, String requestChannel) {
+    public FileRequestMessageHandler(IrcBot bot, String requestChannel, File listRoot) {
         this.bot = bot;
         this.requestChannel = requestChannel;
+        this.listRoot = listRoot;
     }
 
     @Override
     public void onMessage(String channelName, String nick, String message) {
-
-        // request file
         String botNick = this.bot.getNick();
         String requestPrefix = "!" + botNick;
         if (channelName.equals(this.requestChannel) && message.startsWith(requestPrefix)) {
             String fileName = message.replace(requestPrefix, "").trim();
-            bot.sendToChannel(this.requestChannel, "Sending " + fileName + " to " + nick);
             File file = new File(fileName);
-            // TODO: ensure the file is w/in the music directory, or this could be super dangerous!
-            if (file.exists() && !file.isDirectory()) {
+            if (isWithinDownloadDirectory(file) && file.exists() && !file.isDirectory()) {
+                bot.sendToChannel(this.requestChannel, "Sending " + fileName + " to " + nick);
                 bot.sendFile(nick, file);
+            } else {
+                bot.sendPrivateMessage(nick, file.getAbsolutePath() + " was not found");
             }
         }
+    }
+
+    private boolean isWithinDownloadDirectory(File file) {
+        return file.getAbsolutePath().startsWith(listRoot.getAbsolutePath());
     }
 }
