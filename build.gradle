@@ -1,11 +1,11 @@
-group 'casmith'
+group 'marvin'
 version '1.0-SNAPSHOT'
 
 apply plugin: 'java'
 apply plugin: 'jacoco'
 apply plugin: 'application'
 
-mainClassName = "Client"
+mainClassName = "marvin.Client"
 
 sourceCompatibility = 1.8
 
@@ -31,6 +31,8 @@ jacocoTestReport {
         html.enabled true
     }
 }
+
+test.finalizedBy jacocoTestReport
 
 task zip(type: Zip) {
     from configurations.runtime.allArtifacts.files
