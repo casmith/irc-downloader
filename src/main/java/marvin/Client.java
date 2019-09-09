@@ -1,9 +1,7 @@
+package marvin;
+
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
-import marvin.IrcBotFactory;
-import marvin.ListGrabber;
-import marvin.ListServer;
-import marvin.UserManager;
 import marvin.handlers.*;
 import marvin.irc.IrcBot;
 import marvin.irc.QueueManager;

@@ -1,4 +1,5 @@
-import marvin.ListGrabber;
+package marvin;
+
 import marvin.irc.IrcBot;
 import org.junit.Before;
 import org.junit.Test;

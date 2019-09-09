@@ -1,3 +1,5 @@
+package marvin;
+
 import java.util.Queue;
 
 public interface DownloadQueueRepository {
