@@ -5,6 +5,7 @@ import com.typesafe.config.ConfigFactory;
 import marvin.handlers.*;
 import marvin.irc.IrcBot;
 import marvin.irc.QueueManager;
+import marvin.irc.ReceiveQueueManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,7 +33,7 @@ public class Client {
 
     public Client() {
         Config config = ConfigFactory.load();
-        this.queueManager = new QueueManager();
+        this.queueManager = new ReceiveQueueManager();
         this.config = config;
         this.ircConfig = config.getConfig("irc");
         this.bot = IrcBotFactory.fromConfig(ircConfig, queueManager);

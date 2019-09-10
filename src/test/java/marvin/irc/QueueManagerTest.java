@@ -8,7 +8,7 @@ import java.util.Queue;
 public class QueueManagerTest {
     @Test
     public void testRetry() {
-        QueueManager queueManager = new QueueManager();
+        QueueManager queueManager = new ReceiveQueueManager();
         queueManager.addInProgress("SomeGuy", "!SomeGuy Dokken (Erase The Slate) - 06 - One.mp3  ::INFO:: 5.02Mb  VBR/44.10/JS");
         queueManager.addInProgress("SomeGuy","!Moros Dokken (Erase The Slate) - 07 - Who Believes.mp3  ::INFO:: 7.34Mb  VBR/44.10/JS");
         queueManager.addInProgress("SomeGuy","!Moros Dokken (Erase The Slate) - 08 - Voice Of The Soul.mp3  ::INFO:: 6.88Mb  VBR/44.10/JS");

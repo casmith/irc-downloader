@@ -14,7 +14,7 @@ public class IrcBotImplTest {
             "#control",
             "#requestChannel",
             "downloadDir",
-            new QueueManager());
+            new ReceiveQueueManager());
 
     @Test
     public void formatMessage() {
