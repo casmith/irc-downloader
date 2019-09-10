@@ -6,6 +6,7 @@ import marvin.handlers.*;
 import marvin.irc.IrcBot;
 import marvin.irc.QueueManager;
 import marvin.irc.ReceiveQueueManager;
+import marvin.irc.SendQueueManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,7 +23,8 @@ public class Client {
     private final String requestChannel;
     private final String list;
     private final Config config;
-    private QueueManager queueManager;
+    private final QueueManager sendQueueManager;
+    private final QueueManager queueManager;
     private UserManager userManager;
     private boolean isRunning;
     private File listRoot;
@@ -34,6 +36,7 @@ public class Client {
     public Client() {
         Config config = ConfigFactory.load();
         this.queueManager = new ReceiveQueueManager();
+        this.sendQueueManager = new SendQueueManager();
         this.config = config;
         this.ircConfig = config.getConfig("irc");
         this.bot = IrcBotFactory.fromConfig(ircConfig, queueManager);
@@ -61,7 +64,7 @@ public class Client {
         if (this.isFeatureEnabled("serve")) {
             LOG.info("File serving is enabled");
             bot.registerMessageHandler(new ListServerMessageHandler(listServer));
-            bot.registerMessageHandler(new FileRequestMessageHandler(bot, requestChannel, this.listRoot));
+            bot.registerMessageHandler(new FileRequestMessageHandler(bot, sendQueueManager, requestChannel, this.listRoot));
         } else {
             LOG.info("File serving is disabled");
         }
@@ -76,26 +79,53 @@ public class Client {
     private void start() {
         try {
             isRunning = true;
-            new Thread(() -> {
-                while (isRunning) {
-                    queueManager.getQueues().forEach((nick, queue) -> {
-                        if (!queue.isEmpty()) {
-                            if (queueManager.inc(nick)) {
-                                String message = queue.poll();
-                                LOG.info("Requesting: {}", message);
-                                bot.sendToChannel(requestChannel, message);
-                                queueManager.addInProgress(nick, message);
-                            }
-                        }
-                    });
-                    sleep(10);
-                }
-            }).start();
+            startReceiveQueueProcessor();
+            if (this.isFeatureEnabled("serve")) {
+                startSendQueueProcessor();
+            }
             bot.start();
         } catch (Exception ex) {
             bot.shutdown();
             isRunning = false;
         }
+    }
+
+    private void startReceiveQueueProcessor() {
+        LOG.info("Starting receive queue processor");
+        new Thread(() -> {
+            while (isRunning) {
+                queueManager.getQueues().forEach((nick, queue) -> {
+                    if (!queue.isEmpty()) {
+                        if (queueManager.inc(nick)) {
+                            String message = queue.poll();
+                            LOG.info("Requesting: {}", message);
+                            bot.sendToChannel(requestChannel, message);
+                            queueManager.addInProgress(nick, message);
+                        }
+                    }
+                });
+                sleep(10);
+            }
+        }).start();
+    }
+
+    private void startSendQueueProcessor() {
+        LOG.info("Starting send queue processor");
+        new Thread(() -> {
+            while (isRunning) {
+                sendQueueManager.getQueues().forEach((nick, queue) -> {
+                    if (!queue.isEmpty()) {
+                        if (queueManager.inc(nick)) {
+                            String file = queue.poll();
+                            // TODO: keep track of transfers in progress
+                            bot.sendToChannel(this.requestChannel, "Sending " + file + " to " + nick);
+                            bot.sendFile(nick, new File(file));
+                        }
+                    }
+                });
+                sleep(10);
+            }
+        }).start();
     }
 
     private void sleep(int seconds) {
