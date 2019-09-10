@@ -21,4 +21,6 @@ public interface QueueManager {
     void addInProgress(String nick, String message);
 
     void retry(String nick, String filename);
+
+    Integer getLimit(String nick);
 }

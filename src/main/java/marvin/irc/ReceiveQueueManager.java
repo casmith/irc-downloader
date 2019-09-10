@@ -5,13 +5,12 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
-public class ReceiveQueueManager implements QueueManager {
+public class ReceiveQueueManager extends AbstractQueueManager
+        implements QueueManager {
 
     private static final Logger LOG = LoggerFactory.getLogger(ReceiveQueueManager.class);
 
-    private Map<String, Queue<String>> queues = new HashMap<>();
     private Map<String, Queue<String>> inProgress = new HashMap<>();
-    private Map<String, Integer> limits = new HashMap<>();
     private Map<String, Integer> queued = new HashMap<>();
 
     @Override
@@ -57,39 +56,8 @@ public class ReceiveQueueManager implements QueueManager {
         LOG.info("Queue for {}: {}/{}", nick, current, limit);
     }
 
-    private Integer getLimit(String nick) {
-        return limits.getOrDefault(nick, 10);
-    }
-
     private Integer getCurrent(String nick) {
         return queued.getOrDefault(nick, 0);
-    }
-
-    @Override
-    public void updateLimit(String nick, int limit) {
-        // artificially cap at 10 for testing
-        if (limit > 10) {
-            limit = 10;
-        }
-        synchronized (this) {
-            limits.put(nick, limit);
-            printStats(nick);
-        }
-    }
-
-    @Override
-    public void enqueue(String nick, String message) {
-        getQueue(nick).offer(message);
-    }
-
-    @Override
-    public Queue<String> getQueue(String nick) {
-        return queues.computeIfAbsent(nick, s -> new LinkedList<>());
-    }
-
-    @Override
-    public Map<String, Queue<String>> getQueues() {
-        return queues;
     }
 
     @Override
