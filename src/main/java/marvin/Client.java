@@ -115,11 +115,18 @@ public class Client {
             while (isRunning) {
                 sendQueueManager.getQueues().forEach((nick, queue) -> {
                     if (!queue.isEmpty()) {
-                        if (queueManager.inc(nick)) {
+                        if (sendQueueManager.inc(nick)) {
                             String file = queue.poll();
-                            // TODO: keep track of transfers in progress
-                            bot.sendToChannel(this.requestChannel, "Sending " + file + " to " + nick);
-                            bot.sendFile(nick, new File(file));
+                            if (file != null) {
+                                try {
+                                    bot.sendToChannel(this.requestChannel, "Sending " + file + " to " + nick);
+                                    bot.sendFile(nick, new File(file));
+                                } catch (Exception e) {
+                                    LOG.error("Error sending file {} to {}: {}", file, nick, e.getMessage());
+                                } finally {
+                                    sendQueueManager.dec(nick);
+                                }
+                            }
                         }
                     }
                 });

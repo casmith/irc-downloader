@@ -11,54 +11,6 @@ public class ReceiveQueueManager extends AbstractQueueManager
     private static final Logger LOG = LoggerFactory.getLogger(ReceiveQueueManager.class);
 
     private Map<String, Queue<String>> inProgress = new HashMap<>();
-    private Map<String, Integer> queued = new HashMap<>();
-
-    @Override
-    public void update(String nick, int current) {
-        synchronized (this) {
-            queued.put(nick, current);
-            printStats(nick);
-        }
-    }
-
-    @Override
-    public boolean inc(String nick) {
-        synchronized (this) {
-            boolean success = false;
-            Integer limit = getLimit(nick);
-            Integer current = getCurrent(nick);
-            if (current < limit) {
-                queued.put(nick, ++current);
-                success = true;
-                printStats(nick);
-            }
-            return success;
-        }
-    }
-
-    @Override
-    public boolean dec(String nick) {
-        synchronized (this) {
-            boolean success = false;
-            Integer current = getCurrent(nick);
-            if (current > 0) {
-                queued.put(nick, --current);
-                success = true;
-                printStats(nick);
-            }
-            return success;
-        }
-    }
-
-    private void printStats(String nick) {
-        Integer current = getCurrent(nick);
-        Integer limit = getLimit(nick);
-        LOG.info("Queue for {}: {}/{}", nick, current, limit);
-    }
-
-    private Integer getCurrent(String nick) {
-        return queued.getOrDefault(nick, 0);
-    }
 
     @Override
     public void addInProgress(String nick, String message) {
