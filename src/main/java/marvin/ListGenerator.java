@@ -6,7 +6,6 @@ import com.typesafe.config.ConfigFactory;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.MessageFormat;
 import java.time.LocalDate;
@@ -30,9 +29,10 @@ public class ListGenerator {
         try {
             FileWriter fileWriter = new FileWriter(MessageFormat.format("{0}-Default({1})-MB.txt", nick, LocalDate.now().format(DateTimeFormatter.ISO_DATE)));
             ListGenerator listGenerator = new ListGenerator(nick, fileWriter);
-            listGenerator.listFiles(new File("s:/music"));
+            listGenerator.listFiles(new File(config.getString("irc.listRoot")));
             listGenerator.printStatistics();
             System.out.println("done");
+            fileWriter.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -78,6 +78,7 @@ public class ListGenerator {
     public void writeLine(String line) {
         try {
             fileWriter.write(line + "\n");
+            System.out.println(line);
         } catch (IOException e) {
             e.printStackTrace();
         }
