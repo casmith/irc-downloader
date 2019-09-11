@@ -62,13 +62,17 @@ public class ListGenerator {
 
             File[] dirs = file.listFiles(File::isDirectory);
             if (dirs.length > 0) {
-                Arrays.stream(dirs).forEach(this::listFiles);
+                Arrays.stream(dirs)
+                        .sorted()
+                        .forEach(this::listFiles);
             }
         }
     }
 
     public void writeFiles(File[] files) {
-        Arrays.stream(files).forEach(file1 -> {
+        Arrays.stream(files)
+                .sorted()
+                .forEach(file1 -> {
             bytes += file1.length();
             count++;
             writeLine("!" + nick + " " + file1);
