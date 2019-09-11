@@ -69,6 +69,9 @@ public class Client {
             LOG.info("File serving is disabled");
         }
 
+        // TODO: check for list existence
+        // TODO: generate list on startup and no an interval?
+
         bot.registerPrivateMessageHandler(new AuthPrivateMessageHandler(bot, userManager));
         bot.registerPrivateMessageHandler(new DirectPrivateMessageHandler(bot, userManager));
         bot.registerPrivateMessageHandler(new RequestPrivateMessageHandler(bot, queueManager, userManager));
@@ -82,12 +85,30 @@ public class Client {
             startReceiveQueueProcessor();
             if (this.isFeatureEnabled("serve")) {
                 startSendQueueProcessor();
+                startAdvertiserProcessor();
             }
             bot.start();
         } catch (Exception ex) {
             bot.shutdown();
             isRunning = false;
         }
+    }
+
+    private void startAdvertiserProcessor() {
+        LOG.info("Starting advertiser");
+        new Thread(() -> {
+            while (isRunning) {
+                if (bot != null) {
+                    try {
+                        bot.sendToChannel(this.requestChannel, "Type @" + bot.getNick() + " for my list");
+                        sleep(60);
+                    } catch (Exception e) {
+                        LOG.warn("Bot is not fully initialized yet");
+                        sleep(5);
+                    }
+                }
+            }
+        }).start();
     }
 
     private void startReceiveQueueProcessor() {
@@ -104,7 +125,7 @@ public class Client {
                         }
                     }
                 });
-                sleep(10);
+                sleep(1);
             }
         }).start();
     }
@@ -130,7 +151,7 @@ public class Client {
                         }
                     }
                 });
-                sleep(10);
+                sleep(1);
             }
         }).start();
     }
