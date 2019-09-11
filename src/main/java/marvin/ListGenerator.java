@@ -5,37 +5,72 @@ import com.typesafe.config.ConfigFactory;
 
 import java.io.File;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.text.DecimalFormat;
-import java.text.MessageFormat;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 
+import static java.text.MessageFormat.format;
+import static java.time.LocalDate.now;
+import static java.time.format.DateTimeFormatter.ISO_DATE;
+
 public class ListGenerator {
-    private final FileWriter fileWriter;
     private final String nick;
     private long bytes = 0;
     private long count = 0;
+    private LocalDateTime generatedDateTime;
 
-    public ListGenerator(String nick, FileWriter fileWriter) {
+    public ListGenerator(String nick) {
         this.nick = nick;
-        this.fileWriter = fileWriter;
     }
 
-    public static void main(String[] args) {
-        Config config = ConfigFactory.load();
-        String nick = config.getString("irc.nick");
-        try {
-            FileWriter fileWriter = new FileWriter(MessageFormat.format("{0}-Default({1})-MB.txt", nick, LocalDate.now().format(DateTimeFormatter.ISO_DATE)));
-            ListGenerator listGenerator = new ListGenerator(nick, fileWriter);
-            listGenerator.listFiles(new File(config.getString("irc.listRoot")));
-            listGenerator.printStatistics();
-            System.out.println("done");
-            fileWriter.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+    public long getCount() {
+        return count;
+    }
+
+    public long getBytes() {
+        return bytes;
+    }
+
+    public LocalDateTime getGeneratedDateTime() {
+        return generatedDateTime;
+    }
+
+    /**
+     * @param rootDirectory Directory to generate the list for
+     */
+    public void generateList(File rootDirectory) {
+
+        generatedDateTime = LocalDateTime.now();
+        try (final ListWriter listWriter = new ListWriter(new FileWriter(getFileName(this.nick)))) {
+            generateList(rootDirectory, listWriter);
+        } catch (Exception e) {
+            throw new ListGeneratorException("Failed to generate list", e);
         }
+    }
+
+    private void generateList(File rootDirectory, ListWriter listWriter) {
+        if (rootDirectory.isDirectory()) {
+            File[] files = rootDirectory.listFiles(ListGenerator::filterFiles);
+            if (files != null && files.length > 0) {
+                listWriter.writeLine();
+                listWriter.writeLine("=============================================");
+                listWriter.writeLine(rootDirectory);
+                listWriter.writeLine("=============================================");
+                writeFiles(files, listWriter);
+            }
+
+            File[] dirs = rootDirectory.listFiles(File::isDirectory);
+            if (dirs.length > 0) {
+                Arrays.stream(dirs)
+                        .sorted()
+                        .forEach(dir -> generateList(dir, listWriter));
+            }
+        }
+    }
+
+    private static String getFileName(String nick) {
+        String isoDate = now().format(ISO_DATE);
+        return format("{0}-Default({1})-MB.txt", nick, isoDate);
     }
 
     private static boolean filterFiles(File pathname) {
@@ -49,50 +84,23 @@ public class ListGenerator {
         System.out.println(format.format(mb) + " GiB");
     }
 
-    public void listFiles(File file) {
-        if (file.isDirectory()) {
-            File[] files = file.listFiles(ListGenerator::filterFiles);
-            if (files.length > 0) {
-                writeLine();
-                writeLine("=============================================");
-                writeLine(file);
-                writeLine("=============================================");
-                writeFiles(files);
-            }
-
-            File[] dirs = file.listFiles(File::isDirectory);
-            if (dirs.length > 0) {
-                Arrays.stream(dirs)
-                        .sorted()
-                        .forEach(this::listFiles);
-            }
-        }
-    }
-
-    public void writeFiles(File[] files) {
+    private void writeFiles(File[] files, ListWriter writer) {
         Arrays.stream(files)
                 .sorted()
                 .forEach(file1 -> {
-            bytes += file1.length();
-            count++;
-            writeLine("!" + nick + " " + file1);
-        });
+                    bytes += file1.length();
+                    count++;
+                    writer.writeLine("!" + nick + " " + file1);
+                });
     }
 
-    public void writeLine(String line) {
-        try {
-            fileWriter.write(line + "\n");
-            System.out.println(line);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 
-    public void writeLine() {
-        writeLine("");
-    }
-
-    public void writeLine(Object obj) {
-        writeLine(obj.toString());
+    public static void main(String[] args) {
+        Config config = ConfigFactory.load();
+        String nick = config.getString("irc.nick");
+        ListGenerator listGenerator = new ListGenerator(nick);
+        listGenerator.generateList(new File(config.getString("irc.listRoot")));
+        listGenerator.printStatistics();
+        System.out.println("done");
     }
 }

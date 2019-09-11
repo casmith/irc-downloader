@@ -7,10 +7,16 @@ import marvin.irc.IrcBot;
 import marvin.irc.QueueManager;
 import marvin.irc.ReceiveQueueManager;
 import marvin.irc.SendQueueManager;
+import marvin.util.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.text.MessageFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
+import static com.google.common.base.Preconditions.checkArgument;
 
 public class Client {
 
@@ -28,6 +34,7 @@ public class Client {
     private UserManager userManager;
     private boolean isRunning;
     private File listRoot;
+    private ListGenerator listGenerator;
 
     public static void main(String[] args) {
         new Client().run();
@@ -46,6 +53,7 @@ public class Client {
         this.listGrabber = new ListGrabber(bot, "list-manager.dat");
         this.userManager = new UserManager(this.ircConfig.getString("adminpw"));
         this.listRoot = new File(this.ircConfig.getString("listRoot"));
+        this.listGenerator = new ListGenerator(this.ircConfig.getString("nick"));
     }
 
     public void run() {
@@ -69,8 +77,8 @@ public class Client {
             LOG.info("File serving is disabled");
         }
 
-        // TODO: check for list existence
-        // TODO: generate list on startup and no an interval?
+        this.listGenerator.generateList(new File(ircConfig.getString("listRoot")));
+        this.listGenerator.printStatistics();
 
         bot.registerPrivateMessageHandler(new AuthPrivateMessageHandler(bot, userManager));
         bot.registerPrivateMessageHandler(new DirectPrivateMessageHandler(bot, userManager));
@@ -100,7 +108,7 @@ public class Client {
             while (isRunning) {
                 if (bot != null) {
                     try {
-                        bot.sendToChannel(this.requestChannel, "Type @" + bot.getNick() + " for my list");
+                        bot.sendToChannel(this.requestChannel, getAdvert(bot.getNick(), listGenerator));
                         sleep(60);
                     } catch (Exception e) {
                         LOG.warn("Bot is not fully initialized yet");
@@ -109,6 +117,51 @@ public class Client {
                 }
             }
         }).start();
+    }
+
+
+    String getDayOfMonthSuffix(final int n) {
+        checkArgument(n >= 1 && n <= 31, "illegal day of month: " + n);
+        if (n >= 11 && n <= 13) {
+            return "th";
+        }
+        switch (n % 10) {
+            case 1:
+                return "st";
+            case 2:
+                return "nd";
+            case 3:
+                return "rd";
+            default:
+                return "th";
+        }
+    }
+
+    public String getAdvert(String nick, ListGenerator listGenerator) {
+
+
+        final double GIGABYTE = 1024.0 * 1024 * 1024;
+        return MessageFormat.format("Type: {0} for my list of {1} files ({2} GiB) "
+                        + "Updated: {3} == "
+                        //                                "Free Slots: 0/10 == " +
+                        //                                "Files in Que: 0 == " +
+                        //                                "Total Speed: 0cps == " +
+                        //                                "Next Open Slot: NOW == " +
+                        //                                "Files served: 0 == " +
+                        + "Using MarvinBot v0.01",
+                nick,
+                listGenerator.getCount(),
+                NumberUtils.format(((double)listGenerator.getBytes()) / NumberUtils.GIGABYTE),
+                formatDate(listGenerator.getGeneratedDateTime()));
+    }
+
+
+
+    private String formatDate(LocalDateTime localDate) {
+        final String strDay = DateTimeFormatter.ofPattern("d").format(localDate);
+        final int day = Integer.parseInt(strDay);
+        final String suffix = getDayOfMonthSuffix(day);
+        return DateTimeFormatter.ofPattern("MMM").format(localDate) + " " + strDay + suffix;
     }
 
     private void startReceiveQueueProcessor() {
