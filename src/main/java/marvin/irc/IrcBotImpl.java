@@ -100,6 +100,9 @@ public class IrcBotImpl implements IrcBot {
                         queueManager.retry(dce.getNick(), dce.getFileName());
                     } else {
                         long seconds = dce.getDuration() / 1000;
+                        if (seconds < 1) {
+                            seconds = 1;
+                        }
                         long kbps = dce.getBytes() / seconds / 1024;
                         messageControlChannel("Download {0} from {1} finished in {2} seconds ({3} KiB/s)", dce.getFileName(), dce.getNick(), seconds, kbps);
                     }

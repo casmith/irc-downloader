@@ -45,6 +45,9 @@ public class IncomingFileTransferListener extends ListenerAdapter {
             accept.transfer();
             long ms = System.currentTimeMillis() - start;
             long seconds = ms / 1000;
+            if (seconds ==  0) {
+                seconds = 1;
+            }
             bytes = accept.getFileSize();
             long kbps = (bytes - 1024) / seconds;
             LOG.info("Done downloading {} in {}s ({} KiB/s)", file.getAbsolutePath(), seconds, kbps);
