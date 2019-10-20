@@ -11,7 +11,7 @@ import marvin.util.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
+import java.io.*;
 import java.text.MessageFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -36,16 +36,16 @@ public class Client {
     private File listRoot;
     private ListGenerator listGenerator;
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         new Client().run();
     }
 
     public Client() {
-        Config config = ConfigFactory.load();
         this.queueManager = new ReceiveQueueManager();
         this.sendQueueManager = new SendQueueManager();
-        this.config = config;
-        this.ircConfig = config.getConfig("irc");
+        setupLocalConfigDirectory();
+        this.config = ConfigFactory.parseFile(getConfigFile());
+        this.ircConfig = this.config.getConfig("irc");
         this.bot = IrcBotFactory.fromConfig(ircConfig, queueManager);
         this.list = ircConfig.getString("list");
         this.requestChannel = ircConfig.getString("requestChannel");
@@ -59,6 +59,43 @@ public class Client {
     public void run() {
         registerHandlers();
         start();
+    }
+
+    private void setupLocalConfigDirectory() {
+         if (getConfigDir().mkdirs()) {
+            setupLocalConfigFile();
+        }
+    }
+
+    private void setupLocalConfigFile() {
+        InputStream stream = Client.class.getClassLoader().getResourceAsStream("application.conf");
+        if (stream != null) {
+            File configFile = getConfigFile();
+            if (!configFile.exists()) {
+                copyStreamToFile(stream, configFile);
+            }
+        }
+    }
+
+    private File getConfigDir() {
+        return new File(System.getProperty("user.home") + File.separator + ".marvinbot");
+    }
+
+    private File getConfigFile() {
+        return new File(getConfigDir().getAbsolutePath() + File.separator + "application.conf");
+    }
+
+    private void copyStreamToFile(InputStream stream, File configFile)  {
+        try {
+            int readBytes;
+            byte[] buffer = new byte[4096];
+            FileOutputStream resStreamOut = new FileOutputStream(configFile);
+            while ((readBytes = stream.read(buffer)) > 0) {
+                resStreamOut.write(buffer, 0, readBytes);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void registerHandlers() {
