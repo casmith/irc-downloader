@@ -34,9 +34,11 @@ jacocoTestReport {
 
 test.finalizedBy jacocoTestReport
 
-task zip(type: Zip) {
-    from configurations.runtime.allArtifacts.files
-    from configurations.runtime
-    into(project.name + '-' + project.version)
+task uberJar(type: Jar) {
+    archiveClassifier = 'uber'
+    from sourceSets.main.output
+    dependsOn configurations.runtimeClasspath
+    from {
+        configurations.runtimeClasspath.findAll { it.name.endsWith('jar') }.collect { zipTree(it) }
+    }
 }
-
