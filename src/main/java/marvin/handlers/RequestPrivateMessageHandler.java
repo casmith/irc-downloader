@@ -4,9 +4,12 @@ import marvin.UserManager;
 import marvin.irc.IrcBot;
 import marvin.irc.PrivateMessageHandler;
 import marvin.irc.QueueManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class RequestPrivateMessageHandler implements PrivateMessageHandler {
 
+    private static Logger LOG = LoggerFactory.getLogger(RequestPrivateMessageHandler.class);
     private IrcBot ircBot;
     private QueueManager queueManager;
     private UserManager userManager;
@@ -31,6 +34,6 @@ public class RequestPrivateMessageHandler implements PrivateMessageHandler {
         // nick is assumed to be the text between the ! and the first space
         String nick = message.split(" ")[0].substring(1);
         queueManager.enqueue(nick, message);
-        ircBot.sendPrivateMessage(sender, "Enqueued '" + message + "'");
+        LOG.info("Enqueued '" + message + "'");
     }
 }

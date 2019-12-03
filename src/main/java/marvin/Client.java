@@ -11,7 +11,10 @@ import marvin.util.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.text.MessageFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -210,7 +213,6 @@ public class Client {
                         if (queueManager.inc(nick)) {
                             String message = queue.poll();
                             LOG.info("Requesting: {}", message);
-                            bot.sendToChannel(requestChannel, message);
                             queueManager.addInProgress(nick, message);
                         }
                     }
@@ -230,7 +232,7 @@ public class Client {
                             String file = queue.poll();
                             if (file != null) {
                                 try {
-                                    bot.sendToChannel(this.requestChannel, "Sending " + file + " to " + nick);
+                                    LOG.info("Sending {} to {}", file, nick);
                                     bot.sendFile(nick, new File(file));
                                 } catch (Exception e) {
                                     LOG.error("Error sending file {} to {}: {}", file, nick, e.getMessage());

@@ -1,7 +1,6 @@
 package marvin.irc;
 
 import marvin.irc.events.DownloadCompleteEvent;
-import marvin.irc.events.DownloadStartedEvent;
 import marvin.irc.events.EventSource;
 import org.pircbotx.*;
 import org.pircbotx.exception.IrcException;
@@ -86,25 +85,12 @@ public class IrcBotImpl implements IrcBot {
 
         eventSource.subscribe(event -> {
             try {
-                LOG.info("event observed {}", event);
-                if (event instanceof DownloadStartedEvent) {
-                    DownloadStartedEvent dse = (DownloadStartedEvent) event;
-                    messageControlChannel("Download {0} from {1} started", dse.getFileName(), dse.getNick());
-                }
-
                 if (event instanceof DownloadCompleteEvent) {
                     DownloadCompleteEvent dce = (DownloadCompleteEvent) event;
                     queueManager.dec(dce.getNick());
                     if (!dce.isSuccess()) {
-                        messageControlChannel("Download {0} from {1} failed, retrying", dce.getFileName(), dce.getNick());
+                        messageControlChannel("Download {0} from {1} failed", dce.getFileName(), dce.getNick());
                         queueManager.retry(dce.getNick(), dce.getFileName());
-                    } else {
-                        long seconds = dce.getDuration() / 1000;
-                        if (seconds < 1) {
-                            seconds = 1;
-                        }
-                        long kbps = dce.getBytes() / seconds / 1024;
-                        messageControlChannel("Download {0} from {1} finished in {2} seconds ({3} KiB/s)", dce.getFileName(), dce.getNick(), seconds, kbps);
                     }
                 }
             } catch (Exception e) {
@@ -149,7 +135,6 @@ public class IrcBotImpl implements IrcBot {
 
     public void messageControlChannel(String message, Object... args) {
         String formattedMessage = formatMessage(message, args);
-        LOG.info("Sending message to {}: {}", controlChannel, formattedMessage);
         bot.send().message(controlChannel, formattedMessage);
     }
 
