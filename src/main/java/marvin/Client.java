@@ -213,6 +213,7 @@ public class Client {
                         if (queueManager.inc(nick)) {
                             String message = queue.poll();
                             LOG.info("Requesting: {}", message);
+                            bot.sendToChannel(requestChannel, message);
                             queueManager.addInProgress(nick, message);
                         }
                     }
