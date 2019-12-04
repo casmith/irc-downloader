@@ -148,8 +148,8 @@ public class Client {
             while (isRunning) {
                 if (bot != null) {
                     try {
-                        bot.sendToChannel(this.requestChannel, getAdvert(bot.getNick(), listGenerator));
                         sleep(60);
+                        bot.sendToChannel(this.requestChannel, getAdvert(bot.getNick(), listGenerator));
                     } catch (Exception e) {
                         LOG.warn("Bot is not fully initialized yet");
                         sleep(5);
