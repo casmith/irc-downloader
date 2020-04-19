@@ -16,7 +16,7 @@ public class JettyServer implements HttpServer {
     private Server server;
 
     public JettyServer(int port) {
-        server  = new Server(8000);
+        server  = new Server(port);
     }
 
     @Override
