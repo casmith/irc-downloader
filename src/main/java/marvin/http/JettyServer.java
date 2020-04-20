@@ -1,9 +1,12 @@
 package marvin.http;
 
-import marvin.irc.QueueManager;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
+import org.eclipse.jetty.servlet.DefaultServlet;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
+import org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,29 +21,41 @@ public class JettyServer implements HttpServer {
     private static Logger LOG = LoggerFactory.getLogger(JettyServer.class);
     private Server server;
 
+    static final String APPLICATION_PATH = "/api";
+    static final String CONTEXT_ROOT = "/";
+
     public JettyServer(int port) {
-        server  = new Server(port);
+        server = new Server(port);
+
+
+        // Setup the basic Application "context" at "/".
+        // This is also known as the handler tree (in Jetty speak).
+        final ServletContextHandler context = new ServletContextHandler(
+                server, CONTEXT_ROOT);
+
+        // Setup RESTEasy's HttpServletDispatcher at "/api/*".
+        final ServletHolder restEasyServlet = new ServletHolder(
+                new HttpServletDispatcher());
+        restEasyServlet.setInitParameter("resteasy.servlet.mapping.prefix",
+                APPLICATION_PATH);
+        restEasyServlet.setInitParameter("javax.ws.rs.Application",
+                Application.class.getName());
+        context.addServlet(restEasyServlet, APPLICATION_PATH + "/*");
+
+        restEasyServlet.setInitParameter("resteasy.scan.providers", "true");
+
+        // Setup the DefaultServlet at "/".
+        final ServletHolder defaultServlet = new ServletHolder(
+                new DefaultServlet());
+        context.addServlet(defaultServlet, CONTEXT_ROOT);
+
+
     }
 
     private Map<String, Responder> responderMap = new HashMap<>();
 
     @Override
     public void start() {
-        server.setHandler(new AbstractHandler() {
-            @Override
-            public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException {
-                response.setContentType("text/plain; charset=utf-8");
-                response.setStatus(HttpServletResponse.SC_OK);
-                if (responderMap.containsKey(target)) {
-                    Responder responder = responderMap.get(target);
-                    response.getWriter().println(responder.respond());
-                } else {
-                    response.getWriter().println("default...");;
-                }
-                baseRequest.setHandled(true);
-            }
-        });
-
         try {
             server.start();
         } catch (Exception e) {

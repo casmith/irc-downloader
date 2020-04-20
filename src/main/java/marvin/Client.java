@@ -41,12 +41,18 @@ public class Client {
     private File listRoot;
     private ListGenerator listGenerator;
 
+    private static QueueManager staticQueueManager;
+
     public static void main(String[] args) throws IOException {
         new Client().run();
     }
 
+    public static QueueManager getStaticQueueManager() {
+        return staticQueueManager;
+    }
+
     public Client() {
-        this.queueManager = new ReceiveQueueManager();
+        this.queueManager = staticQueueManager = new ReceiveQueueManager();
         this.sendQueueManager = new SendQueueManager();
         setupLocalConfigDirectory();
         this.config = ConfigFactory.parseFile(getConfigFile());
