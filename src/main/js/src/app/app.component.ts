@@ -7,7 +7,7 @@ import {interval} from "rxjs";
   template: `
       <h1>Add to queue</h1>
       <form #it="ngForm" (ngSubmit)="onSubmit(it)" novalidate>
-          <textarea name="requests" ngModel required #request="ngModel"></textarea>
+          <textarea name="requests" ngModel required #request="ngModel" rows="10" cols="50"></textarea>
           <button>Submit</button>
       </form>
       <p>Queue:</p>
