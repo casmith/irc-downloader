@@ -32,7 +32,7 @@ public class JettyServer implements HttpServer {
         context.setContextPath("/");
         try {
             ClassLoader cl = JettyServer.class.getClassLoader();
-            URL f = cl.getResource("static-root/index.html");
+            URL f = cl.getResource("static-root/README.txt");
             if (f == null) {
                 throw new RuntimeException("Unable to find resource directory");
             }
