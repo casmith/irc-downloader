@@ -7,3 +7,5 @@ out
 lists
 /*.conf
 **/.DS_Store
+src/main/resources/static-root/*.*
+!src/main/resources/static-root/README.txt
