@@ -4,7 +4,6 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import marvin.handlers.*;
 import marvin.http.JettyServer;
-import marvin.http.QueueResponder;
 import marvin.irc.IrcBot;
 import marvin.irc.QueueManager;
 import marvin.irc.ReceiveQueueManager;
@@ -73,7 +72,7 @@ public class Client {
     }
 
     private void setupLocalConfigDirectory() {
-         if (getConfigDir().mkdirs()) {
+        if (getConfigDir().mkdirs()) {
             setupLocalConfigFile();
         }
     }
@@ -96,7 +95,7 @@ public class Client {
         return new File(getConfigDir().getAbsolutePath() + File.separator + "application.conf");
     }
 
-    private void copyStreamToFile(InputStream stream, File configFile)  {
+    private void copyStreamToFile(InputStream stream, File configFile) {
         try {
             int readBytes;
             byte[] buffer = new byte[4096];
@@ -154,7 +153,6 @@ public class Client {
 
         new Thread(() -> {
             JettyServer jettyServer = new JettyServer(8081);
-            jettyServer.registerResponder("/queue", new QueueResponder(queueManager));
             jettyServer.start();
         }).start();
 
@@ -209,10 +207,9 @@ public class Client {
                         + "Using MarvinBot v0.01",
                 nick,
                 listGenerator.getCount(),
-                NumberUtils.format(((double)listGenerator.getBytes()) / NumberUtils.GIGABYTE),
+                NumberUtils.format(((double) listGenerator.getBytes()) / NumberUtils.GIGABYTE),
                 formatDate(listGenerator.getGeneratedDateTime()));
     }
-
 
 
     private String formatDate(LocalDateTime localDate) {
