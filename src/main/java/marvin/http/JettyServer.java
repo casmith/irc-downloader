@@ -1,20 +1,18 @@
 package marvin.http;
 
-import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.util.resource.Resource;
 import org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 
 public class JettyServer implements HttpServer {
 
@@ -30,8 +28,22 @@ public class JettyServer implements HttpServer {
 
         // Setup the basic Application "context" at "/".
         // This is also known as the handler tree (in Jetty speak).
-        final ServletContextHandler context = new ServletContextHandler(
-                server, CONTEXT_ROOT);
+        final ServletContextHandler context = new ServletContextHandler(server, CONTEXT_ROOT);
+        context.setContextPath("/");
+        try {
+            ClassLoader cl = JettyServer.class.getClassLoader();
+            URL f = cl.getResource("static-root/index.html");
+            if (f == null) {
+                throw new RuntimeException("Unable to find resource directory");
+            }
+            // Resolve file to directory
+            URI webRootUri = f.toURI().resolve("./").normalize();
+            System.err.println("WebRoot is " + webRootUri);
+            context.setBaseResource(Resource.newResource(webRootUri));
+            context.setWelcomeFiles(new String[]{"index.html"});
+        } catch (URISyntaxException | MalformedURLException e) {
+            e.printStackTrace();
+        }
 
         // Setup RESTEasy's HttpServletDispatcher at "/api/*".
         final ServletHolder restEasyServlet = new ServletHolder(
@@ -48,27 +60,15 @@ public class JettyServer implements HttpServer {
         final ServletHolder defaultServlet = new ServletHolder(
                 new DefaultServlet());
         context.addServlet(defaultServlet, CONTEXT_ROOT);
-
-
     }
-
-    private Map<String, Responder> responderMap = new HashMap<>();
 
     @Override
     public void start() {
         try {
             server.start();
+            server.join();
         } catch (Exception e) {
             e.printStackTrace();
         }
-        try {
-            server.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void registerResponder(String path, Responder responder) {
-        this.responderMap.put(path, responder);
     }
 }
