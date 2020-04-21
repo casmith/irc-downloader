@@ -9,10 +9,9 @@ import org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
 
 public class JettyServer implements HttpServer {
 
@@ -34,15 +33,17 @@ public class JettyServer implements HttpServer {
         context.setContextPath("/");
         try {
             ClassLoader cl = JettyServer.class.getClassLoader();
-            URL f = cl.getResource("static-root/README.txt");
-            if (f == null) {
-                throw new RuntimeException("Unable to find resource directory");
+
+            String webRootPath = System.getenv("WEBROOT");
+            if (webRootPath == null) {
+                webRootPath = "src/main/js/dist/marvin";
             }
-            // Resolve file to directory
-            URI webRootUri = f.toURI().resolve("./").normalize();
+            final File webroot = new File(webRootPath);
+            URI webRootUri = webroot.toURI().resolve("./").normalize();
+            LOG.info("webRootUri [{}]", webRootUri);
             context.setBaseResource(Resource.newResource(webRootUri));
             context.setWelcomeFiles(new String[]{"index.html"});
-        } catch (URISyntaxException | MalformedURLException e) {
+        } catch (MalformedURLException e) {
             e.printStackTrace();
         }
 
