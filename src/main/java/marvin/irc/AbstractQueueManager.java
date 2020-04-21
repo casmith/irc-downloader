@@ -18,7 +18,10 @@ public abstract class AbstractQueueManager implements QueueManager {
 
     @Override
     public void enqueue(String nick, String message) {
-        getQueue(nick).offer(message);
+        final Queue<String> queue = getQueue(nick);
+        if (!queue.contains(message)) {
+            queue.offer(message);
+        }
     }
 
     @Override

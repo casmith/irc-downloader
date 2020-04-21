@@ -30,8 +30,9 @@ public class QueueResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response enqueue(QueueModel model) {
         for (QueueModel.QueueServerModel server : model.getServers()) {
-            final Queue<String> queue = queueManager.getQueue(server.getNick());
-            queue.addAll(server.getRequests());
+            for (String request : server.getRequests()) {
+                queueManager.enqueue(server.getNick(), request);
+            }
         }
         return Response.status(200).build();
     }
