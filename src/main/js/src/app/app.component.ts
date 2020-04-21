@@ -7,15 +7,13 @@ import {interval} from "rxjs";
   template: `
       <h1>Add to queue</h1>
       <form #it="ngForm" (ngSubmit)="onSubmit(it)" novalidate>
-          <input name="nick" ngModel required #nick="ngModel">
-          <textarea name="requests" ngModel required #request="ngModel">
-          </textarea>
+          <textarea name="requests" ngModel required #request="ngModel"></textarea>
           <button>Submit</button>
       </form>
       <p>Queue:</p>
-      <ul *ngFor="let hero of servers()">
-          {{ hero }}
-          <li *ngFor="let track of tracks(hero)">
+      <ul *ngFor="let server of servers()">
+          {{ server }}
+          <li *ngFor="let track of tracks(server)">
               {{ track }}
           </li>
       </ul>
@@ -49,10 +47,8 @@ export class AppComponent {
     const requests = it.value.requests.split("\n")
       .filter(this.nonEmpty)
       .map(request => ({requests: [request], nick: request.match(/!([a-zA-Z0-9]+) .*/)[1]}));
-
-    console.log({servers: requests});
-
-    return this.queueService.enqueue({servers: requests}).subscribe(() => console.log('enqueued'));
+    return this.queueService.enqueue({servers: requests})
+      .subscribe(() => console.log('enqueued'));
   }
 
   private nonEmpty(str) {
