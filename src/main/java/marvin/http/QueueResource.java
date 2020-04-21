@@ -2,9 +2,7 @@ package marvin.http;
 
 import marvin.irc.QueueManager;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.Queue;
@@ -25,6 +23,17 @@ public class QueueResource {
     public Response list() {
         return Response.status(200)
                 .entity(buildQueueModel()).build();
+    }
+
+    @POST
+    @Path("/")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response enqueue(QueueModel model) {
+        for (QueueModel.QueueServerModel server : model.getServers()) {
+            final Queue<String> queue = queueManager.getQueue(server.getNick());
+            queue.addAll(server.getRequests());
+        }
+        return Response.status(200).build();
     }
 
     public QueueModel buildQueueModel() {
