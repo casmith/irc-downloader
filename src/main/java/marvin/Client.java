@@ -42,7 +42,7 @@ public class Client {
 
     private static QueueManager staticQueueManager;
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
         new Client().run();
     }
 
@@ -88,6 +88,18 @@ public class Client {
     }
 
     private File getConfigDir() {
+        final String configDir = System.getenv("CONFIG_DIR");
+        if (configDir != null) {
+            try {
+                return new File(configDir);
+            } catch (Exception e) {
+                LOG.warn("CONFIG_DIR was specified but the directory {} could not be found", configDir);
+            }
+        }
+        return getConfigDirFromUserHome();
+    }
+
+    public File getConfigDirFromUserHome() {
         return new File(System.getProperty("user.home") + File.separator + ".marvinbot");
     }
 
@@ -194,9 +206,6 @@ public class Client {
     }
 
     public String getAdvert(String nick, ListGenerator listGenerator) {
-
-
-        final double GIGABYTE = 1024.0 * 1024 * 1024;
         return MessageFormat.format("Type: {0} for my list of {1} files ({2} GiB) "
                         + "Updated: {3} == "
                         //                                "Free Slots: 0/10 == " +
