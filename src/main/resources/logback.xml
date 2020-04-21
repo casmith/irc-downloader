@@ -6,7 +6,7 @@
         </layout>
     </appender>
     <logger name="org.pircbotx" level="WARN"/>
-    <root level="debug">
+    <root level="info">
         <appender-ref ref="STDOUT" />
     </root>
 </configuration>
