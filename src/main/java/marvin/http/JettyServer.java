@@ -22,9 +22,11 @@ public class JettyServer implements HttpServer {
     static final String APPLICATION_PATH = "/api";
     static final String CONTEXT_ROOT = "/";
 
-    public JettyServer(int port) {
-        server = new Server(port);
+    private final int port;
 
+    public JettyServer(int port) {
+        this.port = port;
+        server = new Server(port);
 
         // Setup the basic Application "context" at "/".
         // This is also known as the handler tree (in Jetty speak).
@@ -38,28 +40,25 @@ public class JettyServer implements HttpServer {
             }
             // Resolve file to directory
             URI webRootUri = f.toURI().resolve("./").normalize();
-            System.err.println("WebRoot is " + webRootUri);
             context.setBaseResource(Resource.newResource(webRootUri));
             context.setWelcomeFiles(new String[]{"index.html"});
         } catch (URISyntaxException | MalformedURLException e) {
             e.printStackTrace();
         }
 
-        // Setup RESTEasy's HttpServletDispatcher at "/api/*".
-        final ServletHolder restEasyServlet = new ServletHolder(
-                new HttpServletDispatcher());
-        restEasyServlet.setInitParameter("resteasy.servlet.mapping.prefix",
-                APPLICATION_PATH);
-        restEasyServlet.setInitParameter("javax.ws.rs.Application",
-                Application.class.getName());
-        context.addServlet(restEasyServlet, APPLICATION_PATH + "/*");
-
-        restEasyServlet.setInitParameter("resteasy.scan.providers", "true");
+        configureResteasyServlet(context);
 
         // Setup the DefaultServlet at "/".
-        final ServletHolder defaultServlet = new ServletHolder(
-                new DefaultServlet());
+        final ServletHolder defaultServlet = new ServletHolder(new DefaultServlet());
         context.addServlet(defaultServlet, CONTEXT_ROOT);
+    }
+
+    private void configureResteasyServlet(ServletContextHandler context) {
+        final ServletHolder restEasyServlet = new ServletHolder(new HttpServletDispatcher());
+        restEasyServlet.setInitParameter("resteasy.servlet.mapping.prefix", APPLICATION_PATH);
+        restEasyServlet.setInitParameter("javax.ws.rs.Application", Application.class.getName());
+        context.addServlet(restEasyServlet, APPLICATION_PATH + "/*");
+        restEasyServlet.setInitParameter("resteasy.scan.providers", "true");
     }
 
     @Override
@@ -67,6 +66,7 @@ public class JettyServer implements HttpServer {
         try {
             server.start();
             server.join();
+            LOG.info("HTTP server listening on port {}", this.port);
         } catch (Exception e) {
             e.printStackTrace();
         }
