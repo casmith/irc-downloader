@@ -14,7 +14,7 @@ public class CompletedXferSqlite3DaoTest {
         CompletedXferSqlite3Dao dao = new CompletedXferSqlite3Dao("./marvin.db");
         dao.createTable();
         int initialCount = dao.selectAll().size();
-        dao.insert(new CompletedXfer("moros", "#marvinbot", "blah.mp3", 1024L, LocalDateTime.now()));
+        dao.insert(new CompletedXfer("someguy", "#marvinbot", "blah.mp3", 1024L, LocalDateTime.now()));
         assertEquals(initialCount + 1, dao.selectAll().size());
     }
 }
