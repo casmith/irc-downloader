@@ -119,6 +119,10 @@
           }
         }
       }
-    }},
-  "defaultProject": "marvin"
+    }
+  },
+  "defaultProject": "marvin",
+  "cli": {
+    "analytics": false
+  }
 }
