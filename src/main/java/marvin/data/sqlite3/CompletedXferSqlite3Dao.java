@@ -43,14 +43,14 @@ public class CompletedXferSqlite3Dao {
         }
     }
 
-    public void insert(CompletedXfer moros) {
+    public void insert(CompletedXfer completedXfer) {
         Connection conn = connect();
         try ( PreparedStatement statement = conn.prepareStatement("insert into completed_xfers (nick, channel, file, filesize, timestamp) values (?, ?, ?, ?, ?)")) {
-            statement.setString(1, moros.getNick());
-            statement.setString(2, moros.getChannel());
-            statement.setString(3, moros.getFile());
-            statement.setLong(4, moros.getFilesize());
-            statement.setTimestamp(5, Timestamp.valueOf(moros.getTimestamp()));
+            statement.setString(1, completedXfer.getNick());
+            statement.setString(2, completedXfer.getChannel());
+            statement.setString(3, completedXfer.getFile());
+            statement.setLong(4, completedXfer.getFilesize());
+            statement.setTimestamp(5, Timestamp.valueOf(completedXfer.getTimestamp()));
             statement.execute();
         } catch (SQLException e) {
             throw new DatabaseException("Failed to create table", e);

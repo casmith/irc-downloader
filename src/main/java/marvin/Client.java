@@ -2,12 +2,16 @@ package marvin;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+import marvin.data.DatabaseException;
+import marvin.data.sqlite3.CompletedXferSqlite3Dao;
 import marvin.handlers.*;
 import marvin.http.JettyServer;
 import marvin.irc.IrcBot;
 import marvin.irc.QueueManager;
 import marvin.irc.ReceiveQueueManager;
 import marvin.irc.SendQueueManager;
+import marvin.irc.events.DownloadCompleteEvent;
+import marvin.model.CompletedXfer;
 import marvin.util.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +39,7 @@ public class Client {
     private final Config config;
     private final QueueManager sendQueueManager;
     private final QueueManager queueManager;
+    private final CompletedXferSqlite3Dao completedXferDao;
     private UserManager userManager;
     private boolean isRunning;
     private File listRoot;
@@ -64,6 +69,7 @@ public class Client {
         this.userManager = new UserManager(this.ircConfig.getString("adminpw"));
         this.listRoot = new File(this.ircConfig.getString("listRoot"));
         this.listGenerator = new ListGenerator(this.ircConfig.getString("nick"));
+        this.completedXferDao = new CompletedXferSqlite3Dao("./marvin.db");
     }
 
     public void run() {
@@ -144,6 +150,16 @@ public class Client {
         bot.registerPrivateMessageHandler(new RequestPrivateMessageHandler(bot, queueManager, userManager));
         bot.registerPrivateMessageHandler(new ShutdownPrivateMessageHandler(bot, userManager));
         bot.registerNoticeHandler(new QueueLimitNoticeHandler(queueManager));
+
+        bot.on(DownloadCompleteEvent.class, event -> {
+            DownloadCompleteEvent dce = (DownloadCompleteEvent)event;
+            try {
+                completedXferDao.insert(
+                        new CompletedXfer(dce.getNick(), "", dce.getFileName(), dce.getBytes(), LocalDateTime.now()));
+            } catch (DatabaseException e) {
+                LOG.error("Error recording completed xfer", e);
+            }
+        });
     }
 
     private void start() {
@@ -157,6 +173,7 @@ public class Client {
                     startAdvertiserProcessor();
                 }
                 bot.start();
+
             } catch (Exception ex) {
                 bot.shutdown();
                 isRunning = false;

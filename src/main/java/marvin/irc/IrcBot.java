@@ -1,5 +1,8 @@
 package marvin.irc;
 
+import marvin.irc.events.Event;
+import marvin.irc.events.Listener;
+
 import java.io.File;
 
 public interface IrcBot {
@@ -19,4 +22,6 @@ public interface IrcBot {
     void messageControlChannel(String substring, Object... args);
 
     void sendFile(String nick, File file);
+
+    void on(Class<? extends Event> eventClass, Listener listener);
 }

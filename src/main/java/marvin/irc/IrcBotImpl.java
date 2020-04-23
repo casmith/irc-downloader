@@ -1,7 +1,9 @@
 package marvin.irc;
 
 import marvin.irc.events.DownloadCompleteEvent;
+import marvin.irc.events.Event;
 import marvin.irc.events.EventSource;
+import marvin.irc.events.Listener;
 import org.pircbotx.*;
 import org.pircbotx.exception.IrcException;
 import org.pircbotx.hooks.ListenerAdapter;
@@ -95,6 +97,14 @@ public class IrcBotImpl implements IrcBot {
                 }
             } catch (Exception e) {
                 LOG.debug("Exception occurred {}", e.getMessage(), e);
+            }
+        });
+    }
+
+    public void on(Class<? extends Event> eventClass, Listener listener) {
+        eventSource.subscribe(event -> {
+            if (event.getClass().isAssignableFrom(eventClass)) {
+                listener.notify(event);
             }
         });
     }

@@ -3,6 +3,7 @@ package marvin.irc;
 import marvin.irc.events.DownloadCompleteEvent;
 import marvin.irc.events.DownloadStartedEvent;
 import marvin.irc.events.EventSource;
+import marvin.model.CompletedXfer;
 import org.apache.commons.lang3.StringUtils;
 import org.pircbotx.User;
 import org.pircbotx.dcc.ReceiveFileTransfer;
@@ -12,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.time.LocalDateTime;
 
 public class IncomingFileTransferListener extends ListenerAdapter {
 
@@ -51,6 +53,10 @@ public class IncomingFileTransferListener extends ListenerAdapter {
             bytes = accept.getFileSize();
             long kbps = (bytes - 1024) / seconds;
             LOG.info("Done downloading {} in {}s ({} KiB/s)", file.getAbsolutePath(), seconds, kbps);
+            // TODO: log completed transfer
+
+
+
             success = true;
         } catch (Exception e) {
             LOG.error("File transfer failed", e);
