@@ -25,7 +25,6 @@ public class ClientTest {
 
     @Test
     public void getAdvert() {
-
         final long bytes = (long) (1024L * 1024 * 1024 * 3.1);
         when(listGenerator.getBytes()).thenReturn(bytes);
         when(listGenerator.getCount()).thenReturn(1000L);

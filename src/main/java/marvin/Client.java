@@ -11,7 +11,6 @@ import marvin.handlers.*;
 import marvin.http.JettyServer;
 import marvin.irc.IrcBot;
 import marvin.irc.QueueManager;
-import marvin.irc.ReceiveQueueManager;
 import marvin.irc.SendQueueManager;
 import marvin.irc.events.DownloadCompleteEvent;
 import marvin.model.CompletedXfer;
@@ -48,20 +47,13 @@ public class Client {
     private File listRoot;
     private ListGenerator listGenerator;
 
-    private static QueueManager staticQueueManager;
-
-    public static void main(String[] args) {
-        Injector injector = Guice.createInjector(new MarvinModule());
-        injector.getInstance(Client.class).run();
-    }
-
-    public static QueueManager getStaticQueueManager() {
-        return staticQueueManager;
+    public Client() {
+        this(null, null);
     }
 
     @Inject
-    public Client(CompletedXferDao completedXferDao) {
-        this.queueManager = staticQueueManager = new ReceiveQueueManager();
+    public Client(QueueManager queueManager, CompletedXferDao completedXferDao) {
+        this.queueManager = queueManager;
         this.sendQueueManager = new SendQueueManager();
         setupLocalConfigDirectory();
         this.config = ConfigFactory.parseFile(getConfigFile());
@@ -75,6 +67,11 @@ public class Client {
         this.listRoot = new File(this.ircConfig.getString("listRoot"));
         this.listGenerator = new ListGenerator(this.ircConfig.getString("nick"));
         this.completedXferDao = completedXferDao;
+    }
+
+    public static void main(String[] args) {
+        Injector injector = Guice.createInjector(new MarvinModule());
+        injector.getInstance(Client.class).run();
     }
 
     public void run() {
