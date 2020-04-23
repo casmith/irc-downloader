@@ -70,6 +70,7 @@ public class Client {
         this.listRoot = new File(this.ircConfig.getString("listRoot"));
         this.listGenerator = new ListGenerator(this.ircConfig.getString("nick"));
         this.completedXferDao = new CompletedXferSqlite3Dao("./marvin.db");
+        this.completedXferDao.createTable();
     }
 
     public void run() {
