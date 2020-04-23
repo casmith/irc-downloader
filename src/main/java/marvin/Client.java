@@ -69,11 +69,14 @@ public class Client {
         this.userManager = new UserManager(this.ircConfig.getString("adminpw"));
         this.listRoot = new File(this.ircConfig.getString("listRoot"));
         this.listGenerator = new ListGenerator(this.ircConfig.getString("nick"));
-        this.completedXferDao = new CompletedXferSqlite3Dao("./marvin.db");
-        this.completedXferDao.createTable();
+        File configDir = this.getConfigDir();
+        String databasePath = configDir.getAbsolutePath() + "/marvin.db";
+        this.completedXferDao = new CompletedXferSqlite3Dao(databasePath);
     }
 
     public void run() {
+        // init DAOs
+        this.completedXferDao.createTable();
         registerHandlers();
         start();
     }
