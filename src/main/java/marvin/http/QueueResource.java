@@ -1,5 +1,6 @@
 package marvin.http;
 
+import com.google.inject.Inject;
 import marvin.irc.QueueManager;
 
 import javax.ws.rs.*;
@@ -8,11 +9,11 @@ import javax.ws.rs.core.Response;
 import java.util.Queue;
 
 @Path("/queue")
-@Produces(MediaType.TEXT_PLAIN)
 public class QueueResource {
 
     private QueueManager queueManager;
 
+    @Inject
     public QueueResource(QueueManager queueManager) {
         this.queueManager = queueManager;
     }

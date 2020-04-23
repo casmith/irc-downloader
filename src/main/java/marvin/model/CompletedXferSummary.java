@@ -1,8 +1,15 @@
 package marvin.model;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
+@XmlRootElement(name = "summary")
 public class CompletedXferSummary {
     private long count;
     private long totalBytes;
+
+
+    public CompletedXferSummary() {
+    }
 
     public CompletedXferSummary(long count, long totalBytes) {
         this.count = count;

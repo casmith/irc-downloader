@@ -1,9 +1,12 @@
 package marvin;
 
+import com.google.inject.Guice;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+import marvin.data.CompletedXferDao;
 import marvin.data.DatabaseException;
-import marvin.data.sqlite3.CompletedXferSqlite3Dao;
 import marvin.handlers.*;
 import marvin.http.JettyServer;
 import marvin.irc.IrcBot;
@@ -39,7 +42,7 @@ public class Client {
     private final Config config;
     private final QueueManager sendQueueManager;
     private final QueueManager queueManager;
-    private final CompletedXferSqlite3Dao completedXferDao;
+    private final CompletedXferDao completedXferDao;
     private UserManager userManager;
     private boolean isRunning;
     private File listRoot;
@@ -48,14 +51,16 @@ public class Client {
     private static QueueManager staticQueueManager;
 
     public static void main(String[] args) {
-        new Client().run();
+        Injector injector = Guice.createInjector(new MarvinModule());
+        injector.getInstance(Client.class).run();
     }
 
     public static QueueManager getStaticQueueManager() {
         return staticQueueManager;
     }
 
-    public Client() {
+    @Inject
+    public Client(CompletedXferDao completedXferDao) {
         this.queueManager = staticQueueManager = new ReceiveQueueManager();
         this.sendQueueManager = new SendQueueManager();
         setupLocalConfigDirectory();
@@ -69,9 +74,7 @@ public class Client {
         this.userManager = new UserManager(this.ircConfig.getString("adminpw"));
         this.listRoot = new File(this.ircConfig.getString("listRoot"));
         this.listGenerator = new ListGenerator(this.ircConfig.getString("nick"));
-        File configDir = this.getConfigDir();
-        String databasePath = configDir.getAbsolutePath() + "/marvin.db";
-        this.completedXferDao = new CompletedXferSqlite3Dao(databasePath);
+        this.completedXferDao = completedXferDao;
     }
 
     public void run() {
@@ -156,7 +159,7 @@ public class Client {
         bot.registerNoticeHandler(new QueueLimitNoticeHandler(queueManager));
 
         bot.on(DownloadCompleteEvent.class, event -> {
-            DownloadCompleteEvent dce = (DownloadCompleteEvent)event;
+            DownloadCompleteEvent dce = (DownloadCompleteEvent) event;
             try {
                 completedXferDao.insert(
                         new CompletedXfer(dce.getNick(), "", dce.getFileName(), dce.getBytes(), LocalDateTime.now()));

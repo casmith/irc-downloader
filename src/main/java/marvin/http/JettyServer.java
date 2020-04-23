@@ -52,6 +52,9 @@ public class JettyServer implements HttpServer {
         // Setup the DefaultServlet at "/".
         final ServletHolder defaultServlet = new ServletHolder(new DefaultServlet());
         context.addServlet(defaultServlet, CONTEXT_ROOT);
+
+        context.addEventListener(new org.jboss.resteasy.plugins.guice.GuiceResteasyBootstrapServletContextListener());
+        context.setInitParameter("resteasy.guice.modules", "marvin.MarvinModule");
     }
 
     private void configureResteasyServlet(ServletContextHandler context) {
