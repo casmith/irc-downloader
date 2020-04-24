@@ -3,8 +3,8 @@ package marvin;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
-import com.typesafe.config.Config;
-import com.typesafe.config.ConfigFactory;
+import marvin.config.BotConfig;
+import marvin.config.ModuleFactory;
 import marvin.data.CompletedXferDao;
 import marvin.data.DatabaseException;
 import marvin.handlers.*;
@@ -19,9 +19,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.text.MessageFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -32,45 +29,43 @@ public class Client {
 
     private static final Logger LOG = LoggerFactory.getLogger(Client.class);
 
-    private final Config ircConfig;
     private final IrcBot bot;
     private final ListServer listServer;
     private final ListGrabber listGrabber;
-    private final String requestChannel;
-    private final String list;
-    private final Config config;
     private final QueueManager sendQueueManager;
     private final QueueManager queueManager;
     private final CompletedXferDao completedXferDao;
+    private final BotConfig config;
     private UserManager userManager;
     private boolean isRunning;
     private File listRoot;
     private ListGenerator listGenerator;
 
     public Client() {
-        this(null, null);
+        this(null, null, null);
     }
 
     @Inject
-    public Client(QueueManager queueManager, CompletedXferDao completedXferDao) {
+    public Client(BotConfig config,
+                  QueueManager queueManager, CompletedXferDao completedXferDao) {
+        this.config = config;
         this.queueManager = queueManager;
         this.sendQueueManager = new SendQueueManager();
-        setupLocalConfigDirectory();
-        this.config = ConfigFactory.parseFile(getConfigFile());
-        this.ircConfig = this.config.getConfig("irc");
-        this.bot = IrcBotFactory.fromConfig(ircConfig, queueManager);
-        this.list = ircConfig.getString("list");
-        this.requestChannel = ircConfig.getString("requestChannel");
-        this.listServer = new ListServer(bot, this.requestChannel, this.list);
+        this.bot = IrcBotFactory.fromConfig(config, queueManager);
+        this.listServer = new ListServer(bot, config.getRequestChannel(), config.getList());
         this.listGrabber = new ListGrabber(bot, "list-manager.dat");
-        this.userManager = new UserManager(this.ircConfig.getString("adminpw"));
-        this.listRoot = new File(this.ircConfig.getString("listRoot"));
-        this.listGenerator = new ListGenerator(this.ircConfig.getString("nick"));
+        this.userManager = new UserManager(config.getAdminPassword());
+        this.listRoot = new File(config.getListRoot());
+        this.listGenerator = new ListGenerator(config.getNick());
         this.completedXferDao = completedXferDao;
     }
 
     public static void main(String[] args) {
-        Injector injector = Guice.createInjector(new MarvinModule());
+
+        final BotConfig config = BotConfig.from(getConfigFile());
+        final MarvinModule marvinModule = new MarvinModule(config);
+        Injector injector = Guice.createInjector(marvinModule);
+        ModuleFactory.init(marvinModule);
         injector.getInstance(Client.class).run();
     }
 
@@ -81,23 +76,7 @@ public class Client {
         start();
     }
 
-    private void setupLocalConfigDirectory() {
-        if (getConfigDir().mkdirs()) {
-            setupLocalConfigFile();
-        }
-    }
-
-    private void setupLocalConfigFile() {
-        InputStream stream = Client.class.getClassLoader().getResourceAsStream("application.conf");
-        if (stream != null) {
-            File configFile = getConfigFile();
-            if (!configFile.exists()) {
-                copyStreamToFile(stream, configFile);
-            }
-        }
-    }
-
-    private File getConfigDir() {
+    private static File getConfigDir() {
         final String configDir = System.getenv("CONFIG_DIR");
         if (configDir != null) {
             try {
@@ -109,44 +88,32 @@ public class Client {
         return getConfigDirFromUserHome();
     }
 
-    public File getConfigDirFromUserHome() {
+    public static File getConfigDirFromUserHome() {
         return new File(System.getProperty("user.home") + File.separator + ".marvinbot");
     }
 
-    private File getConfigFile() {
+    private static File getConfigFile() {
         return new File(getConfigDir().getAbsolutePath() + File.separator + "application.conf");
     }
 
-    private void copyStreamToFile(InputStream stream, File configFile) {
-        try {
-            int readBytes;
-            byte[] buffer = new byte[4096];
-            FileOutputStream resStreamOut = new FileOutputStream(configFile);
-            while ((readBytes = stream.read(buffer)) > 0) {
-                resStreamOut.write(buffer, 0, readBytes);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 
     private void registerHandlers() {
-        if (isFeatureEnabled("listGrab")) {
+        if (config.isFeatureEnabled("listGrab")) {
             LOG.info("List grabbing is enabled");
             bot.registerMessageHandler(new ListGrabberMessageHandler(listGrabber, bot));
         } else {
             LOG.info("List grabbing is disabled");
         }
 
-        if (this.isFeatureEnabled("serve")) {
+        if (config.isFeatureEnabled("serve")) {
             LOG.info("File serving is enabled");
             bot.registerMessageHandler(new ListServerMessageHandler(listServer));
-            bot.registerMessageHandler(new FileRequestMessageHandler(bot, sendQueueManager, requestChannel, this.listRoot));
+            bot.registerMessageHandler(new FileRequestMessageHandler(bot, sendQueueManager, this.config.getRequestChannel(), this.listRoot));
         } else {
             LOG.info("File serving is disabled");
         }
 
-        this.listGenerator.generateList(new File(ircConfig.getString("listRoot")));
+        this.listGenerator.generateList(new File(this.config.getListRoot()));
         this.listGenerator.printStatistics();
 
         bot.registerPrivateMessageHandler(new AuthPrivateMessageHandler(bot, userManager));
@@ -172,7 +139,7 @@ public class Client {
             try {
                 isRunning = true;
                 startReceiveQueueProcessor();
-                if (this.isFeatureEnabled("serve")) {
+                if (config.isFeatureEnabled("serve")) {
                     startSendQueueProcessor();
                     startAdvertiserProcessor();
                 }
@@ -198,7 +165,7 @@ public class Client {
                 if (bot != null) {
                     try {
                         sleep(60);
-                        bot.sendToChannel(this.requestChannel, getAdvert(bot.getNick(), listGenerator));
+                        bot.sendToChannel(this.config.getRequestChannel(), getAdvert(bot.getNick(), listGenerator));
                     } catch (Exception e) {
                         LOG.warn("Bot is not fully initialized yet");
                         sleep(5);
@@ -258,7 +225,7 @@ public class Client {
                         if (queueManager.inc(nick)) {
                             String message = queue.poll();
                             LOG.info("Requesting: {}", message);
-                            bot.sendToChannel(requestChannel, message);
+                            bot.sendToChannel(this.config.getRequestChannel(), message);
                             queueManager.addInProgress(nick, message);
                         }
                     }
@@ -300,10 +267,5 @@ public class Client {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-    }
-
-    private boolean isFeatureEnabled(String feature) {
-        String key = "features." + feature;
-        return config.hasPath(key) && config.getBoolean(key);
     }
 }
