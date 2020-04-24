@@ -38,7 +38,6 @@ public class Client {
     private final BotConfig config;
     private UserManager userManager;
     private boolean isRunning;
-    private File listRoot;
     private ListGenerator listGenerator;
 
     public Client() {
@@ -55,7 +54,6 @@ public class Client {
         this.listServer = new ListServer(bot, config.getRequestChannel(), config.getList());
         this.listGrabber = new ListGrabber(bot, "list-manager.dat");
         this.userManager = new UserManager(config.getAdminPassword());
-        this.listRoot = new File(config.getListRoot());
         this.listGenerator = new ListGenerator(config.getNick());
         this.completedXferDao = completedXferDao;
     }
@@ -108,7 +106,7 @@ public class Client {
         if (config.isFeatureEnabled("serve")) {
             LOG.info("File serving is enabled");
             bot.registerMessageHandler(new ListServerMessageHandler(listServer));
-            bot.registerMessageHandler(new FileRequestMessageHandler(bot, sendQueueManager, this.config.getRequestChannel(), this.listRoot));
+            bot.registerMessageHandler(new FileRequestMessageHandler(bot, sendQueueManager, this.config.getRequestChannel(), new File(this.config.getListRoot())));
         } else {
             LOG.info("File serving is disabled");
         }
