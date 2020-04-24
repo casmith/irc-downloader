@@ -5,6 +5,7 @@ import marvin.irc.events.Event;
 import marvin.irc.events.EventSource;
 import marvin.irc.events.Listener;
 import org.pircbotx.*;
+import org.pircbotx.delay.StaticDelay;
 import org.pircbotx.exception.IrcException;
 import org.pircbotx.hooks.ListenerAdapter;
 import org.pircbotx.hooks.events.MessageEvent;
@@ -56,7 +57,7 @@ public class IrcBotImpl implements IrcBot {
                 .addAutoJoinChannel(requestChannel)
                 .setIdentServerEnabled(useIdent)
                 .setAutoReconnectAttempts(10)
-                .setAutoReconnectDelay(5000)
+                .setAutoReconnectDelay(new StaticDelay(5000))
                 .setAutoReconnect(true)
                 .addListener(new QueueProcessorListener(requestChannel, "queue.txt"))
                 .addListener(new IncomingFileTransferListener(eventSource, downloadDirectory))
