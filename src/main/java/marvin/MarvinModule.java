@@ -7,6 +7,8 @@ import marvin.data.CompletedXferDao;
 import marvin.data.sqlite3.CompletedXferSqlite3Dao;
 import marvin.http.QueueResource;
 import marvin.http.StatusResource;
+import marvin.irc.IrcBot;
+import marvin.irc.IrcBotImpl;
 import marvin.irc.QueueManager;
 import marvin.irc.ReceiveQueueManager;
 import org.slf4j.Logger;
@@ -27,6 +29,8 @@ public class MarvinModule implements Module {
 
         // misc bindings
         binder.bind(QueueManager.class).to(ReceiveQueueManager.class);
+
+        binder.bind(IrcBot.class).to(IrcBotImpl.class);
 
         // bind DAOs
         binder.bind(CompletedXferDao.class).to(CompletedXferSqlite3Dao.class);

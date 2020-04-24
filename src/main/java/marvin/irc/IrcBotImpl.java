@@ -1,5 +1,6 @@
 package marvin.irc;
 
+import marvin.config.BotConfig;
 import marvin.irc.events.DownloadCompleteEvent;
 import marvin.irc.events.Event;
 import marvin.irc.events.EventSource;
@@ -14,6 +15,7 @@ import org.pircbotx.hooks.events.PrivateMessageEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.text.MessageFormat;
@@ -34,6 +36,19 @@ public class IrcBotImpl implements IrcBot {
     private final boolean useIdent = true;
 
     private PircBotX bot;
+
+    @Inject
+    public IrcBotImpl(BotConfig config, QueueManager queueManager) {
+        this(config.getServer(),
+                config.getPort(),
+                config.getNick(),
+                config.getPassword(),
+                config.getAdminPassword(),
+                config.getControlChannel(),
+                config.getRequestChannel(),
+                config.getDownloadDirectory(),
+                queueManager);
+    }
 
     public IrcBotImpl(String server,
                       int port,

@@ -41,16 +41,17 @@ public class Client {
     private ListGenerator listGenerator;
 
     public Client() {
-        this(null, null, null);
+        this(null, null, null, null);
     }
 
     @Inject
     public Client(BotConfig config,
-                  QueueManager queueManager, CompletedXferDao completedXferDao) {
+                  QueueManager queueManager,
+                  CompletedXferDao completedXferDao, IrcBot bot) {
         this.config = config;
         this.queueManager = queueManager;
         this.sendQueueManager = new SendQueueManager();
-        this.bot = IrcBotFactory.fromConfig(config, queueManager);
+        this.bot = bot;
         this.listServer = new ListServer(bot, config.getRequestChannel(), config.getList());
         this.listGrabber = new ListGrabber(bot, "list-manager.dat");
         this.userManager = new UserManager(config.getAdminPassword());
