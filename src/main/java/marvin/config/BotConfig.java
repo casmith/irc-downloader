@@ -21,6 +21,7 @@ public class BotConfig {
     private final int port;
     private final String requestChannel;
     private final String server;
+    private final Config features;
 
     public BotConfig(Config config, String configDirectoryPath) {
         Config ircConfig = config.getConfig("irc");
@@ -35,6 +36,7 @@ public class BotConfig {
         this.port = ircConfig.getInt("port");
         this.requestChannel = ircConfig.getString("requestChannel");
         this.server = getString(ircConfig, "server");
+        this.features = config.getConfig("features");
     }
 
     public String getAdminPassword() {
@@ -81,14 +83,9 @@ public class BotConfig {
         return server;
     }
 
-    public boolean isFeatureEnabled(String featureName) {
-        return false;
+    public boolean isFeatureEnabled(String feature) {
+        return features.hasPath(feature) && features.getBoolean(feature);
     }
-
-//    private boolean isFeatureEnabled(String feature) {
-//        String key = "features." + feature;
-//        return config.hasPath(key) && config.getBoolean(key);
-//    }
 
     private String getString(Config config, String path) {
         if (config.hasPath(path)) {
