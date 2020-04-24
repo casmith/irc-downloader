@@ -9,21 +9,14 @@ import marvin.data.CompletedXferDao;
 import marvin.data.DatabaseException;
 import marvin.handlers.*;
 import marvin.http.JettyServer;
-import marvin.irc.IrcBot;
-import marvin.irc.QueueManager;
-import marvin.irc.SendQueueManager;
+import marvin.irc.*;
 import marvin.irc.events.DownloadCompleteEvent;
 import marvin.model.CompletedXfer;
-import marvin.util.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.text.MessageFormat;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-
-import static com.google.common.base.Preconditions.checkArgument;
 
 public class Client {
 
@@ -36,6 +29,9 @@ public class Client {
     private final QueueManager queueManager;
     private final CompletedXferDao completedXferDao;
     private final BotConfig config;
+    private final Advertiser advertiser;
+    private final ReceiveQueueProcessor receiveQueueProcessor;
+    private final SendQueueProcessor sendQueueProcessor;
     private UserManager userManager;
     private boolean isRunning;
     private ListGenerator listGenerator;
@@ -57,6 +53,9 @@ public class Client {
         this.userManager = new UserManager(config.getAdminPassword());
         this.listGenerator = new ListGenerator(config.getNick());
         this.completedXferDao = completedXferDao;
+        this.advertiser = new Advertiser(bot, config, listGenerator);
+        this.receiveQueueProcessor = new ReceiveQueueProcessor(bot, config, queueManager);
+        this.sendQueueProcessor = new SendQueueProcessor(bot, sendQueueManager);
     }
 
     public static void main(String[] args) {
@@ -133,7 +132,6 @@ public class Client {
     }
 
     private void start() {
-
         new Thread(() -> {
             try {
                 isRunning = true;
@@ -164,7 +162,7 @@ public class Client {
                 if (bot != null) {
                     try {
                         sleep(60);
-                        bot.sendToChannel(this.config.getRequestChannel(), getAdvert(bot.getNick(), listGenerator));
+                        this.advertiser.advertise();
                     } catch (Exception e) {
                         LOG.warn("Bot is not fully initialized yet");
                         sleep(5);
@@ -174,61 +172,11 @@ public class Client {
         }).start();
     }
 
-
-    String getDayOfMonthSuffix(final int n) {
-        checkArgument(n >= 1 && n <= 31, "illegal day of month: " + n);
-        if (n >= 11 && n <= 13) {
-            return "th";
-        }
-        switch (n % 10) {
-            case 1:
-                return "st";
-            case 2:
-                return "nd";
-            case 3:
-                return "rd";
-            default:
-                return "th";
-        }
-    }
-
-    public String getAdvert(String nick, ListGenerator listGenerator) {
-        return MessageFormat.format("Type: {0} for my list of {1} files ({2} GiB) "
-                        + "Updated: {3} == "
-                        //                                "Free Slots: 0/10 == " +
-                        //                                "Files in Que: 0 == " +
-                        //                                "Total Speed: 0cps == " +
-                        //                                "Next Open Slot: NOW == " +
-                        //                                "Files served: 0 == " +
-                        + "Using MarvinBot v0.01",
-                nick,
-                listGenerator.getCount(),
-                NumberUtils.format(((double) listGenerator.getBytes()) / NumberUtils.GIGABYTE),
-                formatDate(listGenerator.getGeneratedDateTime()));
-    }
-
-
-    private String formatDate(LocalDateTime localDate) {
-        final String strDay = DateTimeFormatter.ofPattern("d").format(localDate);
-        final int day = Integer.parseInt(strDay);
-        final String suffix = getDayOfMonthSuffix(day);
-        return DateTimeFormatter.ofPattern("MMM").format(localDate) + " " + strDay + suffix;
-    }
-
     private void startReceiveQueueProcessor() {
         LOG.info("Starting receive queue processor");
         new Thread(() -> {
             while (isRunning) {
-                queueManager.getQueues().forEach((nick, queue) -> {
-                    if (!queue.isEmpty()) {
-                        if (queueManager.inc(nick)) {
-                            String message = queue.poll();
-                            LOG.info("Requesting: {}", message);
-                            bot.sendToChannel(this.config.getRequestChannel(), message);
-                            queueManager.addInProgress(nick, message);
-                        }
-                    }
-                });
+                this.receiveQueueProcessor.process();
                 sleep(1);
             }
         }).start();
@@ -238,23 +186,7 @@ public class Client {
         LOG.info("Starting send queue processor");
         new Thread(() -> {
             while (isRunning) {
-                sendQueueManager.getQueues().forEach((nick, queue) -> {
-                    if (!queue.isEmpty()) {
-                        if (sendQueueManager.inc(nick)) {
-                            String file = queue.poll();
-                            if (file != null) {
-                                try {
-                                    LOG.info("Sending {} to {}", file, nick);
-                                    bot.sendFile(nick, new File(file));
-                                } catch (Exception e) {
-                                    LOG.error("Error sending file {} to {}: {}", file, nick, e.getMessage());
-                                } finally {
-                                    sendQueueManager.dec(nick);
-                                }
-                            }
-                        }
-                    }
-                });
+                this.sendQueueProcessor.process();
                 sleep(1);
             }
         }).start();
