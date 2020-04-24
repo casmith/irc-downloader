@@ -1,10 +1,15 @@
 package marvin;
 
+import marvin.config.AdminPassword;
+
+import javax.inject.Inject;
+
 public class UserManager {
     private String authorizedUser;
     private String adminPassword;
 
-    public UserManager(String adminPassword) {
+    @Inject
+    public UserManager(@AdminPassword String adminPassword) {
         this.adminPassword = adminPassword;
     }
 

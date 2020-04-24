@@ -2,7 +2,9 @@ package marvin;
 
 import com.google.inject.Binder;
 import com.google.inject.Module;
+import marvin.config.AdminPassword;
 import marvin.config.BotConfig;
+import marvin.config.Nick;
 import marvin.data.CompletedXferDao;
 import marvin.data.sqlite3.CompletedXferSqlite3Dao;
 import marvin.http.QueueResource;
@@ -27,8 +29,12 @@ public class MarvinModule implements Module {
     public void configure(Binder binder) {
         binder.bind(BotConfig.class).toInstance(config);
 
+        binder.bindConstant().annotatedWith(Nick.class).to(config.getNick());
+        binder.bindConstant().annotatedWith(AdminPassword.class).to(config.getAdminPassword());
+
         // misc bindings
         binder.bind(QueueManager.class).to(ReceiveQueueManager.class);
+        binder.bind(UserManager.class);
 
         binder.bind(IrcBot.class).to(IrcBotImpl.class);
 

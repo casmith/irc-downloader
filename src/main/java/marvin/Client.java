@@ -34,20 +34,22 @@ public class Client {
     private ListGenerator listGenerator;
 
     public Client() {
-        this(null, null, null, null);
+        this(null, null, null, null, null);
     }
 
     @Inject
     public Client(BotConfig config,
                   QueueManager queueManager,
-                  CompletedXferDao completedXferDao, IrcBot bot) {
+                  CompletedXferDao completedXferDao,
+                  IrcBot bot,
+                  UserManager userManager) {
         this.config = config;
         this.queueManager = queueManager;
         this.sendQueueManager = new SendQueueManager();
         this.bot = bot;
         this.listServer = new ListServer(bot, config.getRequestChannel(), config.getList());
         this.listGrabber = new ListGrabber(bot, "list-manager.dat");
-        this.userManager = new UserManager(config.getAdminPassword());
+        this.userManager = userManager;
         this.listGenerator = new ListGenerator(config.getNick());
         this.completedXferDao = completedXferDao;
         this.advertiser = new Advertiser(bot, config, listGenerator);
