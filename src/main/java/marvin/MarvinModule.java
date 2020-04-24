@@ -35,6 +35,7 @@ public class MarvinModule implements Module {
         // misc bindings
         binder.bind(QueueManager.class).to(ReceiveQueueManager.class);
         binder.bind(UserManager.class);
+        binder.bind(ListGenerator.class);
 
         binder.bind(IrcBot.class).to(IrcBotImpl.class);
 

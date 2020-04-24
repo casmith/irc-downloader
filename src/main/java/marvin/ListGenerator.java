@@ -2,9 +2,11 @@ package marvin;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+import marvin.config.Nick;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.FileWriter;
 import java.text.DecimalFormat;
@@ -15,6 +17,7 @@ import static java.text.MessageFormat.format;
 import static java.time.LocalDate.now;
 import static java.time.format.DateTimeFormatter.ISO_DATE;
 
+
 public class ListGenerator {
     private static final Logger LOG = LoggerFactory.getLogger(ListGenerator.class);
     private final String nick;
@@ -22,7 +25,8 @@ public class ListGenerator {
     private long count = 0;
     private LocalDateTime generatedDateTime;
 
-    public ListGenerator(String nick) {
+    @Inject
+    public ListGenerator(@Nick String nick) {
         this.nick = nick;
     }
 
