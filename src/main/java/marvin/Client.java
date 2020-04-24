@@ -6,17 +6,14 @@ import com.google.inject.Injector;
 import marvin.config.BotConfig;
 import marvin.config.ModuleFactory;
 import marvin.data.CompletedXferDao;
-import marvin.data.DatabaseException;
 import marvin.handlers.*;
 import marvin.http.JettyServer;
 import marvin.irc.*;
 import marvin.irc.events.DownloadCompleteEvent;
-import marvin.model.CompletedXfer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.time.LocalDateTime;
 
 public class Client {
 
@@ -59,7 +56,6 @@ public class Client {
     }
 
     public static void main(String[] args) {
-
         final BotConfig config = BotConfig.from(getConfigFile());
         final MarvinModule marvinModule = new MarvinModule(config);
         Injector injector = Guice.createInjector(marvinModule);
@@ -119,16 +115,7 @@ public class Client {
         bot.registerPrivateMessageHandler(new RequestPrivateMessageHandler(bot, queueManager, userManager));
         bot.registerPrivateMessageHandler(new ShutdownPrivateMessageHandler(bot, userManager));
         bot.registerNoticeHandler(new QueueLimitNoticeHandler(queueManager));
-
-        bot.on(DownloadCompleteEvent.class, event -> {
-            DownloadCompleteEvent dce = (DownloadCompleteEvent) event;
-            try {
-                completedXferDao.insert(
-                        new CompletedXfer(dce.getNick(), "", dce.getFileName(), dce.getBytes(), LocalDateTime.now()));
-            } catch (DatabaseException e) {
-                LOG.error("Error recording completed xfer", e);
-            }
-        });
+        bot.on(DownloadCompleteEvent.class, new CompletedXferListener(completedXferDao));
     }
 
     private void start() {
