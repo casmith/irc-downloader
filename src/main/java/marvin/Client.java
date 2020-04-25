@@ -3,74 +3,63 @@ package marvin;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
-import com.typesafe.config.Config;
-import com.typesafe.config.ConfigFactory;
+import marvin.config.BotConfig;
+import marvin.config.ModuleFactory;
 import marvin.data.CompletedXferDao;
-import marvin.data.DatabaseException;
 import marvin.handlers.*;
 import marvin.http.JettyServer;
-import marvin.irc.IrcBot;
-import marvin.irc.QueueManager;
-import marvin.irc.SendQueueManager;
+import marvin.irc.*;
 import marvin.irc.events.DownloadCompleteEvent;
-import marvin.model.CompletedXfer;
-import marvin.util.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.text.MessageFormat;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-
-import static com.google.common.base.Preconditions.checkArgument;
 
 public class Client {
 
     private static final Logger LOG = LoggerFactory.getLogger(Client.class);
 
-    private final Config ircConfig;
     private final IrcBot bot;
     private final ListServer listServer;
     private final ListGrabber listGrabber;
-    private final String requestChannel;
-    private final String list;
-    private final Config config;
     private final QueueManager sendQueueManager;
     private final QueueManager queueManager;
     private final CompletedXferDao completedXferDao;
+    private final BotConfig config;
+    private final Advertiser advertiser;
+    private final ReceiveQueueProcessor receiveQueueProcessor;
+    private final SendQueueProcessor sendQueueProcessor;
     private UserManager userManager;
     private boolean isRunning;
-    private File listRoot;
     private ListGenerator listGenerator;
 
     public Client() {
-        this(null, null);
+        this(null, null, null, null);
     }
 
     @Inject
-    public Client(QueueManager queueManager, CompletedXferDao completedXferDao) {
+    public Client(BotConfig config,
+                  QueueManager queueManager,
+                  CompletedXferDao completedXferDao, IrcBot bot) {
+        this.config = config;
         this.queueManager = queueManager;
         this.sendQueueManager = new SendQueueManager();
-        setupLocalConfigDirectory();
-        this.config = ConfigFactory.parseFile(getConfigFile());
-        this.ircConfig = this.config.getConfig("irc");
-        this.bot = IrcBotFactory.fromConfig(ircConfig, queueManager);
-        this.list = ircConfig.getString("list");
-        this.requestChannel = ircConfig.getString("requestChannel");
-        this.listServer = new ListServer(bot, this.requestChannel, this.list);
+        this.bot = bot;
+        this.listServer = new ListServer(bot, config.getRequestChannel(), config.getList());
         this.listGrabber = new ListGrabber(bot, "list-manager.dat");
-        this.userManager = new UserManager(this.ircConfig.getString("adminpw"));
-        this.listRoot = new File(this.ircConfig.getString("listRoot"));
-        this.listGenerator = new ListGenerator(this.ircConfig.getString("nick"));
+        this.userManager = new UserManager(config.getAdminPassword());
+        this.listGenerator = new ListGenerator(config.getNick());
         this.completedXferDao = completedXferDao;
+        this.advertiser = new Advertiser(bot, config, listGenerator);
+        this.receiveQueueProcessor = new ReceiveQueueProcessor(bot, config, queueManager);
+        this.sendQueueProcessor = new SendQueueProcessor(bot, sendQueueManager);
     }
 
     public static void main(String[] args) {
-        Injector injector = Guice.createInjector(new MarvinModule());
+        final BotConfig config = BotConfig.from(getConfigFile());
+        final MarvinModule marvinModule = new MarvinModule(config);
+        Injector injector = Guice.createInjector(marvinModule);
+        ModuleFactory.init(marvinModule);
         injector.getInstance(Client.class).run();
     }
 
@@ -81,23 +70,7 @@ public class Client {
         start();
     }
 
-    private void setupLocalConfigDirectory() {
-        if (getConfigDir().mkdirs()) {
-            setupLocalConfigFile();
-        }
-    }
-
-    private void setupLocalConfigFile() {
-        InputStream stream = Client.class.getClassLoader().getResourceAsStream("application.conf");
-        if (stream != null) {
-            File configFile = getConfigFile();
-            if (!configFile.exists()) {
-                copyStreamToFile(stream, configFile);
-            }
-        }
-    }
-
-    private File getConfigDir() {
+    private static File getConfigDir() {
         final String configDir = System.getenv("CONFIG_DIR");
         if (configDir != null) {
             try {
@@ -109,44 +82,32 @@ public class Client {
         return getConfigDirFromUserHome();
     }
 
-    public File getConfigDirFromUserHome() {
+    public static File getConfigDirFromUserHome() {
         return new File(System.getProperty("user.home") + File.separator + ".marvinbot");
     }
 
-    private File getConfigFile() {
+    private static File getConfigFile() {
         return new File(getConfigDir().getAbsolutePath() + File.separator + "application.conf");
     }
 
-    private void copyStreamToFile(InputStream stream, File configFile) {
-        try {
-            int readBytes;
-            byte[] buffer = new byte[4096];
-            FileOutputStream resStreamOut = new FileOutputStream(configFile);
-            while ((readBytes = stream.read(buffer)) > 0) {
-                resStreamOut.write(buffer, 0, readBytes);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 
     private void registerHandlers() {
-        if (isFeatureEnabled("listGrab")) {
+        if (config.isFeatureEnabled("listGrab")) {
             LOG.info("List grabbing is enabled");
             bot.registerMessageHandler(new ListGrabberMessageHandler(listGrabber, bot));
         } else {
             LOG.info("List grabbing is disabled");
         }
 
-        if (this.isFeatureEnabled("serve")) {
+        if (config.isFeatureEnabled("serve")) {
             LOG.info("File serving is enabled");
             bot.registerMessageHandler(new ListServerMessageHandler(listServer));
-            bot.registerMessageHandler(new FileRequestMessageHandler(bot, sendQueueManager, requestChannel, this.listRoot));
+            bot.registerMessageHandler(new FileRequestMessageHandler(bot, sendQueueManager, this.config.getRequestChannel(), new File(this.config.getListRoot())));
         } else {
             LOG.info("File serving is disabled");
         }
 
-        this.listGenerator.generateList(new File(ircConfig.getString("listRoot")));
+        this.listGenerator.generateList(new File(this.config.getListRoot()));
         this.listGenerator.printStatistics();
 
         bot.registerPrivateMessageHandler(new AuthPrivateMessageHandler(bot, userManager));
@@ -154,25 +115,15 @@ public class Client {
         bot.registerPrivateMessageHandler(new RequestPrivateMessageHandler(bot, queueManager, userManager));
         bot.registerPrivateMessageHandler(new ShutdownPrivateMessageHandler(bot, userManager));
         bot.registerNoticeHandler(new QueueLimitNoticeHandler(queueManager));
-
-        bot.on(DownloadCompleteEvent.class, event -> {
-            DownloadCompleteEvent dce = (DownloadCompleteEvent) event;
-            try {
-                completedXferDao.insert(
-                        new CompletedXfer(dce.getNick(), "", dce.getFileName(), dce.getBytes(), LocalDateTime.now()));
-            } catch (DatabaseException e) {
-                LOG.error("Error recording completed xfer", e);
-            }
-        });
+        bot.on(DownloadCompleteEvent.class, new CompletedXferListener(completedXferDao));
     }
 
     private void start() {
-
         new Thread(() -> {
             try {
                 isRunning = true;
                 startReceiveQueueProcessor();
-                if (this.isFeatureEnabled("serve")) {
+                if (config.isFeatureEnabled("serve")) {
                     startSendQueueProcessor();
                     startAdvertiserProcessor();
                 }
@@ -198,7 +149,7 @@ public class Client {
                 if (bot != null) {
                     try {
                         sleep(60);
-                        bot.sendToChannel(this.requestChannel, getAdvert(bot.getNick(), listGenerator));
+                        this.advertiser.advertise();
                     } catch (Exception e) {
                         LOG.warn("Bot is not fully initialized yet");
                         sleep(5);
@@ -208,61 +159,11 @@ public class Client {
         }).start();
     }
 
-
-    String getDayOfMonthSuffix(final int n) {
-        checkArgument(n >= 1 && n <= 31, "illegal day of month: " + n);
-        if (n >= 11 && n <= 13) {
-            return "th";
-        }
-        switch (n % 10) {
-            case 1:
-                return "st";
-            case 2:
-                return "nd";
-            case 3:
-                return "rd";
-            default:
-                return "th";
-        }
-    }
-
-    public String getAdvert(String nick, ListGenerator listGenerator) {
-        return MessageFormat.format("Type: {0} for my list of {1} files ({2} GiB) "
-                        + "Updated: {3} == "
-                        //                                "Free Slots: 0/10 == " +
-                        //                                "Files in Que: 0 == " +
-                        //                                "Total Speed: 0cps == " +
-                        //                                "Next Open Slot: NOW == " +
-                        //                                "Files served: 0 == " +
-                        + "Using MarvinBot v0.01",
-                nick,
-                listGenerator.getCount(),
-                NumberUtils.format(((double) listGenerator.getBytes()) / NumberUtils.GIGABYTE),
-                formatDate(listGenerator.getGeneratedDateTime()));
-    }
-
-
-    private String formatDate(LocalDateTime localDate) {
-        final String strDay = DateTimeFormatter.ofPattern("d").format(localDate);
-        final int day = Integer.parseInt(strDay);
-        final String suffix = getDayOfMonthSuffix(day);
-        return DateTimeFormatter.ofPattern("MMM").format(localDate) + " " + strDay + suffix;
-    }
-
     private void startReceiveQueueProcessor() {
         LOG.info("Starting receive queue processor");
         new Thread(() -> {
             while (isRunning) {
-                queueManager.getQueues().forEach((nick, queue) -> {
-                    if (!queue.isEmpty()) {
-                        if (queueManager.inc(nick)) {
-                            String message = queue.poll();
-                            LOG.info("Requesting: {}", message);
-                            bot.sendToChannel(requestChannel, message);
-                            queueManager.addInProgress(nick, message);
-                        }
-                    }
-                });
+                this.receiveQueueProcessor.process();
                 sleep(1);
             }
         }).start();
@@ -272,23 +173,7 @@ public class Client {
         LOG.info("Starting send queue processor");
         new Thread(() -> {
             while (isRunning) {
-                sendQueueManager.getQueues().forEach((nick, queue) -> {
-                    if (!queue.isEmpty()) {
-                        if (sendQueueManager.inc(nick)) {
-                            String file = queue.poll();
-                            if (file != null) {
-                                try {
-                                    LOG.info("Sending {} to {}", file, nick);
-                                    bot.sendFile(nick, new File(file));
-                                } catch (Exception e) {
-                                    LOG.error("Error sending file {} to {}: {}", file, nick, e.getMessage());
-                                } finally {
-                                    sendQueueManager.dec(nick);
-                                }
-                            }
-                        }
-                    }
-                });
+                this.sendQueueProcessor.process();
                 sleep(1);
             }
         }).start();
@@ -300,10 +185,5 @@ public class Client {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-    }
-
-    private boolean isFeatureEnabled(String feature) {
-        String key = "features." + feature;
-        return config.hasPath(key) && config.getBoolean(key);
     }
 }

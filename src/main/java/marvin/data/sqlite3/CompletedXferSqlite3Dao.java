@@ -1,13 +1,12 @@
 package marvin.data.sqlite3;
 
-import marvin.config.ConfigDirectory;
+import marvin.config.BotConfig;
 import marvin.data.CompletedXferDao;
 import marvin.data.DatabaseException;
 import marvin.model.CompletedXfer;
 import marvin.model.CompletedXferSummary;
 
 import javax.inject.Inject;
-import java.io.File;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,8 +20,8 @@ public class CompletedXferSqlite3Dao implements CompletedXferDao {
     }
 
     @Inject
-    public CompletedXferSqlite3Dao(@ConfigDirectory File configDirectory) {
-        this(configDirectory.getPath() + "/marvin.db");
+    public CompletedXferSqlite3Dao(BotConfig config) {
+        this(config.getConfigDirectoryPath() + "/marvin.db");
     }
 
     public Connection connect() {

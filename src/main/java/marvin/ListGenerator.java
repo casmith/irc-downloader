@@ -2,6 +2,8 @@ package marvin;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -14,6 +16,7 @@ import static java.time.LocalDate.now;
 import static java.time.format.DateTimeFormatter.ISO_DATE;
 
 public class ListGenerator {
+    private static final Logger LOG = LoggerFactory.getLogger(ListGenerator.class);
     private final String nick;
     private long bytes = 0;
     private long count = 0;
@@ -78,10 +81,10 @@ public class ListGenerator {
     }
 
     public void printStatistics() {
-        System.out.println(count + " files");
+        LOG.info(count + " files");
         double mb = bytes / 1024.0 / 1024.0 / 1024.0;
         DecimalFormat format = new DecimalFormat("##.00");
-        System.out.println(format.format(mb) + " GiB");
+        LOG.info(format.format(mb) + " GiB");
     }
 
     private void writeFiles(File[] files, ListWriter writer) {
@@ -101,6 +104,6 @@ public class ListGenerator {
         ListGenerator listGenerator = new ListGenerator(nick);
         listGenerator.generateList(new File(config.getString("irc.listRoot")));
         listGenerator.printStatistics();
-        System.out.println("done");
+        LOG.info("done");
     }
 }

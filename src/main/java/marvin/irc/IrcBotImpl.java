@@ -1,10 +1,12 @@
 package marvin.irc;
 
+import marvin.config.BotConfig;
 import marvin.irc.events.DownloadCompleteEvent;
 import marvin.irc.events.Event;
 import marvin.irc.events.EventSource;
 import marvin.irc.events.Listener;
 import org.pircbotx.*;
+import org.pircbotx.delay.StaticDelay;
 import org.pircbotx.exception.IrcException;
 import org.pircbotx.hooks.ListenerAdapter;
 import org.pircbotx.hooks.events.MessageEvent;
@@ -13,6 +15,7 @@ import org.pircbotx.hooks.events.PrivateMessageEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.text.MessageFormat;
@@ -33,6 +36,19 @@ public class IrcBotImpl implements IrcBot {
     private final boolean useIdent = true;
 
     private PircBotX bot;
+
+    @Inject
+    public IrcBotImpl(BotConfig config, QueueManager queueManager) {
+        this(config.getServer(),
+                config.getPort(),
+                config.getNick(),
+                config.getPassword(),
+                config.getAdminPassword(),
+                config.getControlChannel(),
+                config.getRequestChannel(),
+                config.getDownloadDirectory(),
+                queueManager);
+    }
 
     public IrcBotImpl(String server,
                       int port,
@@ -56,7 +72,7 @@ public class IrcBotImpl implements IrcBot {
                 .addAutoJoinChannel(requestChannel)
                 .setIdentServerEnabled(useIdent)
                 .setAutoReconnectAttempts(10)
-                .setAutoReconnectDelay(5000)
+                .setAutoReconnectDelay(new StaticDelay(5000))
                 .setAutoReconnect(true)
                 .addListener(new QueueProcessorListener(requestChannel, "queue.txt"))
                 .addListener(new IncomingFileTransferListener(eventSource, downloadDirectory))
