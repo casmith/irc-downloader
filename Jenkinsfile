@@ -4,12 +4,21 @@ pipeline {
     environment {
         USERNAME = credentials('marvin-github-username');
         TOKEN = credentials('marvin-github-token')
+        registry = 'casmith/marvin'
+        registryCredential = ‘dockerhub’
     }
 
     stages {
         stage('build') {
             steps {
-                sh 'gradle uberJar'
+                sh 'gradle dist'
+            }
+        }
+        stage('docker docker image') {
+            steps {
+                script {
+                    docker.build registry + ":$BUILD_NUMBER"
+                }
             }
         }
     }
