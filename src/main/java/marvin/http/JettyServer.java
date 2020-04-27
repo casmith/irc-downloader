@@ -32,11 +32,9 @@ public class JettyServer implements HttpServer {
         final ServletContextHandler context = new ServletContextHandler(server, CONTEXT_ROOT);
         context.setContextPath("/");
         try {
-            ClassLoader cl = JettyServer.class.getClassLoader();
-
             String webRootPath = System.getenv("WEBROOT");
             if (webRootPath == null) {
-                webRootPath = "src/main/js/dist/marvin";
+                webRootPath = "dist/marvin";
             }
             final File webroot = new File(webRootPath);
             URI webRootUri = webroot.toURI().resolve("./").normalize();
