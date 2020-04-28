@@ -60,7 +60,7 @@ public class CompletedXferSqlite3Dao implements CompletedXferDao {
     }
 
     public List<CompletedXfer> selectAll() {
-        return select("SELECT nick, channel, file, filesize, timestamp FROM completed_xfers", new RowMapper<CompletedXfer>() {
+        return select("SELECT nick, channel, file, filesize, timestamp FROM completed_xfers ORDER BY timestamp DESC", new RowMapper<CompletedXfer>() {
             @Override
             public CompletedXfer mapRow(ResultSet rs) throws SQLException {
                 return new CompletedXfer(
