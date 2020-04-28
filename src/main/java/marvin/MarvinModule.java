@@ -7,12 +7,12 @@ import marvin.config.BotConfig;
 import marvin.config.Nick;
 import marvin.data.CompletedXferDao;
 import marvin.data.sqlite3.CompletedXferSqlite3Dao;
-import marvin.http.QueueResource;
-import marvin.http.StatusResource;
 import marvin.irc.IrcBot;
 import marvin.irc.IrcBotImpl;
 import marvin.irc.QueueManager;
 import marvin.irc.ReceiveQueueManager;
+import marvin.web.QueueResource;
+import marvin.web.StatusResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

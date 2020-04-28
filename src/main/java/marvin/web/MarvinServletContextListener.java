@@ -1,4 +1,4 @@
-package marvin.http;
+package marvin.web;
 
 import com.google.inject.Module;
 import marvin.config.ModuleFactory;

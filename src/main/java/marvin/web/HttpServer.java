@@ -1,4 +1,4 @@
-package marvin.http;
+package marvin.web;
 
 public interface HttpServer {
     void start();

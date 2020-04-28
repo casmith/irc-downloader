@@ -7,9 +7,9 @@ import marvin.config.BotConfig;
 import marvin.config.ModuleFactory;
 import marvin.data.CompletedXferDao;
 import marvin.handlers.*;
-import marvin.http.JettyServer;
 import marvin.irc.*;
 import marvin.irc.events.DownloadCompleteEvent;
+import marvin.web.JettyServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

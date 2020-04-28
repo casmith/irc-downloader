@@ -1,4 +1,4 @@
-package marvin.http;
+package marvin.web;
 
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.DefaultServlet;

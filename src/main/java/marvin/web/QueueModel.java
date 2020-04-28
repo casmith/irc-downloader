@@ -1,4 +1,4 @@
-package marvin.http;
+package marvin.web;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.ArrayList;
