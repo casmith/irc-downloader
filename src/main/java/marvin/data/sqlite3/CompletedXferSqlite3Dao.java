@@ -3,6 +3,7 @@ package marvin.data.sqlite3;
 import marvin.config.BotConfig;
 import marvin.data.CompletedXferDao;
 import marvin.data.DatabaseException;
+import marvin.data.RowMapper;
 import marvin.model.CompletedXfer;
 import marvin.model.CompletedXferSummary;
 
@@ -111,9 +112,5 @@ public class CompletedXferSqlite3Dao implements CompletedXferDao {
             throw new DatabaseException("Failed when trying to query table", e);
         }
         return results;
-    }
-
-    public abstract static class RowMapper<T> {
-        public abstract T mapRow(ResultSet rs) throws SQLException;
     }
 }
