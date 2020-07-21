@@ -15,7 +15,7 @@ public class ListServerSqlite3DaoTest {
 
     @Before
     public void setUp() {
-        dao = new ListServerSqlite3Dao("./marvin.db");
+        dao = new ListServerSqlite3Dao("jdbc:sqlite:./marvin.db");
         dao.createTable();
         dao.truncate(); // always start with a clean slate
     }
