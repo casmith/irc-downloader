@@ -2,13 +2,13 @@ package marvin.model;
 
 import java.time.LocalDateTime;
 
-public class ListServer {
+public class KnownUser {
     private String name;
     private String nick;
     private String host;
     private LocalDateTime lastSeen;
 
-    public ListServer(String name, String nick, String host, LocalDateTime lastSeen) {
+    public KnownUser(String name, String nick, String host, LocalDateTime lastSeen) {
         this.name = name;
         this.nick = nick;
         this.host = host;

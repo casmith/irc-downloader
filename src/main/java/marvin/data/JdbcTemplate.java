@@ -1,7 +1,5 @@
 package marvin.data;
 
-import marvin.data.sqlite3.ListServerSqlite3Dao;
-
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;

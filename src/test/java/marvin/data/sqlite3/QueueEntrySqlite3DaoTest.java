@@ -1,7 +1,6 @@
 package marvin.data.sqlite3;
 
 import marvin.data.JdbcTemplate;
-import marvin.model.ListServer;
 import marvin.model.QueueEntry;
 import org.junit.Before;
 import org.junit.Test;

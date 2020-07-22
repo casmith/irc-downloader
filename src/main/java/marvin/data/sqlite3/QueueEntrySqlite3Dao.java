@@ -4,7 +4,6 @@ import marvin.data.DatabaseException;
 import marvin.data.JdbcTemplate;
 import marvin.data.QueueEntryDao;
 import marvin.data.RowMapper;
-import marvin.model.ListServer;
 import marvin.model.QueueEntry;
 
 import java.sql.*;

@@ -1,8 +1,8 @@
 package marvin;
 
-import marvin.data.ListServerDao;
+import marvin.data.KnownUserDao;
 import marvin.irc.IrcBot;
-import marvin.model.ListServer;
+import marvin.model.KnownUser;
 
 import java.time.LocalDateTime;
 import java.util.regex.Matcher;
@@ -10,14 +10,14 @@ import java.util.regex.Pattern;
 
 public class ListGrabber {
     private final String listManagerFileName;
-    private final ListServerDao listServerDao;
+    private final KnownUserDao knownUserDao;
     private IrcBot ircBot;
     private ListManager listManager;
-    public ListGrabber(IrcBot ircBot, ListServerDao listServerDao, String listManagerFileName) {
+    public ListGrabber(IrcBot ircBot, KnownUserDao knownUserDao, String listManagerFileName) {
         this.ircBot = ircBot;
         this.listManagerFileName = listManagerFileName;
         this.listManager = initializeListManager(listManagerFileName);
-        this.listServerDao = listServerDao;
+        this.knownUserDao = knownUserDao;
     }
 
     private ListManager initializeListManager(String listManagerFileName) {
@@ -76,6 +76,6 @@ public class ListGrabber {
             return;
         }
         String name = matcher.group(1);
-        listServerDao.insert(new ListServer(name, nick, hostmask, LocalDateTime.now()));
+        knownUserDao.insert(new KnownUser(name, nick, hostmask, LocalDateTime.now()));
     }
 }
