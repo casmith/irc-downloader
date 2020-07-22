@@ -32,7 +32,7 @@ public class KnownUserSqlite3Dao
 
     @Override
     public void createTable() {
-        jdbcTemplate.execute("create table if not exists list_servers(\n" +
+        jdbcTemplate.execute("create table if not exists known_users(\n" +
             "\tname varchar(9) not null,\n" +
             "\tnick varchar(9) not null,\n" +
             "\thost varchar(63) not null,\n" +
@@ -43,7 +43,7 @@ public class KnownUserSqlite3Dao
     @Override
     public void insert(KnownUser knownUser) {
         Connection conn = jdbcTemplate.connect();
-        try (PreparedStatement statement = conn.prepareStatement("insert into list_servers (name, nick, host, last_seen) values (?, ?, ?, ?)")) {
+        try (PreparedStatement statement = conn.prepareStatement("insert into known_users (name, nick, host, last_seen) values (?, ?, ?, ?)")) {
             statement.setString(1, knownUser.getName());
             statement.setString(2, knownUser.getNick());
             statement.setString(3, knownUser.getHost());
@@ -56,7 +56,7 @@ public class KnownUserSqlite3Dao
 
     @Override
     public List<KnownUser> selectAll() {
-        return jdbcTemplate.select("SELECT name, nick, host, last_seen FROM list_servers ORDER BY last_seen DESC", new RowMapper<KnownUser>() {
+        return jdbcTemplate.select("SELECT name, nick, host, last_seen FROM known_users ORDER BY last_seen DESC", new RowMapper<KnownUser>() {
             @Override
             public KnownUser mapRow(ResultSet rs) throws SQLException {
                 return new KnownUser(
@@ -70,6 +70,6 @@ public class KnownUserSqlite3Dao
 
     @Override
     public void truncate() {
-        jdbcTemplate.execute("delete from list_servers; vacuum;");
+        jdbcTemplate.execute("delete from known_users; vacuum;");
     }
 }
