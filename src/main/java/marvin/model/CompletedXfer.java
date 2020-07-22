@@ -3,11 +3,11 @@ package marvin.model;
 import java.time.LocalDateTime;
 
 public class CompletedXfer {
-    private String nick;
-    private String channel;
-    private String file;
-    private Long filesize;
-    private LocalDateTime timestamp;
+    private final String nick;
+    private final String channel;
+    private final String file;
+    private final Long filesize;
+    private final LocalDateTime timestamp;
 
     public CompletedXfer(String nick, String channel, String file, Long filesize, LocalDateTime timestamp) {
         this.nick = nick;
