@@ -3,6 +3,7 @@ package marvin.data;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class JdbcTemplate {
 
@@ -44,5 +45,15 @@ public class JdbcTemplate {
             throw new DatabaseException("Failed when trying to query table", e);
         }
         return results;
+    }
+
+    public void prepareStatement(String sql, Consumer<PreparedStatement> consumer) {
+        Connection conn = connect();
+        try (PreparedStatement statement = conn.prepareStatement(sql)) {
+            consumer.accept(statement);
+            statement.execute();
+        } catch (SQLException e) {
+            throw new DatabaseException("Failed to insert data", e);
+        }
     }
 }

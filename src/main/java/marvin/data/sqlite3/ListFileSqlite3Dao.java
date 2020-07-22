@@ -32,14 +32,14 @@ public class ListFileSqlite3Dao implements ListFileDao {
 
     @Override
     public void insert(ListFile listFile) {
-        Connection conn = jdbcTemplate.connect();
-        try (PreparedStatement statement = conn.prepareStatement("insert into list_files (name, last_updated) values (?, ?)")) {
-            statement.setString(1, listFile.getName());
-            statement.setTimestamp(2, Timestamp.valueOf(listFile.getLastUpdated()));
-            statement.execute();
-        } catch (SQLException e) {
-            throw new DatabaseException("Failed to insert data", e);
-        }
+        jdbcTemplate.prepareStatement("insert into list_files (name, last_updated) values (?, ?)", (preparedStatement -> {
+            try {
+                preparedStatement.setString(1, listFile.getName());
+                preparedStatement.setTimestamp(2, Timestamp.valueOf(listFile.getLastUpdated()));
+            } catch (SQLException e) {
+                throw new DatabaseException("Failed to insert data", e);
+            }
+        }));
     }
 
     @Override
