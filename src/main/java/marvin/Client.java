@@ -52,7 +52,9 @@ public class Client {
         this.sendQueueManager = new SendQueueManager();
         this.bot = bot;
         this.listServer = new ListServer(bot, config.getRequestChannel(), config.getList());
-        this.listGrabber = new ListGrabber(bot, knownUserDao, "list-manager.dat");
+        final boolean isListGrabbingEnabled = config.isFeatureEnabled("listGrab");
+        LOG.info("List grabbing is " + (isListGrabbingEnabled ? "enabled" : "disabled"));
+        this.listGrabber = new ListGrabber(bot, knownUserDao, "list-manager.dat", isListGrabbingEnabled);
         this.userManager = userManager;
         this.listGenerator = listGenerator;
         this.completedXferDao = completedXferDao;
@@ -100,13 +102,7 @@ public class Client {
 
 
     private void registerHandlers() {
-        if (config.isFeatureEnabled("listGrab")) {
-            LOG.info("List grabbing is enabled");
-            bot.registerMessageHandler(new ListGrabberMessageHandler(listGrabber, bot));
-        } else {
-            LOG.info("List grabbing is disabled");
-        }
-
+        bot.registerMessageHandler(new ListGrabberMessageHandler(listGrabber, bot));
         if (config.isFeatureEnabled("serve")) {
             LOG.info("File serving is enabled");
             bot.registerMessageHandler(new ListServerMessageHandler(listServer));

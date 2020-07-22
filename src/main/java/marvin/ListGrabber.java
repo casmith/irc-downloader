@@ -11,9 +11,11 @@ import java.util.regex.Pattern;
 public class ListGrabber {
     private final String listManagerFileName;
     private final KnownUserDao knownUserDao;
+    private final boolean isEnabled;
     private IrcBot ircBot;
     private ListManager listManager;
-    public ListGrabber(IrcBot ircBot, KnownUserDao knownUserDao, String listManagerFileName) {
+    public ListGrabber(IrcBot ircBot, KnownUserDao knownUserDao, String listManagerFileName, boolean isEnabled) {
+        this.isEnabled = isEnabled;
         this.ircBot = ircBot;
         this.listManagerFileName = listManagerFileName;
         this.listManager = initializeListManager(listManagerFileName);
@@ -45,6 +47,9 @@ public class ListGrabber {
     }
 
     public boolean grab(String channelName, String message) {
+        if (!isEnabled) {
+            return false;
+        }
         Pattern pattern = getPattern();
         Matcher matcher = pattern.matcher(message.toLowerCase());
         if (!matcher.matches()) {
