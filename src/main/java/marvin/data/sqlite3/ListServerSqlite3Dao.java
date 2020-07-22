@@ -26,7 +26,6 @@ public class ListServerSqlite3Dao
             "lite:" + config.getConfigDirectoryPath() + "/marvin.db");
     }
 
-    @Inject
     public ListServerSqlite3Dao(String url) {
         this(new JdbcTemplate(url));
     }

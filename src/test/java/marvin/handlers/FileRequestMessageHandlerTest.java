@@ -35,7 +35,7 @@ public class FileRequestMessageHandlerTest {
     @Test
     public void testDownloadExistingFile() {
         String path = downloadFile.getAbsolutePath();
-        handler.onMessage("#coolguys", "somedude", "!coolbot " + path);
+        handler.onMessage("#coolguys", "somedude", "!coolbot " + path, null);
         verify(bot).sendToChannel("#coolguys", "Accepted request from somedude for file " + path);
 //        verify(bot).sendFile(any(), any());
         assertEquals(1, sendQueueManager.getQueue("somedude").size());
@@ -46,7 +46,7 @@ public class FileRequestMessageHandlerTest {
     public void testDownloadNonExistingFile() {
         File nonExistentFile = new File(downloadFile.getParent() + "\\notafile.txt");
         String path = nonExistentFile.getAbsolutePath();
-        handler.onMessage("#coolguys", "somedude", "!coolbot " + path);
+        handler.onMessage("#coolguys", "somedude", "!coolbot " + path, null);
         verify(bot).sendPrivateMessage("somedude", path + " was not found");
         verify(bot, never()).sendFile(any(), any());
     }
@@ -55,7 +55,7 @@ public class FileRequestMessageHandlerTest {
     public void testDownloadFileFromWrongDirectory() {
         handler = new FileRequestMessageHandler(bot, sendQueueManager, "#coolguys", new File("c:\\files"));
         String path = downloadFile.getAbsolutePath();
-        handler.onMessage("#coolguys", "somedude", "!coolbot " + path);
+        handler.onMessage("#coolguys", "somedude", "!coolbot " + path, null);
         verify(bot).sendPrivateMessage("somedude", path + " was not found");
         verify(bot, never()).sendFile(any(), any());
     }

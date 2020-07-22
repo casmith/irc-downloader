@@ -96,7 +96,9 @@ public class IrcBotImpl implements IrcBot {
                         String nick = getNick(event.getUser());
                         String channelName = event.getChannel().getName();
                         String message = Colors.removeColors(event.getMessage());
-                        messageHandlers.forEach(handler -> handler.onMessage(channelName, nick, message));
+                        final UserHostmask userHostmask = event.getUserHostmask();
+                        final String hostmask = userHostmask.getHostmask();
+                        messageHandlers.forEach(handler -> handler.onMessage(channelName, nick, message, hostmask));
                     }
                 })
                 .buildConfiguration();

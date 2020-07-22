@@ -6,7 +6,9 @@ import marvin.config.AdminPassword;
 import marvin.config.BotConfig;
 import marvin.config.Nick;
 import marvin.data.CompletedXferDao;
+import marvin.data.ListServerDao;
 import marvin.data.sqlite3.CompletedXferSqlite3Dao;
+import marvin.data.sqlite3.ListServerSqlite3Dao;
 import marvin.irc.IrcBot;
 import marvin.irc.IrcBotImpl;
 import marvin.irc.QueueManager;
@@ -41,6 +43,7 @@ public class MarvinModule implements Module {
 
         // bind DAOs
         binder.bind(CompletedXferDao.class).to(CompletedXferSqlite3Dao.class);
+        binder.bind(ListServerDao.class).to(ListServerSqlite3Dao.class);
 
         // bind resources
         binder.bind(QueueResource.class);

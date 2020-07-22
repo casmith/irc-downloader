@@ -6,6 +6,7 @@ import com.google.inject.Injector;
 import marvin.config.BotConfig;
 import marvin.config.ModuleFactory;
 import marvin.data.CompletedXferDao;
+import marvin.data.ListServerDao;
 import marvin.handlers.*;
 import marvin.irc.*;
 import marvin.irc.events.DownloadCompleteEvent;
@@ -29,18 +30,20 @@ public class Client {
     private final Advertiser advertiser;
     private final ReceiveQueueProcessor receiveQueueProcessor;
     private final SendQueueProcessor sendQueueProcessor;
+    private final ListServerDao listServerDao;
     private UserManager userManager;
     private boolean isRunning;
     private ListGenerator listGenerator;
 
     public Client() {
-        this(null, null, null, null, null, null);
+        this(null, null, null, null, null, null,null);
     }
 
     @Inject
     public Client(BotConfig config,
                   QueueManager queueManager,
                   CompletedXferDao completedXferDao,
+                  ListServerDao listServerDao,
                   IrcBot bot,
                   ListGenerator listGenerator,
                   UserManager userManager) {
@@ -49,10 +52,11 @@ public class Client {
         this.sendQueueManager = new SendQueueManager();
         this.bot = bot;
         this.listServer = new ListServer(bot, config.getRequestChannel(), config.getList());
-        this.listGrabber = new ListGrabber(bot, "list-manager.dat");
+        this.listGrabber = new ListGrabber(bot, listServerDao, "list-manager.dat");
         this.userManager = userManager;
         this.listGenerator = listGenerator;
         this.completedXferDao = completedXferDao;
+        this.listServerDao = listServerDao;
         this.advertiser = new Advertiser(bot, config, listGenerator);
         this.receiveQueueProcessor = new ReceiveQueueProcessor(bot, config, queueManager);
         this.sendQueueProcessor = new SendQueueProcessor(bot, sendQueueManager);
@@ -69,6 +73,7 @@ public class Client {
     public void run() {
         // init DAOs
         this.completedXferDao.createTable();
+        this.listServerDao.createTable();
         registerHandlers();
         start();
     }

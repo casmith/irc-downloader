@@ -26,7 +26,7 @@ public class FileRequestMessageHandler implements MessageHandler {
     }
 
     @Override
-    public void onMessage(String channelName, String nick, String message) {
+    public void onMessage(String channelName, String nick, String message, String hostmask) {
         String botNick = this.bot.getNick();
         String requestPrefix = "!" + botNick;
         if (channelName.equals(this.requestChannel) && message.startsWith(requestPrefix)) {

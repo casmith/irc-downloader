@@ -12,7 +12,7 @@ public class ListServerMessageHandler implements MessageHandler {
     }
 
     @Override
-    public void onMessage(String channelName, String nick, String message) {
+    public void onMessage(String channelName, String nick, String message, String hostmask) {
         if (listServer.check(channelName, message)) {
             listServer.send(nick);
         }
