@@ -20,7 +20,7 @@ public class ListGrabberTest {
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-        listGrabber = new ListGrabber(ircBot, null, null);
+        listGrabber = new ListGrabber(ircBot, null, null, true);
     }
 
     @Test
