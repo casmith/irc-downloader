@@ -36,6 +36,7 @@ public abstract class AbstractQueueManager implements QueueManager {
 
     @Override
     public Integer getLimit(String nick) {
+        nick = nick.toLowerCase();
         return limits.getOrDefault(nick, 10);
     }
 
@@ -46,6 +47,7 @@ public abstract class AbstractQueueManager implements QueueManager {
             limit = 10;
         }
         synchronized (this) {
+            nick = nick.toLowerCase();
             limits.put(nick, limit);
         }
     }
@@ -53,6 +55,7 @@ public abstract class AbstractQueueManager implements QueueManager {
     @Override
     public boolean dec(String nick) {
         synchronized (this) {
+            nick = nick.toLowerCase();
             boolean success = false;
             Integer current = getCurrent(nick);
             if (current > 0) {
@@ -67,6 +70,7 @@ public abstract class AbstractQueueManager implements QueueManager {
     @Override
     public boolean inc(String nick) {
         synchronized (this) {
+            nick = nick.toLowerCase();
             boolean success = false;
             Integer limit = getLimit(nick);
             Integer current = getCurrent(nick);
@@ -82,12 +86,14 @@ public abstract class AbstractQueueManager implements QueueManager {
     @Override
     public void update(String nick, int current) {
         synchronized (this) {
+            nick = nick.toLowerCase();
             queued.put(nick, current);
             printStats(nick);
         }
     }
 
     private void printStats(String nick) {
+        nick = nick.toLowerCase();
         Integer current = getCurrent(nick);
         Integer limit = getLimit(nick);
         LOG.info("Queue for {}: {}/{}", nick, current, limit);
