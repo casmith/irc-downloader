@@ -1,10 +1,12 @@
 package marvin.irc;
 
+import com.google.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
+@Singleton
 public class ReceiveQueueManager extends AbstractQueueManager
         implements QueueManager {
 
