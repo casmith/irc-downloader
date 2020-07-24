@@ -107,6 +107,7 @@ public class IrcBotImpl implements IrcBot {
             try {
                 if (event instanceof DownloadCompleteEvent) {
                     DownloadCompleteEvent dce = (DownloadCompleteEvent) event;
+                    LOG.info("Download completed [{}]", dce.toString());
                     queueManager.dec(dce.getNick());
                     if (!dce.isSuccess()) {
                         messageControlChannel("Download {0} from {1} failed", dce.getFileName(), dce.getNick());

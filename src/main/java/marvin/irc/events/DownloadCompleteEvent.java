@@ -34,4 +34,15 @@ public class DownloadCompleteEvent implements Event {
     public long getBytes() {
         return bytes;
     }
+
+    @Override
+    public String toString() {
+        return "DownloadCompleteEvent{" +
+            "fileName='" + fileName + '\'' +
+            ", nick='" + nick + '\'' +
+            ", success=" + success +
+            ", duration=" + duration +
+            ", bytes=" + bytes +
+            '}';
+    }
 }
