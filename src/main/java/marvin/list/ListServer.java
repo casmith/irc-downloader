@@ -1,4 +1,4 @@
-package marvin;
+package marvin.list;
 
 import marvin.irc.IrcBot;
 import org.slf4j.Logger;

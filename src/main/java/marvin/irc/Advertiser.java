@@ -1,6 +1,6 @@
 package marvin.irc;
 
-import marvin.ListGenerator;
+import marvin.list.ListGenerator;
 import marvin.config.BotConfig;
 import marvin.util.NumberUtils;
 

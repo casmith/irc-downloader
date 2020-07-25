@@ -1,4 +1,4 @@
-package marvin;
+package marvin.list;
 
 import java.io.File;
 import java.io.FileNotFoundException;

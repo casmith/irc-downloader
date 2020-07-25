@@ -1,6 +1,6 @@
 package marvin.handlers;
 
-import marvin.ListServer;
+import marvin.list.ListServer;
 import marvin.irc.MessageHandler;
 
 public class ListServerMessageHandler implements MessageHandler {

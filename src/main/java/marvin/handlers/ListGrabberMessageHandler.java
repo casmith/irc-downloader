@@ -1,6 +1,6 @@
 package marvin.handlers;
 
-import marvin.ListGrabber;
+import marvin.list.ListGrabber;
 import marvin.irc.IrcBot;
 import marvin.irc.MessageHandler;
 import org.slf4j.Logger;

@@ -13,6 +13,7 @@ import marvin.irc.IrcBot;
 import marvin.irc.IrcBotImpl;
 import marvin.irc.QueueManager;
 import marvin.irc.ReceiveQueueManager;
+import marvin.list.ListGenerator;
 import marvin.web.QueueResource;
 import marvin.web.StatusResource;
 import org.slf4j.Logger;

@@ -1,4 +1,6 @@
-package marvin;
+package marvin.list;
+
+import marvin.list.ListGeneratorException;
 
 import java.io.FileWriter;
 import java.io.IOException;

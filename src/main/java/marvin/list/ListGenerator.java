@@ -1,4 +1,4 @@
-package marvin;
+package marvin.list;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;

@@ -1,17 +1,11 @@
 package marvin;
 
+import marvin.list.ListGenerator;
 import org.junit.Before;
-import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.Month;
-
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.when;
 
 public class ClientTest {
 

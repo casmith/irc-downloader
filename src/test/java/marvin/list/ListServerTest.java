@@ -1,6 +1,7 @@
-package marvin;
+package marvin.list;
 
 import marvin.irc.IrcBot;
+import marvin.list.ListServer;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;

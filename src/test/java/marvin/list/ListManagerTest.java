@@ -1,5 +1,6 @@
-package marvin;
+package marvin.list;
 
+import marvin.list.ListManager;
 import org.junit.Test;
 
 import static org.junit.Assert.*;

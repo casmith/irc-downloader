@@ -1,4 +1,4 @@
-package marvin;
+package marvin.list;
 
 import marvin.data.DatabaseException;
 import marvin.data.KnownUserDao;
