@@ -13,7 +13,7 @@ import java.util.regex.Pattern;
 
 public class ListGrabber {
 
-    private static Logger LOG = LoggerFactory.getLogger(ListGrabber.class)
+    private static Logger LOG = LoggerFactory.getLogger(ListGrabber.class);
 
     private final String listManagerFileName;
     private final KnownUserDao knownUserDao;
