@@ -22,7 +22,6 @@ pipeline {
                 script {
                     unstash 'build'
                     sh 'ls -lah'
-                    sh 'ls -lah dist'
                     dockerImage = docker.build registry + ":$BUILD_NUMBER"
                     docker.withRegistry( '', registryCredential ) {
                         dockerImage.push()
