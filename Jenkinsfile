@@ -14,11 +14,13 @@ pipeline {
             steps {
                 sh 'gradle dist'
             }
+            post { always { stash includes: '**/*', name: 'build' } }
         }
         stage('publish image') {
             agent any
             steps {
                 script {
+                    unstash 'build'
                     sh 'ls -lah'
                     sh 'ls -lah dist'
                     dockerImage = docker.build registry + ":$BUILD_NUMBER"
