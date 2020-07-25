@@ -36,10 +36,6 @@ public class Client {
     private boolean isRunning;
     private ListGenerator listGenerator;
 
-    public Client() {
-        this(null, null, null, null, null, null,null);
-    }
-
     @Inject
     public Client(BotConfig config,
                   QueueManager queueManager,
