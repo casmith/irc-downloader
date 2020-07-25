@@ -15,32 +15,15 @@ public class ListGrabber {
 
     private static Logger LOG = LoggerFactory.getLogger(ListGrabber.class);
 
-    private final String listManagerFileName;
     private final KnownUserDao knownUserDao;
     private final boolean isEnabled;
     private IrcBot ircBot;
     private ListManager listManager;
-    public ListGrabber(IrcBot ircBot, KnownUserDao knownUserDao, String listManagerFileName, boolean isEnabled) {
+    public ListGrabber(IrcBot ircBot, KnownUserDao knownUserDao, ListManager listManager, boolean isEnabled) {
         this.isEnabled = isEnabled;
         this.ircBot = ircBot;
-        this.listManagerFileName = listManagerFileName;
-        this.listManager = initializeListManager(listManagerFileName);
         this.knownUserDao = knownUserDao;
-    }
-
-    private ListManager initializeListManager(String listManagerFileName) {
-        ListManager aListManager = loadListManager(listManagerFileName);
-        if (listManager == null) {
-            aListManager = new ListManager();
-        }
-        return aListManager;
-    }
-
-    private ListManager loadListManager(String listManagerFileName) {
-        if (listManagerFileName != null) {
-            return ListManager.load(listManagerFileName);
-        }
-        return null;
+        this.listManager = listManager;
     }
 
     public boolean check(String message) {
@@ -63,21 +46,14 @@ public class ListGrabber {
         }
         String listQuery = matcher.group(1);
         if (listManager.add(listQuery)) {
-            saveListManager();
             ircBot.sendToChannel(channelName, listQuery);
             return true;
         }
         return false;
     }
 
-    private void saveListManager() {
-        if (this.listManagerFileName != null) {
-            ListManager.save(listManager, listManagerFileName);
-        }
-    }
-
     public static void main(String[] args) {
-        System.out.println(ListManager.load("list-manager.dat"));
+        System.out.println(FlatFileListManager.open("list-manager.dat"));
     }
 
     public void updateLastSeen(String nick, String message, String hostmask) {

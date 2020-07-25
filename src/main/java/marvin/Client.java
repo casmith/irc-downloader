@@ -10,9 +10,7 @@ import marvin.data.KnownUserDao;
 import marvin.handlers.*;
 import marvin.irc.*;
 import marvin.irc.events.DownloadCompleteEvent;
-import marvin.list.ListGenerator;
-import marvin.list.ListGrabber;
-import marvin.list.ListServer;
+import marvin.list.*;
 import marvin.web.JettyServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,9 +53,7 @@ public class Client {
         this.sendQueueManager = new SendQueueManager();
         this.bot = bot;
         this.listServer = new ListServer(bot, config.getRequestChannel(), config.getList());
-        final boolean isListGrabbingEnabled = config.isFeatureEnabled("listGrab");
-        LOG.info("List grabbing is " + (isListGrabbingEnabled ? "enabled" : "disabled"));
-        this.listGrabber = new ListGrabber(bot, knownUserDao, "list-manager.dat", isListGrabbingEnabled);
+        this.listGrabber = initListGrabber(knownUserDao, bot, config);
         this.userManager = userManager;
         this.listGenerator = listGenerator;
         this.completedXferDao = completedXferDao;
@@ -65,6 +61,13 @@ public class Client {
         this.advertiser = new Advertiser(bot, config, listGenerator);
         this.receiveQueueProcessor = new ReceiveQueueProcessor(bot, config, queueManager);
         this.sendQueueProcessor = new SendQueueProcessor(bot, sendQueueManager);
+    }
+
+    private ListGrabber initListGrabber(KnownUserDao knownUserDao, IrcBot bot, BotConfig config) {
+        final boolean isListGrabbingEnabled = config.isFeatureEnabled("listGrab");
+        final ListManager listManager = FlatFileListManager.open("list-manager.dat");
+        LOG.info("List grabbing is " + (isListGrabbingEnabled ? "enabled" : "disabled"));
+        return new ListGrabber(bot, knownUserDao, listManager, isListGrabbingEnabled);
     }
 
     public static void main(String[] args) {

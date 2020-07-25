@@ -21,7 +21,7 @@ public class ListGrabberTest {
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-        listGrabber = new ListGrabber(ircBot, null, null, true);
+        listGrabber = new ListGrabber(ircBot, null, new InMemoryListManager(), true);
     }
 
     @Test
