@@ -4,7 +4,7 @@ pipeline {
     environment {
         USERNAME = credentials('marvin-github-username');
         TOKEN = credentials('marvin-github-token')
-        registry = 'casmith/marvin'
+        registry = 'casmith/marvinbot'
         registryCredential = 'dockerhub'
     }
 
@@ -24,8 +24,8 @@ pipeline {
                     sh 'ls -lah'
                     dockerImage = docker.build registry + ":$BUILD_NUMBER"
                     docker.withRegistry( '', registryCredential ) {
-                        dockerImage.push()
                         dockerImage.tag('latest')
+                        dockerImage.push()
                     }
                     sh "docker rmi $registry:$BUILD_NUMBER"
                 }
