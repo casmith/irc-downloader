@@ -36,18 +36,20 @@ public class KnownUserSqlite3Dao
             "\tname varchar(9) not null,\n" +
             "\tnick varchar(9) not null,\n" +
             "\thost varchar(63) not null,\n" +
-            "\tlast_seen int not null\n" +
+            "\tlast_seen int not null,\n" +
+            "\tunique(name, nick, host)\n" +
             ");");
     }
 
     @Override
     public void insert(KnownUser knownUser) {
         Connection conn = jdbcTemplate.connect();
-        try (PreparedStatement statement = conn.prepareStatement("insert into known_users (name, nick, host, last_seen) values (?, ?, ?, ?)")) {
+        try (PreparedStatement statement = conn.prepareStatement("insert into known_users (name, nick, host, last_seen) values (?, ?, ?, ?) on conflict (name, nick, host) set last_seen=?")) {
             statement.setString(1, knownUser.getName());
             statement.setString(2, knownUser.getNick());
             statement.setString(3, knownUser.getHost());
             statement.setTimestamp(4, Timestamp.valueOf(knownUser.getLastSeen()));
+            statement.setTimestamp(5, Timestamp.valueOf(knownUser.getLastSeen()));
             statement.execute();
         } catch (SQLException e) {
             throw new DatabaseException("Failed to create table", e);
