@@ -24,8 +24,8 @@ pipeline {
                     sh 'ls -lah'
                     dockerImage = docker.build registry + ":$BUILD_NUMBER"
                     docker.withRegistry( '', registryCredential ) {
-                        dockerImage.tag('latest')
                         dockerImage.push()
+                        dockerImage.push('latest')
                     }
                     sh "docker rmi $registry:$BUILD_NUMBER"
                 }
