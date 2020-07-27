@@ -7,6 +7,7 @@ import marvin.config.BotConfig;
 import marvin.config.ModuleFactory;
 import marvin.data.CompletedXferDao;
 import marvin.data.KnownUserDao;
+import marvin.data.ListFileDao;
 import marvin.handlers.*;
 import marvin.irc.*;
 import marvin.irc.events.DownloadCompleteEvent;
@@ -32,6 +33,7 @@ public class Client {
     private final ReceiveQueueProcessor receiveQueueProcessor;
     private final SendQueueProcessor sendQueueProcessor;
     private final KnownUserDao knownUserDao;
+    private final ListFileDao listFileDao;
     private UserManager userManager;
     private boolean isRunning;
     private ListGenerator listGenerator;
@@ -41,6 +43,7 @@ public class Client {
                   QueueManager queueManager,
                   CompletedXferDao completedXferDao,
                   KnownUserDao knownUserDao,
+                  ListFileDao listFileDao,
                   IrcBot bot,
                   ListGenerator listGenerator,
                   UserManager userManager) {
@@ -54,6 +57,7 @@ public class Client {
         this.listGenerator = listGenerator;
         this.completedXferDao = completedXferDao;
         this.knownUserDao = knownUserDao;
+        this.listFileDao = listFileDao;
         this.advertiser = new Advertiser(bot, config, listGenerator);
         this.receiveQueueProcessor = new ReceiveQueueProcessor(bot, config, queueManager);
         this.sendQueueProcessor = new SendQueueProcessor(bot, sendQueueManager);
@@ -61,7 +65,7 @@ public class Client {
 
     private ListGrabber initListGrabber(KnownUserDao knownUserDao, IrcBot bot, BotConfig config) {
         final boolean isListGrabbingEnabled = config.isFeatureEnabled("listGrab");
-        final ListManager listManager = FlatFileListManager.open("list-manager.dat");
+        final ListManager listManager = new DatabaseListManager(listFileDao);
         LOG.info("List grabbing is " + (isListGrabbingEnabled ? "enabled" : "disabled"));
         return new ListGrabber(bot, knownUserDao, listManager, isListGrabbingEnabled);
     }
@@ -78,6 +82,7 @@ public class Client {
         // init DAOs
         this.completedXferDao.createTable();
         this.knownUserDao.createTable();
+        this.listFileDao.createTable();
         registerHandlers();
         start();
     }

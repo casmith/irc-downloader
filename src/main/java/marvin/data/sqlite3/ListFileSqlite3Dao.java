@@ -1,18 +1,24 @@
 package marvin.data.sqlite3;
 
+import marvin.config.BotConfig;
 import marvin.data.DatabaseException;
 import marvin.data.JdbcTemplate;
 import marvin.data.ListFileDao;
 import marvin.data.RowMapper;
 import marvin.model.ListFile;
 
+import javax.inject.Inject;
 import java.sql.*;
 import java.util.List;
 
 public class ListFileSqlite3Dao implements ListFileDao {
 
-
     private final JdbcTemplate jdbcTemplate;
+
+    @Inject
+    public ListFileSqlite3Dao(BotConfig config) {
+        this("jdbc:sqlite:" + config.getConfigDirectoryPath() + "/marvin.db");
+    }
 
     public ListFileSqlite3Dao(String url) {
         this(new JdbcTemplate(url));
