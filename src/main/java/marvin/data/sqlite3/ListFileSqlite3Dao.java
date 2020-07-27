@@ -43,16 +43,43 @@ public class ListFileSqlite3Dao implements ListFileDao {
     }
 
     @Override
+    public void update(ListFile listFile) {
+        jdbcTemplate.prepareStatement("update list_files set last_updated = ? where name = ?", (preparedStatement -> {
+            try {
+                preparedStatement.setTimestamp(1, Timestamp.valueOf(listFile.getLastUpdated()));
+                preparedStatement.setString(2, listFile.getName());
+            } catch (SQLException e) {
+                throw new DatabaseException("Failed to insert data", e);
+            }
+        }));
+    }
+
+    @Override
     public List<ListFile> selectAll() {
-        return jdbcTemplate.select("SELECT name, last_updated FROM list_files ORDER BY last_updated DESC", new RowMapper<ListFile>() {
+        return jdbcTemplate.select("SELECT name, last_updated FROM list_files ORDER BY last_updated DESC", getRowMapper());
+    }
+
+    private RowMapper<ListFile> getRowMapper() {
+        return new RowMapper<ListFile>() {
             @Override
             public ListFile mapRow(ResultSet rs) throws SQLException {
                 return new ListFile(
                     rs.getString("name"),
                     rs.getTimestamp("last_updated").toLocalDateTime());
             }
-        });
+        };
+    }
 
+    @Override
+    public ListFile findByName(String name) {
+        List<ListFile> listFiles = jdbcTemplate.query("SELECT name, last_updated FROM list_files WHERE name = ?", preparedStatement -> {
+            try {
+                preparedStatement.setString(1, name);
+            } catch (SQLException e) {
+                throw new DatabaseException("Failed to execute query", e);
+            }
+        }, getRowMapper());
+        return listFiles.isEmpty() ? null : listFiles.get(0);
     }
 
     @Override

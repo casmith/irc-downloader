@@ -56,4 +56,19 @@ public class JdbcTemplate {
             throw new DatabaseException("Failed to insert data", e);
         }
     }
+
+    public <T> List<T> query(String sql, Consumer<PreparedStatement> consumer, RowMapper<T> rowMapper) {
+        Connection conn = connect();
+        try (PreparedStatement statement = conn.prepareStatement(sql)) {
+            List<T> results = new ArrayList<>();
+            consumer.accept(statement);
+            ResultSet rs = statement.executeQuery();
+            while (rs.next()) {
+                results.add(rowMapper.mapRow(rs));
+            }
+            return results;
+        } catch (SQLException e) {
+            throw new DatabaseException("Failed to query data", e);
+        }
+    }
 }
