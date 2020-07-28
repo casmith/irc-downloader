@@ -52,7 +52,6 @@ public class Client {
         this.sendQueueManager = new SendQueueManager();
         this.bot = bot;
         this.listServer = new ListServer(bot, config.getRequestChannel(), config.getList());
-        this.listGrabber = initListGrabber(knownUserDao, bot, config);
         this.userManager = userManager;
         this.listGenerator = listGenerator;
         this.completedXferDao = completedXferDao;
@@ -61,6 +60,7 @@ public class Client {
         this.advertiser = new Advertiser(bot, config, listGenerator);
         this.receiveQueueProcessor = new ReceiveQueueProcessor(bot, config, queueManager);
         this.sendQueueProcessor = new SendQueueProcessor(bot, sendQueueManager);
+        this.listGrabber = initListGrabber(knownUserDao, bot, config);
     }
 
     private ListGrabber initListGrabber(KnownUserDao knownUserDao, IrcBot bot, BotConfig config) {
