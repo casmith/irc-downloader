@@ -25,8 +25,12 @@ public class ListGrabberMessageHandler implements MessageHandler {
             listGrabber.updateLastSeen(nick, message, hostmask);
         }
 
-        if (listGrabber.grab(channelName, message)) {
-            bot.messageControlChannel("Requested list from {0}", nick);
+        try {
+            if (listGrabber.grab(channelName, message)) {
+                bot.messageControlChannel("Requested list from {0}", nick);
+            }
+        } catch (Exception e) {
+            LOG.error("Failed to grab list", e);
         }
     }
 }
