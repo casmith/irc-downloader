@@ -40,16 +40,19 @@ public class ListGrabber {
             return false;
         }
         Pattern pattern = getPattern();
-        LOG.info("Checking message, {}", message);
         Matcher matcher = pattern.matcher(message.toLowerCase());
         if (!matcher.matches()) {
+            LOG.info("No match {}", message);
             return false;
         }
+        LOG.info("Match! {}", message);
         String listQuery = matcher.group(1);
         if (listManager.add(listQuery)) {
+            LOG.info("Grabbing list for {}", listQuery);
             ircBot.sendToChannel(channelName, listQuery);
             return true;
         }
+        LOG.info("Not grabbing list for {}", listQuery);
         return false;
     }
 
