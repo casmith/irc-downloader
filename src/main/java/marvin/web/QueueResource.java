@@ -2,6 +2,8 @@ package marvin.web;
 
 import com.google.inject.Inject;
 import marvin.irc.QueueManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -12,6 +14,7 @@ import java.util.Queue;
 public class QueueResource {
 
     private QueueManager queueManager;
+    private Logger LOG = LoggerFactory.getLogger(QueueResource.class);
 
     @Inject
     public QueueResource(QueueManager queueManager) {
@@ -30,8 +33,12 @@ public class QueueResource {
     @Path("/")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response enqueue(QueueModel model) {
+        LOG.info("In enqueue method with " + model.getServers().size() + " servers");
+        LOG.info("QueueManager is " + queueManager.hashCode());
         for (QueueModel.QueueServerModel server : model.getServers()) {
+            LOG.info("Enqueueing requests for " + server.getNick());
             for (String request : server.getRequests()) {
+                LOG.info("Enqueuing " + request);
                 queueManager.enqueue(server.getNick(), request);
             }
         }

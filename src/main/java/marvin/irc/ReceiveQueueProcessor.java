@@ -19,6 +19,7 @@ public class ReceiveQueueProcessor {
     }
 
     public void process() {
+        LOG.info("QueueManager is " + queueManager.hashCode());
         queueManager.getQueues().forEach((nick, queue) -> {
             if (!queue.isEmpty()) {
                 if (queueManager.inc(nick)) {
