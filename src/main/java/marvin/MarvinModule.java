@@ -2,6 +2,7 @@ package marvin;
 
 import com.google.inject.Binder;
 import com.google.inject.Module;
+import com.google.inject.name.Names;
 import marvin.config.AdminPassword;
 import marvin.config.BotConfig;
 import marvin.config.Nick;
@@ -38,7 +39,9 @@ public class MarvinModule implements Module {
         binder.bindConstant().annotatedWith(AdminPassword.class).to(config.getAdminPassword());
 
         // misc bindings
-        binder.bind(QueueManager.class).to(ReceiveQueueManager.class);
+        binder.bind(QueueManager.class)
+            .annotatedWith(Names.named("RecvQueue"))
+            .to(ReceiveQueueManager.class);
         binder.bind(UserManager.class);
         binder.bind(ListGenerator.class);
 
