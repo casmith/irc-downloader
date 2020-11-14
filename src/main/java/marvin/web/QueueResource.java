@@ -2,6 +2,7 @@ package marvin.web;
 
 import com.google.inject.Inject;
 import marvin.irc.QueueManager;
+import marvin.irc.ReceiveQueueManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,11 +14,11 @@ import java.util.Queue;
 @Path("/queue")
 public class QueueResource {
 
-    private QueueManager queueManager;
+    private ReceiveQueueManager queueManager;
     private Logger LOG = LoggerFactory.getLogger(QueueResource.class);
 
     @Inject
-    public QueueResource(QueueManager queueManager) {
+    public QueueResource(ReceiveQueueManager queueManager) {
         this.queueManager = queueManager;
     }
 

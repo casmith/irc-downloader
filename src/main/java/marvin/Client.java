@@ -26,7 +26,7 @@ public class Client {
     private final ListServer listServer;
     private final ListGrabber listGrabber;
     private final QueueManager sendQueueManager;
-    private final QueueManager queueManager;
+    private final ReceiveQueueManager queueManager;
     private final CompletedXferDao completedXferDao;
     private final BotConfig config;
     private final Advertiser advertiser;
@@ -40,7 +40,7 @@ public class Client {
 
     @Inject
     public Client(BotConfig config,
-                  QueueManager queueManager,
+                  ReceiveQueueManager queueManager,
                   CompletedXferDao completedXferDao,
                   KnownUserDao knownUserDao,
                   ListFileDao listFileDao,

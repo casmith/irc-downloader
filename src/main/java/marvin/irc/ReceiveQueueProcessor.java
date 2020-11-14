@@ -13,11 +13,9 @@ public class ReceiveQueueProcessor {
     private final IrcBot bot;
     private final BotConfig config;
 
-    @Inject
-    @Named("RecvQueue")
-    private QueueManager queueManager;
+    private ReceiveQueueManager queueManager;
 
-    public ReceiveQueueProcessor(IrcBot bot, BotConfig config, QueueManager queueManager) {
+    public ReceiveQueueProcessor(IrcBot bot, BotConfig config, ReceiveQueueManager queueManager) {
         this.bot = bot;
         this.config = config;
         this.queueManager = queueManager;

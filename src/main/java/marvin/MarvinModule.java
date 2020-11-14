@@ -39,8 +39,7 @@ public class MarvinModule implements Module {
         binder.bindConstant().annotatedWith(AdminPassword.class).to(config.getAdminPassword());
 
         // misc bindings
-        binder.bind(QueueManager.class)
-            .annotatedWith(Names.named("RecvQueue"))
+        binder.bind(ReceiveQueueManager.class)
             .to(ReceiveQueueManager.class);
         binder.bind(UserManager.class);
         binder.bind(ListGenerator.class);
