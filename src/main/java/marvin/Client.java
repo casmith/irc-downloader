@@ -34,12 +34,14 @@ public class Client {
     private final SendQueueProcessor sendQueueProcessor;
     private final KnownUserDao knownUserDao;
     private final ListFileDao listFileDao;
+    private final Injector injector;
     private UserManager userManager;
     private boolean isRunning;
     private ListGenerator listGenerator;
 
     @Inject
-    public Client(BotConfig config,
+    public Client(Injector injector,
+                  BotConfig config,
                   ReceiveQueueManager queueManager,
                   CompletedXferDao completedXferDao,
                   KnownUserDao knownUserDao,
@@ -61,6 +63,7 @@ public class Client {
         this.receiveQueueProcessor = new ReceiveQueueProcessor(bot, config, queueManager);
         this.sendQueueProcessor = new SendQueueProcessor(bot, sendQueueManager);
         this.listGrabber = initListGrabber(knownUserDao, bot, config);
+        this.injector = injector;
     }
 
     private ListGrabber initListGrabber(KnownUserDao knownUserDao, IrcBot bot, BotConfig config) {
@@ -147,7 +150,7 @@ public class Client {
         }).start();
 
         new Thread(() -> {
-            JettyServer jettyServer = new JettyServer(8081);
+            JettyServer jettyServer = new JettyServer(8081, injector);
             jettyServer.start();
         }).start();
 

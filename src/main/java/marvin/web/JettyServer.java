@@ -1,5 +1,6 @@
 package marvin.web;
 
+import com.google.inject.Injector;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -23,7 +24,7 @@ public class JettyServer implements HttpServer {
 
     private final int port;
 
-    public JettyServer(int port) {
+    public JettyServer(int port, Injector injector) {
         this.port = port;
         server = new Server(port);
 
@@ -51,7 +52,7 @@ public class JettyServer implements HttpServer {
         final ServletHolder defaultServlet = new ServletHolder(new DefaultServlet());
         context.addServlet(defaultServlet, CONTEXT_ROOT);
 
-        context.addEventListener(new MarvinServletContextListener());
+        context.addEventListener(injector.getInstance(MarvinServletContextListener.class));
     }
 
     private void configureResteasyServlet(ServletContextHandler context) {

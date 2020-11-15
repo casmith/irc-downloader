@@ -2,7 +2,6 @@ package marvin;
 
 import com.google.inject.Binder;
 import com.google.inject.Module;
-import com.google.inject.name.Names;
 import marvin.config.AdminPassword;
 import marvin.config.BotConfig;
 import marvin.config.Nick;
@@ -14,9 +13,8 @@ import marvin.data.sqlite3.KnownUserSqlite3Dao;
 import marvin.data.sqlite3.ListFileSqlite3Dao;
 import marvin.irc.IrcBot;
 import marvin.irc.IrcBotImpl;
-import marvin.irc.QueueManager;
-import marvin.irc.ReceiveQueueManager;
 import marvin.list.ListGenerator;
+import marvin.web.MarvinServletContextListener;
 import marvin.web.QueueResource;
 import marvin.web.StatusResource;
 import org.slf4j.Logger;
@@ -53,5 +51,7 @@ public class MarvinModule implements Module {
         // bind resources
         binder.bind(QueueResource.class);
         binder.bind(StatusResource.class);
+
+        binder.bind(MarvinServletContextListener.class);
     }
 }
