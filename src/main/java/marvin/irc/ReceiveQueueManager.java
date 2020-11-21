@@ -14,6 +14,16 @@ public class ReceiveQueueManager extends AbstractQueueManager
 
     private Map<String, Queue<String>> inProgress = new HashMap<>();
 
+    public ReceiveQueueManager() {
+
+        // print a stack trace every time this is called for debugging
+        try  {
+            throw new RuntimeException();
+        } catch (RuntimeException e) {
+            LOG.error("Creating new recv queue manager", e);
+        }
+    }
+
     @Override
     public void addInProgress(String nick, String message) {
         inProgress.computeIfAbsent(nick, s -> new LinkedList<>()).offer(message);

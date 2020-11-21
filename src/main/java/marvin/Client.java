@@ -26,7 +26,7 @@ public class Client {
     private final ListServer listServer;
     private final ListGrabber listGrabber;
     private final QueueManager sendQueueManager;
-    private final QueueManager queueManager;
+    private final ReceiveQueueManager queueManager;
     private final CompletedXferDao completedXferDao;
     private final BotConfig config;
     private final Advertiser advertiser;
@@ -34,13 +34,15 @@ public class Client {
     private final SendQueueProcessor sendQueueProcessor;
     private final KnownUserDao knownUserDao;
     private final ListFileDao listFileDao;
+    private final Injector injector;
     private UserManager userManager;
     private boolean isRunning;
     private ListGenerator listGenerator;
 
     @Inject
-    public Client(BotConfig config,
-                  QueueManager queueManager,
+    public Client(Injector injector,
+                  BotConfig config,
+                  ReceiveQueueManager queueManager,
                   CompletedXferDao completedXferDao,
                   KnownUserDao knownUserDao,
                   ListFileDao listFileDao,
@@ -52,7 +54,6 @@ public class Client {
         this.sendQueueManager = new SendQueueManager();
         this.bot = bot;
         this.listServer = new ListServer(bot, config.getRequestChannel(), config.getList());
-        this.listGrabber = initListGrabber(knownUserDao, bot, config);
         this.userManager = userManager;
         this.listGenerator = listGenerator;
         this.completedXferDao = completedXferDao;
@@ -61,6 +62,8 @@ public class Client {
         this.advertiser = new Advertiser(bot, config, listGenerator);
         this.receiveQueueProcessor = new ReceiveQueueProcessor(bot, config, queueManager);
         this.sendQueueProcessor = new SendQueueProcessor(bot, sendQueueManager);
+        this.listGrabber = initListGrabber(knownUserDao, bot, config);
+        this.injector = injector;
     }
 
     private ListGrabber initListGrabber(KnownUserDao knownUserDao, IrcBot bot, BotConfig config) {
@@ -147,7 +150,7 @@ public class Client {
         }).start();
 
         new Thread(() -> {
-            JettyServer jettyServer = new JettyServer(8081);
+            JettyServer jettyServer = new JettyServer(8081, injector);
             jettyServer.start();
         }).start();
 

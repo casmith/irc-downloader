@@ -38,7 +38,7 @@ public class IrcBotImpl implements IrcBot {
     private PircBotX bot;
 
     @Inject
-    public IrcBotImpl(BotConfig config, QueueManager queueManager) {
+    public IrcBotImpl(BotConfig config, ReceiveQueueManager queueManager) {
         this(config.getServer(),
                 config.getPort(),
                 config.getNick(),

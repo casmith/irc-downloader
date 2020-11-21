@@ -13,9 +13,8 @@ import marvin.data.sqlite3.KnownUserSqlite3Dao;
 import marvin.data.sqlite3.ListFileSqlite3Dao;
 import marvin.irc.IrcBot;
 import marvin.irc.IrcBotImpl;
-import marvin.irc.QueueManager;
-import marvin.irc.ReceiveQueueManager;
 import marvin.list.ListGenerator;
+import marvin.web.MarvinServletContextListener;
 import marvin.web.QueueResource;
 import marvin.web.StatusResource;
 import org.slf4j.Logger;
@@ -38,7 +37,7 @@ public class MarvinModule implements Module {
         binder.bindConstant().annotatedWith(AdminPassword.class).to(config.getAdminPassword());
 
         // misc bindings
-        binder.bind(QueueManager.class).to(ReceiveQueueManager.class);
+//        binder.bind(ReceiveQueueManager.class);
         binder.bind(UserManager.class);
         binder.bind(ListGenerator.class);
 
@@ -52,5 +51,7 @@ public class MarvinModule implements Module {
         // bind resources
         binder.bind(QueueResource.class);
         binder.bind(StatusResource.class);
+
+        binder.bind(MarvinServletContextListener.class);
     }
 }
