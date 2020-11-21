@@ -23,11 +23,14 @@ pipeline {
                     unstash 'build'
                     sh 'ls -lah'
                     dockerImage = docker.build registry + ":$BUILD_NUMBER"
+                    dockerImagePi = docker.build(registry + ":${BUILD_NUMBER}-rpi", "Dockerfile.rpi")
                     docker.withRegistry( '', registryCredential ) {
                         dockerImage.push()
                         dockerImage.push('latest')
+                        dockerImagePi.push('latest-rpi')
                     }
                     sh "docker rmi $registry:$BUILD_NUMBER"
+                    sh "docker rmi $registry:$BUILD_NUMBER-rpi"
                 }
             }
         }
