@@ -143,7 +143,8 @@ public class Client {
                 }
                 bot.start();
 
-            } catch (Exception ex) {
+            } catch (Exception e) {
+                LOG.error("Exception occurred, shutting down", e);
                 bot.shutdown();
                 isRunning = false;
             }
