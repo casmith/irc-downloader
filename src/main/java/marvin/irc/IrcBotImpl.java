@@ -235,4 +235,9 @@ public class IrcBotImpl implements IrcBot {
             LOG.error("Failed to send file", e);
         }
     }
+
+    @Override
+    public boolean isNickOnline(String nick) {
+        return bot.getUserChannelDao().containsUser(nick);
+    }
 }
