@@ -24,4 +24,6 @@ public interface IrcBot {
     void sendFile(String nick, File file);
 
     void on(Class<? extends Event> eventClass, Listener listener);
+
+    boolean isNickOnline(String nick);
 }

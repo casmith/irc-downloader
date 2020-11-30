@@ -14,22 +14,24 @@ public class QueueModel {
 
     public static class QueueServerModel {
         private String nick;
-        private List<String> requests;
+        private List<QueueRequest> requests;
 
         public QueueServerModel(String nick) {
             this.nick = nick;
             this.requests = new ArrayList<>();
         }
 
-        public QueueServerModel() {
-        }
-
         public String getNick() {
             return nick;
         }
 
-        public List<String> getRequests() {
+        public List<QueueRequest> getRequests() {
             return requests;
         }
+
+        public void addRequest(QueueRequest request) {
+            this.getRequests().add(request);
+        }
+
     }
 }

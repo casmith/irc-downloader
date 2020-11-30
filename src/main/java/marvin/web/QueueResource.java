@@ -1,7 +1,6 @@
 package marvin.web;
 
 import com.google.inject.Inject;
-import marvin.irc.QueueManager;
 import marvin.irc.ReceiveQueueManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,6 +9,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.Queue;
+import java.util.stream.Collectors;
 
 @Path("/queue")
 public class QueueResource {
@@ -38,9 +38,9 @@ public class QueueResource {
         LOG.info("QueueManager is " + queueManager.hashCode());
         for (QueueModel.QueueServerModel server : model.getServers()) {
             LOG.info("Enqueueing requests for " + server.getNick());
-            for (String request : server.getRequests()) {
+            for (QueueRequest request : server.getRequests()) {
                 LOG.info("Enqueuing " + request);
-                queueManager.enqueue(server.getNick(), request);
+                queueManager.enqueue(server.getNick(), request.getRequest());
             }
         }
         return Response.status(200).build();
@@ -49,13 +49,17 @@ public class QueueResource {
     public QueueModel buildQueueModel() {
         QueueModel queueModel = new QueueModel();
         queueManager.getQueues()
-                .forEach((nick, queue) -> queueModel.getServers().add(buildModel(nick, queue)));
+                .forEach((nick, queue) -> queueModel.getServers().add(buildModel(nick, queue, "PENDING")));
+
+        queueManager.getInProgress()
+            .forEach((nick, queue) -> queueModel.getServers().add(buildModel(nick, queue, "REQUESTED")));
+
         return queueModel;
     }
 
-    public QueueModel.QueueServerModel buildModel(String nick, Queue<String> queue) {
+    public QueueModel.QueueServerModel buildModel(String nick, Queue<String> queue, String status) {
         QueueModel.QueueServerModel qsm = new QueueModel.QueueServerModel(nick);
-        qsm.getRequests().addAll(queue);
+        qsm.getRequests().addAll(queue.stream().map(r -> new QueueRequest(r, status)).collect(Collectors.toList()));
         return qsm;
     }
 }
