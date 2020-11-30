@@ -11,17 +11,9 @@ public class ReceiveQueueManager extends AbstractQueueManager
         implements QueueManager {
 
     private static final Logger LOG = LoggerFactory.getLogger(ReceiveQueueManager.class);
-
-    private Map<String, Queue<String>> inProgress = new HashMap<>();
+    private final Map<String, Queue<String>> inProgress = new HashMap<>();
 
     public ReceiveQueueManager() {
-
-        // print a stack trace every time this is called for debugging
-        try  {
-            throw new RuntimeException();
-        } catch (RuntimeException e) {
-            LOG.error("Creating new recv queue manager", e);
-        }
     }
 
     @Override
@@ -45,5 +37,9 @@ public class ReceiveQueueManager extends AbstractQueueManager
         if (count != 1) {
             LOG.warn("Found " + count + " items to retry for " + nick + ":" + filename);
         }
+    }
+
+    public Map<String, Queue<String>> getInProgress() {
+        return inProgress;
     }
 }
