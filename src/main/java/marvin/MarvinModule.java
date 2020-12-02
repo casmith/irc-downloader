@@ -14,6 +14,7 @@ import marvin.data.sqlite3.ListFileSqlite3Dao;
 import marvin.irc.IrcBot;
 import marvin.irc.IrcBotImpl;
 import marvin.list.ListGenerator;
+import marvin.web.HistoryResource;
 import marvin.web.MarvinServletContextListener;
 import marvin.web.QueueResource;
 import marvin.web.StatusResource;
@@ -49,6 +50,7 @@ public class MarvinModule implements Module {
         binder.bind(ListFileDao.class).to(ListFileSqlite3Dao.class);
 
         // bind resources
+        binder.bind(HistoryResource.class);
         binder.bind(QueueResource.class);
         binder.bind(StatusResource.class);
 
