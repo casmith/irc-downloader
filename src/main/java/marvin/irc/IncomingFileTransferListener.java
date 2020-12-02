@@ -19,11 +19,13 @@ public class IncomingFileTransferListener extends ListenerAdapter {
 
     private final EventSource eventSource;
     private final String downloadDirectory;
+    private final ReceiveQueueManager queueManager;
     private Logger LOG = LoggerFactory.getLogger(IncomingFileTransferListener.class);
 
-    public IncomingFileTransferListener(EventSource eventSource, String downloadDirectory) {
+    public IncomingFileTransferListener(EventSource eventSource, String downloadDirectory, ReceiveQueueManager queueManager) {
         this.eventSource = eventSource;
         this.downloadDirectory = downloadDirectory;
+        this.queueManager = queueManager;
     }
 
     @Override
@@ -53,10 +55,7 @@ public class IncomingFileTransferListener extends ListenerAdapter {
             bytes = accept.getFileSize();
             long kbps = (bytes - 1024) / seconds;
             LOG.info("Done downloading {} in {}s ({} KiB/s)", file.getAbsolutePath(), seconds, kbps);
-            // TODO: log completed transfer
-
-
-
+            queueManager.markCompleted(nick, event.getSafeFilename());
             success = true;
         } catch (Exception e) {
             LOG.error("File transfer failed", e);

@@ -33,7 +33,7 @@ public class IrcBotImpl implements IrcBot {
     private final List<MessageHandler> messageHandlers = new ArrayList<>();
     private final List<PrivateMessageHandler> privateMessageHandlers = new ArrayList<>();
     private final List<NoticeHandler> noticeHandlers = new ArrayList<>();
-    private final boolean useIdent = true;
+    private final boolean useIdent = false;
 
     private PircBotX bot;
 
@@ -58,7 +58,7 @@ public class IrcBotImpl implements IrcBot {
                       String controlChannel,
                       String requestChannel,
                       String downloadDirectory,
-                      QueueManager queueManager) {
+                      ReceiveQueueManager queueManager) {
         this.adminPassword = adminPassword;
         this.requestChannel = requestChannel;
         this.controlChannel = controlChannel;
@@ -75,7 +75,7 @@ public class IrcBotImpl implements IrcBot {
                 .setAutoReconnectDelay(new StaticDelay(5000))
                 .setAutoReconnect(true)
                 .addListener(new QueueProcessorListener(requestChannel, "queue.txt"))
-                .addListener(new IncomingFileTransferListener(eventSource, downloadDirectory))
+                .addListener(new IncomingFileTransferListener(eventSource, downloadDirectory, queueManager))
                 .addListener(new ListenerAdapter() {
                     @Override
                     public void onPrivateMessage(PrivateMessageEvent event) {
@@ -181,7 +181,9 @@ public class IrcBotImpl implements IrcBot {
 
     private void startIdentServer() {
         try {
-            IdentServer.startServer();
+            if (useIdent) {
+                IdentServer.startServer();
+            }
         } catch (Exception e) {
             throw new IrcBotException("Failed to start ident server", e);
         }

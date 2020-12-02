@@ -5,8 +5,12 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
+import static java.time.temporal.ChronoUnit.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -49,6 +53,6 @@ public class ListFileSqlite3DaoTest {
         LocalDateTime now = LocalDateTime.now();
         dao.update(new ListFile("wtriker", now));
         ListFile fetched = dao.findByName("wtriker");
-        assertEquals(now, fetched.getLastUpdated());
+        assertEquals(now.truncatedTo(SECONDS), fetched.getLastUpdated().truncatedTo(SECONDS));
     }
 }
