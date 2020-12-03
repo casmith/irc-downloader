@@ -1,4 +1,4 @@
-package marvin.web;
+package marvin.web.queue;
 
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.ArrayList;

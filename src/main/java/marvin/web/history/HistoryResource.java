@@ -1,4 +1,4 @@
-package marvin.web;
+package marvin.web.history;
 
 import com.google.inject.Inject;
 import marvin.data.CompletedXferDao;
@@ -13,7 +13,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.List;
 import java.util.stream.Collectors;
 
 @Path("/history")

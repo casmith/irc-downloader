@@ -14,10 +14,10 @@ import marvin.data.sqlite3.ListFileSqlite3Dao;
 import marvin.irc.IrcBot;
 import marvin.irc.IrcBotImpl;
 import marvin.list.ListGenerator;
-import marvin.web.HistoryResource;
+import marvin.web.history.HistoryResource;
 import marvin.web.MarvinServletContextListener;
-import marvin.web.QueueResource;
-import marvin.web.StatusResource;
+import marvin.web.queue.QueueResource;
+import marvin.web.status.StatusResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

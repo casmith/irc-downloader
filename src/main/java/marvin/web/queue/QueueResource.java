@@ -1,4 +1,4 @@
-package marvin.web;
+package marvin.web.queue;
 
 import com.google.inject.Inject;
 import marvin.irc.ReceiveQueueManager;

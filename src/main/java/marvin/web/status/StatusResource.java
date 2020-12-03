@@ -1,4 +1,4 @@
-package marvin.web;
+package marvin.web.status;
 
 import com.google.inject.Inject;
 import marvin.data.CompletedXferDao;
@@ -24,9 +24,8 @@ public class StatusResource {
     @Path("/")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getStatus() {
-
-        CompletedXferSummary summary = this.completedXferDao.summarize();
-
-        return Response.status(200).entity(summary).build();
+        return Response.status(200)
+            .entity(this.completedXferDao.summarize())
+            .build();
     }
 }

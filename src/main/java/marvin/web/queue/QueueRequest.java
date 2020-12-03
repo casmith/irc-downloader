@@ -1,4 +1,4 @@
-package marvin.web;
+package marvin.web.queue;
 
 public class QueueRequest {
     private String request;

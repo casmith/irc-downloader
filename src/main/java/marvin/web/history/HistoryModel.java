@@ -1,4 +1,4 @@
-package marvin.web;
+package marvin.web.history;
 
 public class HistoryModel {
 
