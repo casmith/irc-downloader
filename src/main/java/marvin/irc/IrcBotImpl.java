@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class IrcBotImpl implements IrcBot {
 
@@ -47,6 +48,7 @@ public class IrcBotImpl implements IrcBot {
                 config.getControlChannel(),
                 config.getRequestChannel(),
                 config.getDownloadDirectory(),
+                config.getDownloadDirectories(),
                 queueManager);
     }
 
@@ -58,11 +60,14 @@ public class IrcBotImpl implements IrcBot {
                       String controlChannel,
                       String requestChannel,
                       String downloadDirectory,
+                      Map<String, File> downloadDirectories,
                       ReceiveQueueManager queueManager) {
         this.adminPassword = adminPassword;
         this.requestChannel = requestChannel;
         this.controlChannel = controlChannel;
-        configuration = new Configuration.Builder()
+        IncomingFileTransferListener.Configuration configuration = new IncomingFileTransferListener.Configuration(downloadDirectory);
+        downloadDirectories.forEach(configuration::withExtension);
+        this.configuration = new Configuration.Builder()
                 .addServer(server, port)
                 .setName(nick)
                 .setRealName(nick)
@@ -75,7 +80,7 @@ public class IrcBotImpl implements IrcBot {
                 .setAutoReconnectDelay(new StaticDelay(5000))
                 .setAutoReconnect(true)
                 .addListener(new QueueProcessorListener(requestChannel, "queue.txt"))
-                .addListener(new IncomingFileTransferListener(eventSource, new IncomingFileTransferListener.Configuration(downloadDirectory), queueManager))
+                .addListener(new IncomingFileTransferListener(eventSource, configuration, queueManager))
                 .addListener(new ListenerAdapter() {
                     @Override
                     public void onPrivateMessage(PrivateMessageEvent event) {

@@ -2,6 +2,8 @@ package marvin.irc;
 
 import org.junit.Test;
 
+import java.util.Collections;
+
 import static org.junit.Assert.assertEquals;
 
 public class IrcBotImplTest {
@@ -13,6 +15,7 @@ public class IrcBotImplTest {
             "#control",
             "#requestChannel",
             "downloadDir",
+            Collections.emptyMap(),
             new ReceiveQueueManager());
 
     @Test

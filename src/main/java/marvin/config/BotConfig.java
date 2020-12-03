@@ -8,6 +8,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 public class BotConfig {
     private final String adminPassword;
@@ -22,6 +24,7 @@ public class BotConfig {
     private final String requestChannel;
     private final String server;
     private final Config features;
+    private Map<String, File> downloadDirectories = new HashMap<>();
 
     public BotConfig(Config config, String configDirectoryPath) {
         Config ircConfig = config.getConfig("irc");
@@ -37,6 +40,11 @@ public class BotConfig {
         this.requestChannel = ircConfig.getString("requestChannel");
         this.server = getString(ircConfig, "server");
         this.features = config.getConfig("features");
+        if (ircConfig.hasPath("directories")) {
+            Config directories = ircConfig.getConfig("directories");
+            directories.entrySet()
+                .forEach(entry -> downloadDirectories.put(entry.getKey(), new File(directories.getString(entry.getKey()))));
+        }
     }
 
     public String getAdminPassword() {
@@ -87,6 +95,10 @@ public class BotConfig {
         return features.hasPath(feature) && features.getBoolean(feature);
     }
 
+    public Map<String, File> getDownloadDirectories() {
+        return downloadDirectories;
+    }
+
     private String getString(Config config, String path) {
         if (config.hasPath(path)) {
             return config.getString(path);
@@ -123,6 +135,4 @@ public class BotConfig {
             e.printStackTrace();
         }
     }
-
-
 }
