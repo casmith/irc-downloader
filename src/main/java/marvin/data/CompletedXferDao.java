@@ -9,6 +9,7 @@ public interface CompletedXferDao {
     void createTable();
     void insert(CompletedXfer completedXfer);
     List<CompletedXfer> selectAll();
+    List<CompletedXfer> select(DaoFilter filter);
     CompletedXferSummary summarize();
     void truncate();
 }

@@ -1,10 +1,7 @@
 package marvin.data.sqlite3;
 
 import marvin.config.BotConfig;
-import marvin.data.CompletedXferDao;
-import marvin.data.DatabaseException;
-import marvin.data.JdbcTemplate;
-import marvin.data.RowMapper;
+import marvin.data.*;
 import marvin.model.CompletedXfer;
 import marvin.model.CompletedXferSummary;
 
@@ -54,7 +51,13 @@ public class CompletedXferSqlite3Dao implements CompletedXferDao {
     }
 
     public List<CompletedXfer> selectAll() {
-        return jdbcTemplate.select("SELECT nick, channel, file, filesize, timestamp FROM completed_xfers ORDER BY timestamp DESC", new RowMapper<CompletedXfer>() {
+        return this.select(DaoFilter.empty());
+    }
+
+    public List<CompletedXfer> select(DaoFilter filter) {
+        String query = "SELECT nick, channel, file, filesize, timestamp FROM completed_xfers ORDER BY timestamp DESC";
+        query = applyLimit(filter.getLimit(), query);
+        return jdbcTemplate.select(query, new RowMapper<CompletedXfer>() {
             @Override
             public CompletedXfer mapRow(ResultSet rs) throws SQLException {
                 return new CompletedXfer(
@@ -65,6 +68,12 @@ public class CompletedXferSqlite3Dao implements CompletedXferDao {
                     rs.getTimestamp("timestamp").toLocalDateTime());
             }
         });
+    }
+
+    private String applyLimit(Integer limit, String query) {
+        return (limit != null)
+            ? query + " LIMIT " + limit
+            : query;
     }
 
     @Override
