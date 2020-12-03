@@ -6,15 +6,15 @@ import java.util.List;
 
 @XmlRootElement(name = "queue")
 public class QueueModel {
-    private List<QueueServerModel> servers = new ArrayList<>();
+    private final List<QueueServerModel> servers = new ArrayList<>();
 
     public List<QueueServerModel> getServers() {
         return servers;
     }
 
     public static class QueueServerModel {
-        private String nick;
-        private List<QueueRequest> requests;
+        private final String nick;
+        private final List<QueueRequest> requests;
 
         public QueueServerModel(String nick) {
             this.nick = nick;
@@ -32,6 +32,5 @@ public class QueueModel {
         public void addRequest(QueueRequest request) {
             this.getRequests().add(request);
         }
-
     }
 }
