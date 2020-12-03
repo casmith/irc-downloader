@@ -16,6 +16,10 @@ public class QueueModel {
         private final String nick;
         private final List<QueueRequest> requests;
 
+        public QueueServerModel() {
+            this(null);
+        }
+
         public QueueServerModel(String nick) {
             this.nick = nick;
             this.requests = new ArrayList<>();
