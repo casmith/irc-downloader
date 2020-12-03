@@ -45,15 +45,17 @@ public class ReceiveQueueManager extends AbstractQueueManager
 
     public boolean markCompleted(String nick, String filename) {
         Queue<String> queue = inProgress.get(nick);
-        String toRemove = null;
-        for (String s : queue) {
-            if (s.contains(filename)) {
-                toRemove = s;
-                break;
+        if (queue != null) {
+            String toRemove = null;
+            for (String s : queue) {
+                if (s.contains(filename)) {
+                    toRemove = s;
+                    break;
+                }
             }
-        }
-        if (toRemove != null) {
-            return queue.remove(toRemove);
+            if (toRemove != null) {
+                return queue.remove(toRemove);
+            }
         }
         return false;
     }
