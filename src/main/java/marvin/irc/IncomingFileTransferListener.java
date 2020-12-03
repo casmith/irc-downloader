@@ -1,9 +1,11 @@
 package marvin.irc;
 
+import marvin.config.Config;
 import marvin.irc.events.DownloadCompleteEvent;
 import marvin.irc.events.DownloadStartedEvent;
 import marvin.irc.events.EventSource;
 import marvin.model.CompletedXfer;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.pircbotx.User;
 import org.pircbotx.dcc.ReceiveFileTransfer;
@@ -14,17 +16,19 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class IncomingFileTransferListener extends ListenerAdapter {
 
     private final EventSource eventSource;
-    private final String downloadDirectory;
     private final ReceiveQueueManager queueManager;
+    private final Configuration configuration;
     private Logger LOG = LoggerFactory.getLogger(IncomingFileTransferListener.class);
 
-    public IncomingFileTransferListener(EventSource eventSource, String downloadDirectory, ReceiveQueueManager queueManager) {
+    public IncomingFileTransferListener(EventSource eventSource, Configuration configuration, ReceiveQueueManager queueManager) {
         this.eventSource = eventSource;
-        this.downloadDirectory = downloadDirectory;
+        this.configuration = configuration;
         this.queueManager = queueManager;
     }
 
@@ -66,11 +70,32 @@ public class IncomingFileTransferListener extends ListenerAdapter {
     }
 
     public File getDownloadFile(String fileName) {
-        String filePath = "";
-        if (StringUtils.isNotEmpty(downloadDirectory)) {
-            filePath = downloadDirectory + "/";
-        }
-        filePath += fileName;
+        File directory = configuration.getDirectory(fileName);
+        String filePath = directory + File.separator + fileName;
         return new File(filePath);
+    }
+
+    public static class Configuration {
+        Map<String, File> mappings = new HashMap<>();
+        File defaultDirectory;
+
+
+        public Configuration(String defaultDirectory) {
+            this(new File(defaultDirectory));
+        }
+
+        public Configuration(File defaultDirectory) {
+            this.defaultDirectory = defaultDirectory;
+        }
+
+        public Configuration withExtension(String extension, File directory) {
+            mappings.put(extension, directory);
+            return this;
+        }
+
+        public File getDirectory(String filename) {
+            File file = mappings.get(FilenameUtils.getExtension(filename));
+            return (file != null) ? file: defaultDirectory;
+        }
     }
 }

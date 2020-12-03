@@ -75,7 +75,7 @@ public class IrcBotImpl implements IrcBot {
                 .setAutoReconnectDelay(new StaticDelay(5000))
                 .setAutoReconnect(true)
                 .addListener(new QueueProcessorListener(requestChannel, "queue.txt"))
-                .addListener(new IncomingFileTransferListener(eventSource, downloadDirectory, queueManager))
+                .addListener(new IncomingFileTransferListener(eventSource, new IncomingFileTransferListener.Configuration(downloadDirectory), queueManager))
                 .addListener(new ListenerAdapter() {
                     @Override
                     public void onPrivateMessage(PrivateMessageEvent event) {
