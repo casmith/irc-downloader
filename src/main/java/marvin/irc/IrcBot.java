@@ -26,4 +26,9 @@ public interface IrcBot {
     void on(Class<? extends Event> eventClass, Listener listener);
 
     boolean isNickOnline(String nick);
+    boolean isOnline();
+
+    String getRequestChannel();
+    String getControlChannel();
+    String getServerName();
 }

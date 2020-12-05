@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.io.File;
 import java.io.IOException;
 import java.text.MessageFormat;
@@ -23,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+@Singleton
 public class IrcBotImpl implements IrcBot {
 
     private static final Logger LOG = LoggerFactory.getLogger(IrcBotImpl.class);
@@ -134,6 +136,7 @@ public class IrcBotImpl implements IrcBot {
     }
 
     public String getNick() {
+//        return this.configuration.getName();
         return bot.getNick();
     }
 
@@ -246,5 +249,22 @@ public class IrcBotImpl implements IrcBot {
     @Override
     public boolean isNickOnline(String nick) {
         return bot.getUserChannelDao().containsUser(nick);
+    }
+
+    @Override
+    public boolean isOnline() {
+        return (getServerName() != null) && this.bot.isConnected();
+    }
+
+    public String getServerName() {
+        return this.bot.getServerInfo().getServerName();
+    }
+
+    public String getRequestChannel() {
+        return requestChannel;
+    }
+
+    public String getControlChannel() {
+        return controlChannel;
     }
 }
