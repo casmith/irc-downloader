@@ -15,6 +15,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      env:
+        USERNAME: ${{ secrets.GH_USERNAME }}
+        TOKEN: ${{ secrets.GH_TOKEN }}
     - uses: actions/checkout@v2
     - name: Set up JDK 1.8
       uses: actions/setup-java@v1
