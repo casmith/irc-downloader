@@ -31,10 +31,12 @@ pipeline {
                     }
                     sh "docker rmi $registry:$BUILD_NUMBER"
                     //sh "docker rmi $registry:$BUILD_NUMBER-rpi"
-                    // if (env.BRANCH_NAME == 'master') {
-                        build '../docker-syno/master'
-                    // }
                 }
+            }
+        }
+        stage('deploy') {
+            if (env.BRANCH_NAME == 'master' || env.BRANCH_NAME == 'develop') {
+                build '../docker-syno/master'
             }
         }
     }
