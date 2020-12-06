@@ -35,8 +35,13 @@ pipeline {
             }
         }
         stage('deploy') {
-            if (env.BRANCH_NAME == 'master' || env.BRANCH_NAME == 'develop') {
-                build '../docker-syno/master'
+            agent any
+            steps {
+                script {
+                    if (env.BRANCH_NAME == 'master' || env.BRANCH_NAME == 'develop') {
+                        build '../docker-syno/master'
+                    }
+                }
             }
         }
     }
