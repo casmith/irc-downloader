@@ -56,4 +56,4 @@ jobs:
         jenkins-token: ${{ secrets.JENKINS_TOKEN }}
         user: ${{ secrets.JENKINS_USERNAME }}
         job-path: "job/docker-syno/job/master"
-        job-params: '{"component": "marvinbot"}'
+        job-params: '{"component": "casmith/marvinbot"}'
