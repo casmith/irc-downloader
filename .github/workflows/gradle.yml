@@ -24,6 +24,8 @@ jobs:
       run: chmod +x gradlew
     - name: Build with Gradle
       run: ./gradlew dist
+      run: ls -lah
+      run: ls -lah build/dist
       env:
         USERNAME: ${{ secrets.GH_USERNAME }}
         TOKEN: ${{ secrets.GH_TOKEN }}
@@ -35,6 +37,9 @@ jobs:
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
+      run: ls -lah
+      run: ls -lah build/dist
+      
 
     - name: Build and push
       id: docker_build
