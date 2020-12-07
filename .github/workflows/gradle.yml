@@ -49,11 +49,11 @@ jobs:
         push: true
         tags: casmith/marvinbot:latest
         
-    # - name: "Deploy"
-    #   uses: GoldenspearLLC/build-jenkins-job@master
-    #   with:
-    #     jenkins-url: ${{ secrets.JENKINS_URL }}
-    #     jenkins-token: ${{ secrets.JENKINS_TOKEN }}
-    #     user: ${{ secrets.JENKINS_USERNAME }}
-    #     job-path: "job/docker-syno/job/master"
-    #     job-params: '{"component": "marvinbot"}'
+    - name: "Deploy"
+      uses: GoldenspearLLC/build-jenkins-job@master
+      with:
+        jenkins-url: ${{ secrets.JENKINS_URL }}
+        jenkins-token: ${{ secrets.JENKINS_TOKEN }}
+        user: ${{ secrets.JENKINS_USERNAME }}
+        job-path: "job/docker-syno/job/master"
+        job-params: '{"component": "marvinbot"}'
