@@ -4,6 +4,7 @@ import marvin.irc.events.Event;
 import marvin.irc.events.Listener;
 
 import java.io.File;
+import java.util.List;
 
 public interface IrcBot {
     void start();
@@ -31,4 +32,6 @@ public interface IrcBot {
     String getRequestChannel();
     String getControlChannel();
     String getServerName();
+
+    List<String> listUsers();
 }

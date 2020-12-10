@@ -1,5 +1,6 @@
 package marvin.irc;
 
+import com.google.common.collect.ImmutableSortedSet;
 import marvin.config.BotConfig;
 import marvin.irc.events.DownloadCompleteEvent;
 import marvin.irc.events.Event;
@@ -23,6 +24,7 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Singleton
 public class IrcBotImpl implements IrcBot {
@@ -266,5 +268,12 @@ public class IrcBotImpl implements IrcBot {
 
     public String getControlChannel() {
         return controlChannel;
+    }
+
+    @Override
+    public List<String> listUsers() {
+        final Channel channel = bot.getUserChannelDao().getChannel(requestChannel);
+        final ImmutableSortedSet<User> users = bot.getUserChannelDao().getUsers(channel);
+        return users.stream().map(UserHostmask::getNick).collect(Collectors.toList());
     }
 }
