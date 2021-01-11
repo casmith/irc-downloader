@@ -3,7 +3,7 @@ package marvin.handlers;
 import marvin.UserManager;
 import marvin.irc.IrcBot;
 import marvin.irc.PrivateMessageHandler;
-import marvin.irc.QueueManager;
+import marvin.irc.ReceiveQueueManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,10 +11,10 @@ public class RequestPrivateMessageHandler implements PrivateMessageHandler {
 
     private static Logger LOG = LoggerFactory.getLogger(RequestPrivateMessageHandler.class);
     private IrcBot ircBot;
-    private QueueManager queueManager;
+    private ReceiveQueueManager queueManager;
     private UserManager userManager;
 
-    public RequestPrivateMessageHandler(IrcBot ircBot, QueueManager queueManager, UserManager userManager) {
+    public RequestPrivateMessageHandler(IrcBot ircBot, ReceiveQueueManager queueManager, UserManager userManager) {
         this.ircBot = ircBot;
         this.queueManager = queueManager;
         this.userManager = userManager;

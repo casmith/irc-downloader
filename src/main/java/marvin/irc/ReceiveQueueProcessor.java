@@ -19,7 +19,7 @@ public class ReceiveQueueProcessor {
     }
 
     public void process() {
-        queueManager.getQueues().forEach((nick, queue) -> {
+        queueManager.getQueues().keySet().forEach((nick) -> {
             if (bot.isNickOnline(nick)) {
                 queueManager.poll(nick)
                     .ifPresent(this::requestFile);

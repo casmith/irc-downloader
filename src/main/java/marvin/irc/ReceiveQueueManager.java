@@ -7,21 +7,21 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 
 @Singleton
-public class ReceiveQueueManager extends AbstractQueueManager
-        implements QueueManager {
+public class ReceiveQueueManager {
 
     private static final Logger LOG = LoggerFactory.getLogger(ReceiveQueueManager.class);
     private final Map<String, Queue<String>> inProgress = new HashMap<>();
+    private Map<String, Integer> limits = new HashMap<>();
+    private Map<String, Integer> queued = new HashMap<>();
+    private Map<String, Queue<String>> queues = new HashMap<>();
 
     public ReceiveQueueManager() {
     }
 
-    @Override
     public void addInProgress(String nick, String message) {
         getInProgress(nick).offer(message);
     }
 
-    @Override
     public void retry(String nick, String filename) {
         Queue<String> messages = getInProgress(nick);
         int count = 0;
@@ -67,5 +67,79 @@ public class ReceiveQueueManager extends AbstractQueueManager
         } else {
             return Optional.empty();
         }
+    }
+
+    // TODO: remove
+    public boolean dec(String nick) {
+        synchronized (this) {
+            nick = nick.toLowerCase();
+            boolean success = false;
+            Integer current = getCurrent(nick);
+            if (current > 0) {
+                queued.put(nick, --current);
+                success = true;
+                printStats(nick);
+            }
+            return success;
+        }
+    }
+
+    // TODO: remove
+    public boolean inc(String nick) {
+        synchronized (this) {
+            nick = nick.toLowerCase();
+            boolean success = false;
+            Integer limit = getLimit(nick);
+            Integer current = getCurrent(nick);
+            if (current < limit) {
+                queued.put(nick, ++current);
+                success = true;
+                printStats(nick);
+            }
+            return success;
+        }
+    }
+
+    public Queue<String> getQueue(String nick) {
+        return queues.computeIfAbsent(nick, s -> new LinkedList<>());
+    }
+
+    public void updateLimit(String nick, int limit) {
+        // artificially cap at 10 for testing
+        if (limit > 10) {
+            limit = 10;
+        }
+        synchronized (this) {
+            nick = nick.toLowerCase();
+            limits.put(nick, limit);
+        }
+    }
+
+    public void enqueue(String nick, String message) {
+        final Queue<String> queue = getQueue(nick);
+        if (!queue.contains(message)) {
+            queue.offer(message);
+        }
+    }
+
+    public Map<String, Queue<String>> getQueues() {
+        return null;
+    }
+
+    private Integer getCurrent(String nick) {
+        return queued.getOrDefault(nick, 0);
+    }
+
+    // TODO: remove, move to ReceiveQueue
+    public Integer getLimit(String nick) {
+        nick = nick.toLowerCase();
+        return limits.getOrDefault(nick, 10);
+    }
+
+    private void printStats(String nick) {
+        nick = nick.toLowerCase();
+        Integer current = getCurrent(nick);
+        Integer limit = getLimit(nick);
+        LOG.info("Queue for {}: {}/{}", nick, current, limit);
     }
 }

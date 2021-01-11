@@ -1,7 +1,7 @@
 package marvin.handlers;
 
 import marvin.irc.NoticeHandler;
-import marvin.irc.QueueManager;
+import marvin.irc.ReceiveQueueManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,9 +14,9 @@ public class QueueLimitNoticeHandler implements NoticeHandler {
 
     private static Logger LOG = LoggerFactory.getLogger(QueueLimitNoticeHandler.class);
 
-    private QueueManager queueManager;
+    private ReceiveQueueManager queueManager;
 
-    public QueueLimitNoticeHandler(QueueManager queueManager) {
+    public QueueLimitNoticeHandler(ReceiveQueueManager queueManager) {
         this.queueManager = queueManager;
     }
 
