@@ -14,7 +14,6 @@ import java.time.LocalDateTime;
 
 public class CompletedXferListener implements Listener {
 
-
     private static final Logger LOG = LoggerFactory.getLogger(CompletedXferListener.class);
 
     private CompletedXferDao completedXferDao;
@@ -28,8 +27,10 @@ public class CompletedXferListener implements Listener {
     public void notify(Event event) {
         DownloadCompleteEvent dce = (DownloadCompleteEvent) event;
         try {
+            long bytes = dce.isSuccess() ? dce.getBytes() : -1; // indicate failed transfer by setting bytes to -1
             completedXferDao.insert(
-                    new CompletedXfer(dce.getNick(), "", dce.getFileName(), dce.getBytes(), LocalDateTime.now()));
+                new CompletedXfer(dce.getNick(), "", dce.getFileName(), bytes, LocalDateTime.now()));
+
         } catch (DatabaseException e) {
             LOG.error("Error recording completed xfer", e);
         }
