@@ -18,12 +18,12 @@ public class ReceiveQueueManager extends AbstractQueueManager
 
     @Override
     public void addInProgress(String nick, String message) {
-        inProgress.computeIfAbsent(nick, s -> new LinkedList<>()).offer(message);
+        getInProgress(nick).offer(message);
     }
 
     @Override
     public void retry(String nick, String filename) {
-        Queue<String> messages = inProgress.computeIfAbsent(nick, s -> new LinkedList<>());
+        Queue<String> messages = getInProgress(nick);
         int count = 0;
         for(Iterator<String> iter = messages.iterator(); iter.hasNext();) {
             String message = iter.next();
@@ -39,6 +39,10 @@ public class ReceiveQueueManager extends AbstractQueueManager
         }
     }
 
+    private Queue<String> getInProgress(String nick) {
+        return inProgress.computeIfAbsent(nick, s -> new LinkedList<>());
+    }
+
     public Map<String, Queue<String>> getInProgress() {
         return inProgress;
     }
@@ -46,17 +50,22 @@ public class ReceiveQueueManager extends AbstractQueueManager
     public boolean markCompleted(String nick, String filename) {
         Queue<String> queue = inProgress.get(nick);
         if (queue != null) {
-            String toRemove = null;
-            for (String s : queue) {
-                if (s.contains(filename)) {
-                    toRemove = s;
-                    break;
-                }
-            }
-            if (toRemove != null) {
-                return queue.remove(toRemove);
+            Optional<String> found = queue.stream()
+                .filter(i -> i.contains(filename))
+                .findFirst();
+            if (found.isPresent()) {
+                return queue.remove(found.get());
             }
         }
         return false;
+    }
+
+    public Optional<String> poll(String nick) {
+        Queue<String> queue = getQueue(nick);
+        if (!queue.isEmpty() && this.inc(nick)) {
+            return Optional.ofNullable(queue.poll());
+        } else {
+            return Optional.empty();
+        }
     }
 }

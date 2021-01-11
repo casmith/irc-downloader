@@ -1,6 +1,9 @@
 package marvin.queue;
 
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 
 public class ReceiveQueue {
     private final String nick;
@@ -19,6 +22,10 @@ public class ReceiveQueue {
         return this.put(new ReceiveQueueItem(UUID.randomUUID(), this.nick, filename));
     }
 
+    public ReceiveQueueItem get(UUID uuid) {
+        return this.items.get(uuid);
+    }
+
     private ReceiveQueueItem put(ReceiveQueueItem item) {
         this.items.put(item.getUuid(), item);
         return item;
@@ -30,12 +37,26 @@ public class ReceiveQueue {
     }
 
     public ReceiveQueueItem dequeue() {
-        if (this.isEmpty()) throw new EmptyQueueException();
-        return this.next();
+        Optional<ReceiveQueueItem> next = this.next();
+        if (next.isPresent()) {
+            return next.get().setStatus(QueueStatus.REQUESTED);
+        } else {
+            throw new EmptyQueueException();
+        }
     }
 
-    private ReceiveQueueItem next() {
-        return this.items.values().iterator().next();
+    public Optional<ReceiveQueueItem> poll() {
+        try {
+            return Optional.of(this.dequeue());
+        } catch (EmptyQueueException e) {
+            return Optional.empty();
+        }
+    }
+
+    private Optional<ReceiveQueueItem> next() {
+        return this.items.values().stream()
+            .filter(i -> i.getStatus() == QueueStatus.PENDING)
+            .findFirst();
     }
 
     public long size() {
@@ -50,7 +71,8 @@ public class ReceiveQueue {
         private final UUID uuid;
         private final String filename;
         private final String nick;
-        private final QueueStatus status;
+
+        private QueueStatus status;
 
         public ReceiveQueueItem(UUID uuid, String nick,  String filename) {
             this.uuid = uuid;
@@ -73,6 +95,11 @@ public class ReceiveQueue {
 
         public QueueStatus getStatus() {
             return status;
+        }
+
+        public ReceiveQueueItem setStatus(QueueStatus queueStatus) {
+            this.status = queueStatus;
+            return this;
         }
     }
 }
