@@ -1,9 +1,6 @@
 package marvin.queue;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 public class ReceiveQueue {
     private final String nick;
@@ -24,6 +21,14 @@ public class ReceiveQueue {
 
     public ReceiveQueueItem get(UUID uuid) {
         return this.items.get(uuid);
+    }
+
+    public Boolean removeItem(ReceiveQueueItem item) {
+        return items.remove(item.getUuid()) != null;
+    }
+
+    public List<ReceiveQueueItem> getItems() {
+        return new ArrayList<>(items.values());
     }
 
     private ReceiveQueueItem put(ReceiveQueueItem item) {

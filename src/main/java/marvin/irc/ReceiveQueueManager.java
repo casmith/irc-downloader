@@ -1,69 +1,73 @@
 package marvin.irc;
 
 import com.google.inject.Singleton;
+import marvin.queue.QueueStatus;
+import marvin.queue.ReceiveQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Singleton
 public class ReceiveQueueManager {
 
     private static final Logger LOG = LoggerFactory.getLogger(ReceiveQueueManager.class);
-    private final Map<String, Queue<String>> inProgress = new HashMap<>();
     private Map<String, Integer> limits = new HashMap<>();
     private Map<String, Integer> queued = new HashMap<>();
-    private Map<String, Queue<String>> queues = new HashMap<>();
+    private Map<String, ReceiveQueue> receiveQueues = new HashMap<>();
 
     public ReceiveQueueManager() {
     }
 
     public void addInProgress(String nick, String message) {
-        getInProgress(nick).offer(message);
+        getQueue(nick).find(message).ifPresent(r -> r.setStatus(QueueStatus.REQUESTED));
     }
 
     public void retry(String nick, String filename) {
-        Queue<String> messages = getInProgress(nick);
-        int count = 0;
-        for(Iterator<String> iter = messages.iterator(); iter.hasNext();) {
-            String message = iter.next();
-            if (message.toLowerCase().contains(filename.toLowerCase())) {
-                count++;
-                iter.remove();
-                LOG.info("Retrying !" + nick + " " + filename);
-                enqueue(nick, message);
-            }
+        List<ReceiveQueue.ReceiveQueueItem> foundItems = getQueue(nick)
+            .getItems().stream()
+            .filter(i -> i.getFilename().toLowerCase().contains(filename.toLowerCase()))
+            .collect(Collectors.toList());
+
+        if (foundItems.size() > 1) {
+            LOG.warn("Found " + foundItems.size() + " items to retry for " + nick + ":" + filename);
+        } else {
+            LOG.info("Retrying !" + nick + " " + filename);
         }
-        if (count != 1) {
-            LOG.warn("Found " + count + " items to retry for " + nick + ":" + filename);
-        }
+
+        foundItems.forEach(i -> i.setStatus(QueueStatus.PENDING));
     }
 
-    private Queue<String> getInProgress(String nick) {
-        return inProgress.computeIfAbsent(nick, s -> new LinkedList<>());
-    }
-
+    // TODO: remove
     public Map<String, Queue<String>> getInProgress() {
-        return inProgress;
+        LinkedHashMap<String, Queue<String>> map = new LinkedHashMap<>();
+        for (Map.Entry<String, ReceiveQueue> entry : receiveQueues.entrySet()) {
+            Queue<String> queue = new LinkedList<>();
+            for (ReceiveQueue.ReceiveQueueItem item : entry.getValue().getItems()) {
+                if (item.getStatus() == QueueStatus.REQUESTED) {
+                    queue.offer(item.getFilename());
+                }
+            }
+            map.put(entry.getKey(), queue);
+        }
+
+        return map;
     }
 
     public boolean markCompleted(String nick, String filename) {
-        Queue<String> queue = inProgress.get(nick);
-        if (queue != null) {
-            Optional<String> found = queue.stream()
-                .filter(i -> i.contains(filename))
-                .findFirst();
-            if (found.isPresent()) {
-                return queue.remove(found.get());
-            }
-        }
-        return false;
+        Optional<ReceiveQueue.ReceiveQueueItem> found = getQueue(nick).getItems().stream()
+            .filter(i -> i.getFilename().contains(filename))
+            .findFirst();
+
+        return found.map(receiveQueueItem -> getQueue(nick).removeItem(receiveQueueItem))
+            .orElse(false);
     }
 
     public Optional<String> poll(String nick) {
-        Queue<String> queue = getQueue(nick);
+        ReceiveQueue queue = getQueue(nick);
         if (!queue.isEmpty() && this.inc(nick)) {
-            return Optional.ofNullable(queue.poll());
+            return queue.poll().map(ReceiveQueue.ReceiveQueueItem::getFilename);
         } else {
             return Optional.empty();
         }
@@ -100,8 +104,8 @@ public class ReceiveQueueManager {
         }
     }
 
-    public Queue<String> getQueue(String nick) {
-        return queues.computeIfAbsent(nick, s -> new LinkedList<>());
+    public ReceiveQueue getQueue(String nick) {
+        return receiveQueues.computeIfAbsent(nick, s -> new ReceiveQueue(nick));
     }
 
     public void updateLimit(String nick, int limit) {
@@ -116,14 +120,11 @@ public class ReceiveQueueManager {
     }
 
     public void enqueue(String nick, String message) {
-        final Queue<String> queue = getQueue(nick);
-        if (!queue.contains(message)) {
-            queue.offer(message);
-        }
+        getQueue(nick).enqueue(message);
     }
 
-    public Map<String, Queue<String>> getQueues() {
-        return null;
+    public Map<String, ReceiveQueue> getQueues() {
+        return receiveQueues;
     }
 
     private Integer getCurrent(String nick) {

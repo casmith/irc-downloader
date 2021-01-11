@@ -2,6 +2,7 @@ package marvin.web.queue;
 
 import com.google.inject.Inject;
 import marvin.irc.ReceiveQueueManager;
+import marvin.queue.ReceiveQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,6 +41,7 @@ public class QueueResource {
             LOG.info("Enqueueing requests for " + server.getNick());
             for (QueueRequest request : server.getRequests()) {
                 LOG.info("Enqueuing " + request);
+                // TODO: enqueue the filename rather than the message
                 queueManager.enqueue(server.getNick(), request.getRequest());
             }
         }
@@ -49,17 +51,23 @@ public class QueueResource {
     public QueueModel buildQueueModel() {
         QueueModel queueModel = new QueueModel();
         queueManager.getQueues()
-                .forEach((nick, queue) -> queueModel.getServers().add(buildModel(nick, queue, "PENDING")));
-
+                .forEach((nick, queue) -> queueModel.getServers().add(buildModel(nick, queue)));
         queueManager.getInProgress()
             .forEach((nick, queue) -> queueModel.getServers().add(buildModel(nick, queue, "REQUESTED")));
-
         return queueModel;
     }
 
     public QueueModel.QueueServerModel buildModel(String nick, Queue<String> queue, String status) {
         QueueModel.QueueServerModel qsm = new QueueModel.QueueServerModel(nick);
         qsm.getRequests().addAll(queue.stream().map(r -> new QueueRequest(r, status)).collect(Collectors.toList()));
+        return qsm;
+    }
+
+    public QueueModel.QueueServerModel buildModel(String nick, ReceiveQueue queue) {
+        QueueModel.QueueServerModel qsm = new QueueModel.QueueServerModel(nick);
+        qsm.getRequests().addAll(queue.getItems().stream()
+            .map(i -> new QueueRequest(i.getStatus().toString(), i.getFilename()))
+            .collect(Collectors.toList()));
         return qsm;
     }
 }

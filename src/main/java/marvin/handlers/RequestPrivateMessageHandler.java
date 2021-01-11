@@ -32,6 +32,7 @@ public class RequestPrivateMessageHandler implements PrivateMessageHandler {
 
     private void enqueue(String sender, String message) {
         // nick is assumed to be the text between the ! and the first space
+        // TODO: enqueue the filename, not the message
         String nick = message.split(" ")[0].substring(1);
         queueManager.enqueue(nick, message);
         LOG.info("Enqueued '" + message + "'");

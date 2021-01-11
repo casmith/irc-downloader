@@ -12,6 +12,7 @@ public class ReceiveQueueManagerTest {
 
     @Test
     public void testMarkInProgress() {
+        receiveQueueManager.enqueue("server", "!server 4 EVER - Spune-Mi Cine (Smekerit).mp3  ::INFO:: 5.80Mb");
         receiveQueueManager.addInProgress("server", "!server 4 EVER - Spune-Mi Cine (Smekerit).mp3  ::INFO:: 5.80Mb");
         assertTrue(receiveQueueManager.markCompleted("server", "4 EVER - Spune-Mi Cine (Smekerit).mp3"));
         assertTrue(receiveQueueManager.getInProgress().get("server").isEmpty());
@@ -42,17 +43,24 @@ public class ReceiveQueueManagerTest {
 
     @Test
     public void testRetry() {
+
+        receiveQueueManager.enqueue("server", "filename.mp3");
+        receiveQueueManager.enqueue("server", "filename2.mp3");
+        receiveQueueManager.enqueue("server", "filename3.mp3");
+        receiveQueueManager.enqueue("server", "filename4.mp3");
+        receiveQueueManager.enqueue("server", "filename5.mp3");
+
         receiveQueueManager.addInProgress("server", "filename.mp3");
         receiveQueueManager.addInProgress("server", "filename2.mp3");
         receiveQueueManager.addInProgress("server", "filename3.mp3");
         receiveQueueManager.addInProgress("server", "filename4.mp3");
         receiveQueueManager.addInProgress("server", "filename5.mp3");
         assertEquals(1, receiveQueueManager.getInProgress().size());
-        assertEquals(0, receiveQueueManager.getQueue("server").size());
+        assertEquals(5, receiveQueueManager.getQueue("server").size());
 
         receiveQueueManager.retry("server", "filename.mp3");
 
         assertEquals(4, receiveQueueManager.getInProgress().get("server").size());
-        assertEquals("filename.mp3", receiveQueueManager.getQueue("server").peek());
+        assertEquals("filename.mp3", receiveQueueManager.getQueue("server").getItems().get(0).getFilename());
     }
 }
