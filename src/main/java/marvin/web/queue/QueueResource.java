@@ -52,21 +52,13 @@ public class QueueResource {
         QueueModel queueModel = new QueueModel();
         queueManager.getQueues()
                 .forEach((nick, queue) -> queueModel.getServers().add(buildModel(nick, queue)));
-        queueManager.getInProgress()
-            .forEach((nick, queue) -> queueModel.getServers().add(buildModel(nick, queue, "REQUESTED")));
         return queueModel;
-    }
-
-    public QueueModel.QueueServerModel buildModel(String nick, Queue<String> queue, String status) {
-        QueueModel.QueueServerModel qsm = new QueueModel.QueueServerModel(nick);
-        qsm.getRequests().addAll(queue.stream().map(r -> new QueueRequest(r, status)).collect(Collectors.toList()));
-        return qsm;
     }
 
     public QueueModel.QueueServerModel buildModel(String nick, ReceiveQueue queue) {
         QueueModel.QueueServerModel qsm = new QueueModel.QueueServerModel(nick);
         qsm.getRequests().addAll(queue.getItems().stream()
-            .map(i -> new QueueRequest(i.getStatus().toString(), i.getFilename()))
+            .map(i -> new QueueRequest(i.getFilename(), i.getStatus().toString()))
             .collect(Collectors.toList()));
         return qsm;
     }
