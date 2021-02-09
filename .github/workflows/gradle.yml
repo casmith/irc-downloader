@@ -21,6 +21,13 @@ jobs:
       with:
         java-version: 1.8
 
+    - name: Set up QEMU
+      id: qemu
+      uses: docker/setup-qemu-action@v1
+      with:
+        image: tonistiigi/binfmt:latest
+        platforms: amd64,arm64 
+
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v1
 
@@ -48,7 +55,8 @@ jobs:
         context: .
         push: true
         tags: casmith/marvinbot:latest
-        
+        platforms: linux/amd64,linux/arm64
+
     - name: "Deploy"
       uses: GoldenspearLLC/build-jenkins-job@master
       with:
