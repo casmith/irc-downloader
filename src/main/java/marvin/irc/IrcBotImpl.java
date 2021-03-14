@@ -118,6 +118,7 @@ public class IrcBotImpl implements IrcBot {
                         if (user != null) {
                             String joiningNick = user.getNick();
                             if (nick.equals(joiningNick)) {
+                                // NOTE: this is a good indication of when the bot should be considered "ready"
                                 LOG.info("Joining channel [{}]", event.getChannel().getName());
                             }
                         }
