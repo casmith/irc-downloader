@@ -109,5 +109,15 @@ public class ReceiveQueue {
             this.status = queueStatus;
             return this;
         }
+
+        @Override
+        public String toString() {
+            return "ReceiveQueueItem{" +
+                "uuid=" + uuid +
+                ", filename='" + filename + '\'' +
+                ", nick='" + nick + '\'' +
+                ", status=" + status +
+                '}';
+        }
     }
 }

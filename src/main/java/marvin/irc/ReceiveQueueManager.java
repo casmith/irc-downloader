@@ -66,6 +66,15 @@ public class ReceiveQueueManager {
 
     public Optional<String> poll(String nick) {
         ReceiveQueue queue = getQueue(nick);
+
+        // dump queue to log
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Queue for [{}]", nick);
+            queue.getItems().stream()
+                .map(ReceiveQueue.ReceiveQueueItem::toString)
+                .forEach(s -> LOG.debug("- {}", s));
+        }
+
         if (!queue.isEmpty() && this.inc(nick)) {
             return queue.poll().map(ReceiveQueue.ReceiveQueueItem::getFilename);
         } else {
