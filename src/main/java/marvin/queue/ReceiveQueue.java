@@ -2,6 +2,8 @@ package marvin.queue;
 
 import java.util.*;
 
+import static marvin.queue.QueueStatus.ACCEPTED;
+
 public class ReceiveQueue {
     private final String nick;
     private final Map<UUID, ReceiveQueueItem> items = new LinkedHashMap<>();
@@ -69,7 +71,8 @@ public class ReceiveQueue {
     }
 
     public boolean isEmpty() {
-        return this.items.isEmpty();
+        return this.items.values().stream()
+            .noneMatch(item -> item.getStatus().equals(ACCEPTED));
     }
 
     public static class ReceiveQueueItem {
