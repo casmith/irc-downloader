@@ -20,4 +20,12 @@ public class QueueRequest {
     public String getStatus() {
         return status;
     }
+
+    @Override
+    public String toString() {
+        return "QueueRequest{" +
+            "request='" + request + '\'' +
+            ", status='" + status + '\'' +
+            '}';
+    }
 }
