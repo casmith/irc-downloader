@@ -72,7 +72,7 @@ public class ReceiveQueue {
 
     public boolean isEmpty() {
         return this.items.values().stream()
-            .noneMatch(item -> item.getStatus().equals(ACCEPTED));
+            .noneMatch(item -> item.getStatus().equals(ACCEPTED) || item.getStatus() == null);
     }
 
     public static class ReceiveQueueItem {
