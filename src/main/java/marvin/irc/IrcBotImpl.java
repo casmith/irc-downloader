@@ -10,6 +10,7 @@ import org.pircbotx.*;
 import org.pircbotx.delay.StaticDelay;
 import org.pircbotx.exception.IrcException;
 import org.pircbotx.hooks.ListenerAdapter;
+import org.pircbotx.hooks.events.JoinEvent;
 import org.pircbotx.hooks.events.MessageEvent;
 import org.pircbotx.hooks.events.NoticeEvent;
 import org.pircbotx.hooks.events.PrivateMessageEvent;
@@ -108,6 +109,18 @@ public class IrcBotImpl implements IrcBot {
                         final UserHostmask userHostmask = event.getUserHostmask();
                         final String hostmask = userHostmask.getHostmask();
                         messageHandlers.forEach(handler -> handler.onMessage(channelName, nick, message, hostmask));
+                    }
+
+                    @Override
+                    public void onJoin(JoinEvent event) throws Exception {
+                        super.onJoin(event);
+                        User user = event.getUser();
+                        if (user != null) {
+                            String joiningNick = user.getNick();
+                            if (nick.equals(joiningNick)) {
+                                LOG.info("Joining channel [{}]", event.getChannel().getName());
+                            }
+                        }
                     }
                 })
                 .buildConfiguration();
