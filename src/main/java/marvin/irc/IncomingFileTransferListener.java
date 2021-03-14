@@ -1,12 +1,9 @@
 package marvin.irc;
 
-import marvin.config.Config;
 import marvin.irc.events.DownloadCompleteEvent;
 import marvin.irc.events.DownloadStartedEvent;
 import marvin.irc.events.EventSource;
-import marvin.model.CompletedXfer;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.pircbotx.User;
 import org.pircbotx.dcc.ReceiveFileTransfer;
 import org.pircbotx.hooks.ListenerAdapter;
@@ -15,9 +12,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.time.LocalDateTime;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.HashMap;
+import java.util.Map;
 
 public class IncomingFileTransferListener extends ListenerAdapter {
 
@@ -49,14 +45,14 @@ public class IncomingFileTransferListener extends ListenerAdapter {
         long bytes = -1;
         long start = System.currentTimeMillis();
         try {
-            ReceiveFileTransfer accept = event.accept(file);
-            accept.transfer();
+            ReceiveFileTransfer fileTransfer = event.accept(file);
+            fileTransfer.transfer();
             long ms = System.currentTimeMillis() - start;
             long seconds = ms / 1000;
             if (seconds ==  0) {
                 seconds = 1;
             }
-            bytes = accept.getFileSize();
+            bytes = fileTransfer.getFileSize();
             long kbps = (bytes - 1024) / seconds;
             LOG.info("Done downloading {} in {}s ({} KiB/s)", file.getAbsolutePath(), seconds, kbps);
             queueManager.markCompleted(nick, event.getSafeFilename());
