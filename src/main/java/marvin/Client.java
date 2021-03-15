@@ -182,7 +182,7 @@ public class Client {
                 LOG.debug("Processing queue...");
                 sleep(5);
             }
-            LOG.debug("Receive queue processor has stopped");
+            LOG.info("Receive queue processor has stopped");
         }).start();
     }
 
