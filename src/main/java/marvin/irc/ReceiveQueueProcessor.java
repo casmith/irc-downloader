@@ -21,8 +21,11 @@ public class ReceiveQueueProcessor {
     public void process() {
         queueManager.getQueues().keySet().forEach((nick) -> {
             if (bot.isNickOnline(nick)) {
+                LOG.debug("[{}] is online", nick);
                 queueManager.poll(nick)
                     .ifPresent(this::requestFile);
+            } else {
+                LOG.debug("[{}] is OFFLINE", nick);
             }
         });
     }
