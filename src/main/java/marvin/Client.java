@@ -179,7 +179,6 @@ public class Client {
         new Thread(() -> {
             while (isRunning) {
                 this.receiveQueueProcessor.process();
-                LOG.debug("Processing queue...");
                 sleep(5);
             }
             LOG.info("Receive queue processor has stopped");

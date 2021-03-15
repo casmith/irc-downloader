@@ -3,6 +3,7 @@ package marvin.queue;
 import java.util.*;
 
 import static marvin.queue.QueueStatus.ACCEPTED;
+import static marvin.queue.QueueStatus.PENDING;
 
 public class ReceiveQueue {
     private final String nick;
@@ -72,7 +73,7 @@ public class ReceiveQueue {
 
     public boolean isEmpty() {
         return this.items.values().stream()
-            .noneMatch(item -> item.getStatus().equals(ACCEPTED) || item.getStatus() == null);
+            .noneMatch(item -> item.getStatus().equals(PENDING) || item.getStatus() == null);
     }
 
     public static class ReceiveQueueItem {

@@ -19,6 +19,7 @@ public class ReceiveQueueProcessor {
     }
 
     public void process() {
+        LOG.debug("Processing {} queues...", queueManager.getQueues().size());
         queueManager.getQueues().keySet().forEach((nick) -> {
             if (bot.isNickOnline(nick)) {
                 LOG.debug("[{}] is online", nick);
