@@ -179,7 +179,8 @@ public class Client {
         new Thread(() -> {
             while (isRunning) {
                 this.receiveQueueProcessor.process();
-                sleep(1);
+                LOG.debug("Processing queue...");
+                sleep(5);
             }
         }).start();
     }
