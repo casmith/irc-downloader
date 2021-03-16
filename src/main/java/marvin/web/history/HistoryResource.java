@@ -37,7 +37,7 @@ public class HistoryResource {
     }
 
     private HistoryModel toModel(CompletedXfer xfer) {
-        return new HistoryModel(xfer.getNick(), xfer.getFile(), xfer.getFilesize(), toEpochMillis(xfer.getTimestamp()));
+        return new HistoryModel(xfer.getNick(), xfer.getFile(), xfer.getFilesize(), toEpochMillis(xfer.getTimestamp()), xfer.getFilesize() > -1);
     }
 
     private long toEpochMillis(LocalDateTime localDateTime) {
