@@ -281,7 +281,9 @@ public class IrcBotImpl implements IrcBot {
 
     @Override
     public boolean isOnline() {
-        return this.bot.isConnected() && (getServerName() != null);
+        return this.bot != null &&
+            this.bot.isConnected() &&
+            (getServerName() != null);
     }
 
     @Override
