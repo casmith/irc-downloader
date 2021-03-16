@@ -35,9 +35,9 @@ public class Client {
     private final KnownUserDao knownUserDao;
     private final ListFileDao listFileDao;
     private final Injector injector;
-    private UserManager userManager;
+    private final UserManager userManager;
+    private final ListGenerator listGenerator;
     private boolean isRunning;
-    private ListGenerator listGenerator;
 
     @Inject
     public Client(Injector injector,
@@ -178,11 +178,21 @@ public class Client {
         LOG.info("Starting receive queue processor");
         new Thread(() -> {
             while (isRunning) {
+                if (bot.isOnline()) {
+                    ensureChannel(bot.getControlChannel());
+                    ensureChannel(bot.getRequestChannel());
+                }
                 this.receiveQueueProcessor.process();
                 sleep(5);
             }
             LOG.info("Receive queue processor has stopped");
         }).start();
+    }
+
+    private void ensureChannel(String channelName) {
+        if (!bot.isInChannel(channelName)) {
+            bot.joinChannel(channelName);
+        }
     }
 
     private void startSendQueueProcessor() {
@@ -197,7 +207,7 @@ public class Client {
 
     private void sleep(int seconds) {
         try {
-            Thread.sleep(1000 * seconds);
+            Thread.sleep(1000L * seconds);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

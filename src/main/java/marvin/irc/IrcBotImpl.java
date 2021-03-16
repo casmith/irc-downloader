@@ -10,10 +10,7 @@ import org.pircbotx.*;
 import org.pircbotx.delay.StaticDelay;
 import org.pircbotx.exception.IrcException;
 import org.pircbotx.hooks.ListenerAdapter;
-import org.pircbotx.hooks.events.JoinEvent;
-import org.pircbotx.hooks.events.MessageEvent;
-import org.pircbotx.hooks.events.NoticeEvent;
-import org.pircbotx.hooks.events.PrivateMessageEvent;
+import org.pircbotx.hooks.events.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,6 +37,8 @@ public class IrcBotImpl implements IrcBot {
     private final List<PrivateMessageHandler> privateMessageHandlers = new ArrayList<>();
     private final List<NoticeHandler> noticeHandlers = new ArrayList<>();
     private final boolean useIdent = false;
+
+    private final List<String> channels = new ArrayList<>();
 
     private PircBotX bot;
 
@@ -120,6 +119,20 @@ public class IrcBotImpl implements IrcBot {
                             if (nick.equals(joiningNick)) {
                                 // NOTE: this is a good indication of when the bot should be considered "ready"
                                 LOG.info("Joining channel [{}]", event.getChannel().getName());
+                                channels.add(event.getChannel().getName());
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onPart(PartEvent event) throws Exception {
+                        super.onPart(event);
+                        User user = event.getUser();
+                        if (user != null) {
+                            String partingNick = user.getNick();
+                            if (nick.equals(partingNick)) {
+                                LOG.info("Parting channel [{}]", event.getChannel().getName());
+                                channels.remove(event.getChannel().getName());
                             }
                         }
                     }
@@ -152,7 +165,6 @@ public class IrcBotImpl implements IrcBot {
     }
 
     public String getNick() {
-//        return this.configuration.getName();
         return bot.getNick();
     }
 
@@ -183,12 +195,12 @@ public class IrcBotImpl implements IrcBot {
     }
 
     public void messageChannel(String message, Object... args) {
-        bot.send().message(requestChannel, formatMessage(message, args));
+        bot.sendIRC().message(requestChannel, formatMessage(message, args));
     }
 
     public void messageControlChannel(String message, Object... args) {
         String formattedMessage = formatMessage(message, args);
-        bot.send().message(controlChannel, formattedMessage);
+        bot.sendIRC().message(controlChannel, formattedMessage);
     }
 
     public String formatMessage(String message, Object... args) {
@@ -218,7 +230,7 @@ public class IrcBotImpl implements IrcBot {
         try {
             IdentServer.stopServer();
             bot.stopBotReconnect();
-            bot.send().quitServer();
+            bot.sendIRC().quitServer();
         } catch (IOException e) {
             throw new IrcBotException("Failed to stop ident server", e);
         }
@@ -238,12 +250,12 @@ public class IrcBotImpl implements IrcBot {
 
     @Override
     public void sendToChannel(String channel, String message) {
-        bot.send().message(channel, message);
+        bot.sendIRC().message(channel, message);
     }
 
     @Override
     public void sendPrivateMessage(String recipient, String message) {
-        bot.send().message(recipient, message);
+        bot.sendIRC().message(recipient, message);
     }
 
     public EventSource getEventSource() {
@@ -270,6 +282,16 @@ public class IrcBotImpl implements IrcBot {
     @Override
     public boolean isOnline() {
         return (getServerName() != null) && this.bot.isConnected();
+    }
+
+    @Override
+    public boolean isInChannel(String channelName) {
+        return channels.contains(channelName);
+    }
+
+    @Override
+    public void joinChannel(String channelName) {
+        this.bot.sendIRC().joinChannel(channelName);
     }
 
     public String getServerName() {

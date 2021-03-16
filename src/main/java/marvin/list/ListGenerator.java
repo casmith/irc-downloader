@@ -67,7 +67,7 @@ public class ListGenerator {
             }
 
             File[] dirs = rootDirectory.listFiles(File::isDirectory);
-            if (dirs.length > 0) {
+            if (dirs != null && dirs.length > 0) {
                 Arrays.stream(dirs)
                         .sorted()
                         .forEach(dir -> generateList(dir, listWriter));

@@ -29,6 +29,9 @@ public interface IrcBot {
     boolean isNickOnline(String nick);
     boolean isOnline();
 
+    boolean isInChannel(String channelName);
+    void joinChannel(String channelName);
+
     String getRequestChannel();
     String getControlChannel();
     String getServerName();

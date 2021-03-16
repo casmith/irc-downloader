@@ -28,14 +28,18 @@ public class StatusResource {
     public Response getStatus() {
         CompletedXferSummary completedXferSummary = this.completedXferDao.summarize();
         StatusModel statusModel = new StatusModel(ircBot.getServerName(),
-            ircBot.getRequestChannel(),
+            channelIfConnected(ircBot.getRequestChannel(), ircBot),
             ircBot.getNick(),
-            ircBot.getControlChannel(),
+            channelIfConnected(ircBot.getControlChannel(), ircBot),
             ircBot.isOnline(),
             completedXferSummary.getCount(),
             completedXferSummary.getTotalBytes());
         return Response.status(200)
             .entity(statusModel)
             .build();
+    }
+
+    private String channelIfConnected(String channelName, IrcBot ircBot) {
+        return ircBot.isInChannel(channelName) ? channelName : "";
     }
 }
