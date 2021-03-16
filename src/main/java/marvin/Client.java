@@ -181,8 +181,10 @@ public class Client {
                 if (bot.isOnline()) {
                     ensureChannel(bot.getControlChannel());
                     ensureChannel(bot.getRequestChannel());
+                    this.receiveQueueProcessor.process();
+                } else {
+                    LOG.warn("Bot is not online");
                 }
-                this.receiveQueueProcessor.process();
                 sleep(5);
             }
             LOG.info("Receive queue processor has stopped");
