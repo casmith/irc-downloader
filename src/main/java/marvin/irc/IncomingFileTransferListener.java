@@ -59,7 +59,7 @@ public class IncomingFileTransferListener extends ListenerAdapter {
             LOG.info("Done downloading {} in {}s ({} KiB/s)", file.getAbsolutePath(), seconds, kbps);
             queueManager.markCompleted(nick, event.getSafeFilename());
             success = true;
-        } catch (Exception e) {
+        } catch (Throwable e) {
             LOG.error("File transfer failed", e);
         } finally {
             long duration = System.currentTimeMillis() - start;
