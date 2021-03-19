@@ -45,11 +45,13 @@ public class IncomingFileTransferListener extends ListenerAdapter {
         long bytes = -1;
         long start = System.currentTimeMillis();
         try {
-            ReceiveFileTransfer fileTransfer = event.accept(file);
+            ReceiveFileTransfer fileTransfer = file.exists() ?
+                event.acceptResume(file, file.length()) :
+                event.accept(file);
             fileTransfer.transfer();
             long ms = System.currentTimeMillis() - start;
             long seconds = ms / 1000;
-            if (seconds ==  0) {
+            if (seconds == 0) {
                 seconds = 1;
             }
             bytes = fileTransfer.getFileSize();
@@ -74,7 +76,6 @@ public class IncomingFileTransferListener extends ListenerAdapter {
     public static class Configuration {
         Map<String, File> mappings = new HashMap<>();
         File defaultDirectory;
-
 
         public Configuration(String defaultDirectory) {
             this(new File(defaultDirectory));
