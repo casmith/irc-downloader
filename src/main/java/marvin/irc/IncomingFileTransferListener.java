@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -46,9 +47,7 @@ public class IncomingFileTransferListener extends ListenerAdapter {
         long bytes = -1;
         long start = System.currentTimeMillis();
         try {
-            ReceiveFileTransfer fileTransfer = file.exists() ?
-                event.acceptResume(file, file.length()) :
-                event.accept(file);
+            ReceiveFileTransfer fileTransfer = acceptTransfer(event, file);
             fileTransfer.transfer();
             long ms = System.currentTimeMillis() - start;
             long seconds = ms / 1000;
@@ -72,6 +71,17 @@ public class IncomingFileTransferListener extends ListenerAdapter {
         File directory = configuration.getDirectory(fileName);
         String filePath = directory + File.separator + fileName;
         return new File(filePath);
+    }
+
+    public ReceiveFileTransfer acceptTransfer(IncomingFileTransferEvent event, File file) throws IOException, InterruptedException {
+        if (file.exists()) {
+            // resume doesn't seem to work, so clear the existing file and start over
+            boolean delete = file.delete();
+            if (delete) {
+                LOG.info("Existing file {} deleted", file.getName());
+            }
+        }
+        return event.accept(file);
     }
 
     public static class Configuration {
