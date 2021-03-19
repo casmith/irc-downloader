@@ -19,12 +19,9 @@ import marvin.web.history.HistoryResource;
 import marvin.web.queue.QueueResource;
 import marvin.web.server.ServerResource;
 import marvin.web.status.StatusResource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class MarvinModule implements Module {
 
-    public static final Logger LOG = LoggerFactory.getLogger(MarvinModule.class);
     private final BotConfig config;
 
     public MarvinModule(BotConfig config) {

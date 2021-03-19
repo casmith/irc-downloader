@@ -10,7 +10,7 @@ import java.util.Queue;
 
 public abstract class AbstractQueueManager implements QueueManager {
 
-    public static final Logger LOG = LoggerFactory.getLogger(AbstractQueueManager.class);
+    private static final Logger LOG = LoggerFactory.getLogger(AbstractQueueManager.class);
 
     private Map<String, Queue<String>> queues = new HashMap<>();
     private Map<String, Integer> queued = new HashMap<>();

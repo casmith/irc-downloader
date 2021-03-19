@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class EventSource {
-    private Logger LOG = LoggerFactory.getLogger(EventSource.class);
+    private static final Logger LOG = LoggerFactory.getLogger(EventSource.class);
 
     private List<Listener> listeners = new ArrayList<>();
 

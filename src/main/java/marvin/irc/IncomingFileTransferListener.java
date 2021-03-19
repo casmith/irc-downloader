@@ -17,10 +17,11 @@ import java.util.Map;
 
 public class IncomingFileTransferListener extends ListenerAdapter {
 
+    private static final Logger LOG = LoggerFactory.getLogger(IncomingFileTransferListener.class);
+
     private final EventSource eventSource;
     private final ReceiveQueueManager queueManager;
     private final Configuration configuration;
-    private Logger LOG = LoggerFactory.getLogger(IncomingFileTransferListener.class);
 
     public IncomingFileTransferListener(EventSource eventSource, Configuration configuration, ReceiveQueueManager queueManager) {
         this.eventSource = eventSource;

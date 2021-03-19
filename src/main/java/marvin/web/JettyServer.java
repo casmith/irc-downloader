@@ -16,7 +16,7 @@ import java.net.URI;
 
 public class JettyServer implements HttpServer {
 
-    private static Logger LOG = LoggerFactory.getLogger(JettyServer.class);
+    private static final Logger LOG = LoggerFactory.getLogger(JettyServer.class);
     private Server server;
 
     static final String APPLICATION_PATH = "/api";

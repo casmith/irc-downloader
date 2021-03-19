@@ -7,7 +7,7 @@ import javax.inject.Inject;
 import java.io.File;
 
 public class SendQueueProcessor {
-    private static Logger LOG = LoggerFactory.getLogger(SendQueueProcessor.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SendQueueProcessor.class);
 
     private QueueManager sendQueueManager;
     private IrcBot bot;

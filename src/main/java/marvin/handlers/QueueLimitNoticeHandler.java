@@ -12,7 +12,7 @@ import static java.lang.Integer.parseInt;
 
 public class QueueLimitNoticeHandler implements NoticeHandler {
 
-    private static Logger LOG = LoggerFactory.getLogger(QueueLimitNoticeHandler.class);
+    private static final Logger LOG = LoggerFactory.getLogger(QueueLimitNoticeHandler.class);
 
     private ReceiveQueueManager queueManager;
 

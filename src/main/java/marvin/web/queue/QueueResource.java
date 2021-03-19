@@ -9,14 +9,13 @@ import org.slf4j.LoggerFactory;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.Queue;
 import java.util.stream.Collectors;
 
 @Path("/queue")
 public class QueueResource {
 
     private ReceiveQueueManager queueManager;
-    private Logger LOG = LoggerFactory.getLogger(QueueResource.class);
+    private static final Logger LOG = LoggerFactory.getLogger(QueueResource.class);
 
     @Inject
     public QueueResource(ReceiveQueueManager queueManager) {

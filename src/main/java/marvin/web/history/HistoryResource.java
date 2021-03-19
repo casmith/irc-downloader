@@ -3,8 +3,6 @@ package marvin.web.history;
 import com.google.inject.Inject;
 import marvin.data.CompletedXferDao;
 import marvin.model.CompletedXfer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -19,7 +17,6 @@ import java.util.stream.Collectors;
 public class HistoryResource {
 
     private final CompletedXferDao completedXferDao;
-    private Logger LOG = LoggerFactory.getLogger(HistoryResource.class);
 
     @Inject
     public HistoryResource(CompletedXferDao completedXferDao) {

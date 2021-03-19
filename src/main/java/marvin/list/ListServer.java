@@ -11,7 +11,7 @@ import java.io.File;
  */
 public class ListServer {
 
-    private static Logger LOG = LoggerFactory.getLogger(ListServer.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ListServer.class);
     private final String requestChannel;
     private final String list;
 

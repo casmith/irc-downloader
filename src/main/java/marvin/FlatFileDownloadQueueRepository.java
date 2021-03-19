@@ -10,7 +10,7 @@ import java.util.Queue;
 public class FlatFileDownloadQueueRepository implements DownloadQueueRepository {
 
     private String fileName;
-    private static final Logger LOGGER = LoggerFactory.getLogger(FlatFileDownloadQueueRepository.class);
+    private static final Logger LOG = LoggerFactory.getLogger(FlatFileDownloadQueueRepository.class);
 
     public FlatFileDownloadQueueRepository(String fileName) {
         this.fileName = fileName;
@@ -21,7 +21,7 @@ public class FlatFileDownloadQueueRepository implements DownloadQueueRepository 
         try (ObjectInputStream queue = new ObjectInputStream(new FileInputStream(this.fileName))) {
             return (Queue<FileRequest>) queue.readObject();
         } catch (IOException | ClassNotFoundException e) {
-            LOGGER.warn("Failed to load queue. Returning an empty one.");
+            LOG.warn("Failed to load queue. Returning an empty one.");
             return new LinkedList<>();
         }
     }
@@ -31,7 +31,7 @@ public class FlatFileDownloadQueueRepository implements DownloadQueueRepository 
         try (ObjectOutputStream queue = new ObjectOutputStream(new FileOutputStream(this.fileName))) {
             queue.writeObject(downloadQueue);
         } catch (IOException e) {
-            LOGGER.error("Failed to save queue", e);
+            LOG.error("Failed to save queue", e);
         }
     }
 }

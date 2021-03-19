@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 
 public class RequestPrivateMessageHandler implements PrivateMessageHandler {
 
-    private static Logger LOG = LoggerFactory.getLogger(RequestPrivateMessageHandler.class);
+    private static final Logger LOG = LoggerFactory.getLogger(RequestPrivateMessageHandler.class);
     private IrcBot ircBot;
     private ReceiveQueueManager queueManager;
     private UserManager userManager;

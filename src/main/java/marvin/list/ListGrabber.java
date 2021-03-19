@@ -13,7 +13,7 @@ import java.util.regex.Pattern;
 
 public class ListGrabber {
 
-    private static Logger LOG = LoggerFactory.getLogger(ListGrabber.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ListGrabber.class);
 
     private final KnownUserDao knownUserDao;
     private final boolean isEnabled;
