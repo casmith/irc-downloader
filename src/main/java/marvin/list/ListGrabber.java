@@ -56,10 +56,6 @@ public class ListGrabber {
         return false;
     }
 
-    public static void main(String[] args) {
-        System.out.println(FlatFileListManager.open("list-manager.dat"));
-    }
-
     public void updateLastSeen(String nick, String message, String hostmask) {
         Pattern pattern = getPattern();
         Matcher matcher = pattern.matcher(message.toLowerCase());

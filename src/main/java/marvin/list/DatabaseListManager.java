@@ -16,12 +16,21 @@ public class DatabaseListManager implements ListManager {
     @Override
     public boolean add(String key) {
         ListFile listFile = new ListFile(key, LocalDateTime.now());
-        if (dao.findByName(key) == null) {
+        ListFile exisingList = dao.findByName(key);
+        if (exisingList == null) {
             dao.insert(listFile);
             return true;
         } else {
-            dao.update(listFile);
+            if (isListStale(exisingList.getLastUpdated())) {
+                dao.update(listFile);
+                return true;
+            }
             return false;
         }
+    }
+
+    private boolean isListStale(LocalDateTime lastUpdated) {
+        LocalDateTime yesterday = LocalDateTime.now().minusDays(1L);
+        return lastUpdated.isBefore(yesterday);
     }
 }

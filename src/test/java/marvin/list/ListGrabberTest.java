@@ -1,5 +1,6 @@
 package marvin.list;
 
+import com.google.common.collect.ImmutableMap;
 import marvin.irc.IrcBot;
 import marvin.list.ListGrabber;
 import org.junit.Before;
@@ -8,9 +9,12 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
+import java.time.LocalDateTime;
+import java.util.HashMap;
+
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.atMostOnce;
+import static org.mockito.Mockito.*;
 
 public class ListGrabberTest {
 
@@ -21,7 +25,12 @@ public class ListGrabberTest {
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-        listGrabber = new ListGrabber(ircBot, null, new InMemoryListManager(), true);
+        InMemoryListManager listManager = new InMemoryListManager(ImmutableMap.of(
+            "@freshlist", LocalDateTime.now(),
+            "@stalelist", LocalDateTime.now().minusDays(3)
+        ));
+
+        listGrabber = new ListGrabber(ircBot, null, listManager, true);
     }
 
     @Test
@@ -35,6 +44,16 @@ public class ListGrabberTest {
     public void grab() {
         listGrabber.grab("#somechannel", "Type: @marvin for my list");
         listGrabber.grab("#somechannel", "Type: @marvin for my list");
-        Mockito.verify(ircBot, atMostOnce()).sendToChannel("#somechannel", "@marvin");
+        verify(ircBot, times(1)).sendToChannel("#somechannel", "@marvin");
+
+        reset(ircBot);
+
+        assertTrue(listGrabber.grab("#somechannel", "Type: @stalelist for my list"));
+        verify(ircBot, times(1)).sendToChannel("#somechannel", "@stalelist");
+
+        reset(ircBot);
+
+        assertFalse(listGrabber.grab("#somechannel", "Type: @freshlist for my list"));
+        verify(ircBot, never()).sendToChannel("#somechannel", "@freshlist");
     }
 }
