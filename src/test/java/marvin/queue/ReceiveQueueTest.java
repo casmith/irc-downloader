@@ -25,6 +25,15 @@ public class ReceiveQueueTest {
         assertEquals(1, receiveQueue.size());
     }
 
+    @Test
+    public void testEnqueue_duplicateItemReset() {
+        receiveQueue.enqueue("filename.mp3");
+        receiveQueue.poll();
+        assertEquals(QueueStatus.REQUESTED, receiveQueue.getItems().get(0).getStatus());
+        receiveQueue.enqueue("filename.mp3");
+        assertEquals(QueueStatus.PENDING, receiveQueue.getItems().get(0).getStatus());
+    }
+
     @Test(expected=EmptyQueueException.class)
     public void testDequeue_forEmptyQueue() {
         receiveQueue.dequeue();

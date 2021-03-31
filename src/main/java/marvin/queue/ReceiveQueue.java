@@ -14,7 +14,7 @@ public class ReceiveQueue {
     }
 
     public ReceiveQueueItem enqueue(String filename) {
-        return this.find(filename)
+        return this.findAndReset(filename)
             .orElseGet(() -> enqueueInternal(filename));
     }
 
@@ -42,6 +42,12 @@ public class ReceiveQueue {
     public Optional<ReceiveQueueItem> find(String filename) {
         return this.items.values().stream()
             .filter(i -> i.getFilename().equals(filename)).findFirst();
+    }
+
+    public Optional<ReceiveQueueItem> findAndReset(String filename) {
+        Optional<ReceiveQueueItem> item = this.find(filename);
+        item.ifPresent(receiveQueueItem -> receiveQueueItem.setStatus(PENDING));
+        return item;
     }
 
     public ReceiveQueueItem dequeue() {
