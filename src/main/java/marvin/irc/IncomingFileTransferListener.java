@@ -57,7 +57,9 @@ public class IncomingFileTransferListener extends ListenerAdapter {
             bytes = fileTransfer.getFileSize();
             long kbps = (bytes - 1024) / seconds;
             LOG.info("Done downloading {} in {}s ({} KiB/s)", file.getAbsolutePath(), seconds, kbps);
-            queueManager.markCompleted(nick, event.getSafeFilename());
+            if (!queueManager.markCompleted(nick, event.getSafeFilename())) {
+                LOG.warn("Nothing to mark completed for {} filename {}", nick, event.getSafeFilename());
+            }
             success = true;
         } catch (Throwable e) {
             LOG.error("File transfer failed", e);
