@@ -5,6 +5,7 @@ import com.google.inject.Module;
 import marvin.config.AdminPassword;
 import marvin.config.BotConfig;
 import marvin.config.Nick;
+import marvin.config.RmqHost;
 import marvin.data.CompletedXferDao;
 import marvin.data.KnownUserDao;
 import marvin.data.ListFileDao;
@@ -31,6 +32,8 @@ public class MarvinModule implements Module {
     @Override
     public void configure(Binder binder) {
         binder.bind(BotConfig.class).toInstance(config);
+        binder.bind(String.class).annotatedWith(RmqHost.class)
+            .toInstance(config.getRmqHost());
 
         binder.bindConstant().annotatedWith(Nick.class).to(config.getNick());
         binder.bindConstant().annotatedWith(AdminPassword.class).to(config.getAdminPassword());

@@ -24,7 +24,8 @@ public class BotConfig {
     private final String requestChannel;
     private final String server;
     private final Config features;
-    private Map<String, File> downloadDirectories = new HashMap<>();
+    private final String rmqHost;
+    private final Map<String, File> downloadDirectories = new HashMap<>();
 
     public BotConfig(Config config, String configDirectoryPath) {
         Config ircConfig = config.getConfig("irc");
@@ -40,6 +41,8 @@ public class BotConfig {
         this.requestChannel = ircConfig.getString("requestChannel");
         this.server = getString(ircConfig, "server");
         this.features = config.getConfig("features");
+        Config rmqConfig = config.getConfig("rmq");
+        this.rmqHost = rmqConfig.getString("host");
         if (ircConfig.hasPath("directories")) {
             Config directories = ircConfig.getConfig("directories");
             directories.entrySet()
@@ -89,6 +92,10 @@ public class BotConfig {
 
     public String getServer() {
         return server;
+    }
+
+    public String getRmqHost() {
+        return rmqHost;
     }
 
     public boolean isFeatureEnabled(String feature) {
