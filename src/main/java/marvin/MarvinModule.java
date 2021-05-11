@@ -15,6 +15,8 @@ import marvin.data.sqlite3.ListFileSqlite3Dao;
 import marvin.irc.IrcBot;
 import marvin.irc.IrcBotImpl;
 import marvin.list.ListGenerator;
+import marvin.messaging.Producer;
+import marvin.messaging.RabbitMqProducer;
 import marvin.web.MarvinServletContextListener;
 import marvin.web.history.HistoryResource;
 import marvin.web.queue.QueueResource;
@@ -55,6 +57,8 @@ public class MarvinModule implements Module {
         binder.bind(QueueResource.class);
         binder.bind(StatusResource.class);
         binder.bind(ServerResource.class);
+
+        binder.bind(Producer.class).to(RabbitMqProducer.class);
 
         binder.bind(MarvinServletContextListener.class);
     }
