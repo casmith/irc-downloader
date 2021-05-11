@@ -1,5 +1,7 @@
 package marvin.irc;
 
+import marvin.messaging.NoopProducer;
+import marvin.messaging.Producer;
 import org.junit.Test;
 
 import java.util.Collections;
@@ -8,15 +10,16 @@ import static org.junit.Assert.assertEquals;
 
 public class IrcBotImplTest {
     private IrcBotImpl ircBot = new IrcBotImpl("server",
-            6667,
-            "testbot",
-            "password",
-            "adminPassword",
-            "#control",
-            "#requestChannel",
-            "downloadDir",
-            Collections.emptyMap(),
-            new ReceiveQueueManager());
+        6667,
+        "testbot",
+        "password",
+        "adminPassword",
+        "#control",
+        "#requestChannel",
+        "downloadDir",
+        Collections.emptyMap(),
+        new ReceiveQueueManager(),
+        new NoopProducer());
 
     @Test
     public void formatMessage() {

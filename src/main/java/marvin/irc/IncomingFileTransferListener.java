@@ -3,6 +3,7 @@ package marvin.irc;
 import marvin.irc.events.DownloadCompleteEvent;
 import marvin.irc.events.DownloadStartedEvent;
 import marvin.irc.events.EventSource;
+import marvin.messaging.Producer;
 import org.apache.commons.io.FilenameUtils;
 import org.pircbotx.User;
 import org.pircbotx.dcc.ReceiveFileTransfer;
@@ -23,11 +24,16 @@ public class IncomingFileTransferListener extends ListenerAdapter {
     private final EventSource eventSource;
     private final ReceiveQueueManager queueManager;
     private final Configuration configuration;
+    private final Producer producer;
 
-    public IncomingFileTransferListener(EventSource eventSource, Configuration configuration, ReceiveQueueManager queueManager) {
+    public IncomingFileTransferListener(EventSource eventSource,
+                                        Configuration configuration,
+                                        ReceiveQueueManager queueManager,
+                                        Producer producer) {
         this.eventSource = eventSource;
         this.configuration = configuration;
         this.queueManager = queueManager;
+        this.producer = producer;
     }
 
     @Override
@@ -66,6 +72,7 @@ public class IncomingFileTransferListener extends ListenerAdapter {
         } finally {
             long duration = System.currentTimeMillis() - start;
             this.eventSource.publish(new DownloadCompleteEvent(nick, file.getName(), bytes, duration, success));
+            this.producer.publish("download-complete", file.getName());
         }
     }
 

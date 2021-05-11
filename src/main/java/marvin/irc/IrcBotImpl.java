@@ -6,6 +6,7 @@ import marvin.irc.events.DownloadCompleteEvent;
 import marvin.irc.events.Event;
 import marvin.irc.events.EventSource;
 import marvin.irc.events.Listener;
+import marvin.messaging.Producer;
 import org.pircbotx.*;
 import org.pircbotx.delay.StaticDelay;
 import org.pircbotx.exception.IrcException;
@@ -43,7 +44,7 @@ public class IrcBotImpl implements IrcBot {
     private PircBotX bot;
 
     @Inject
-    public IrcBotImpl(BotConfig config, ReceiveQueueManager queueManager) {
+    public IrcBotImpl(BotConfig config, ReceiveQueueManager queueManager, Producer producer) {
         this(config.getServer(),
                 config.getPort(),
                 config.getNick(),
@@ -53,7 +54,8 @@ public class IrcBotImpl implements IrcBot {
                 config.getRequestChannel(),
                 config.getDownloadDirectory(),
                 config.getDownloadDirectories(),
-                queueManager);
+                queueManager,
+                producer);
     }
 
     public IrcBotImpl(String server,
@@ -65,7 +67,8 @@ public class IrcBotImpl implements IrcBot {
                       String requestChannel,
                       String downloadDirectory,
                       Map<String, File> downloadDirectories,
-                      ReceiveQueueManager queueManager) {
+                      ReceiveQueueManager queueManager,
+                      Producer producer) {
         this.adminPassword = adminPassword;
         this.requestChannel = requestChannel;
         this.controlChannel = controlChannel;
@@ -84,7 +87,7 @@ public class IrcBotImpl implements IrcBot {
                 .setAutoReconnectDelay(new StaticDelay(5000))
                 .setAutoReconnect(true)
                 .addListener(new QueueProcessorListener(requestChannel, "queue.txt"))
-                .addListener(new IncomingFileTransferListener(eventSource, configuration, queueManager))
+                .addListener(new IncomingFileTransferListener(eventSource, configuration, queueManager, producer))
                 .addListener(new ListenerAdapter() {
                     @Override
                     public void onPrivateMessage(PrivateMessageEvent event) {
