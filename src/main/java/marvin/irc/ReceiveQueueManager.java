@@ -13,72 +13,86 @@ import java.util.stream.Collectors;
 public class ReceiveQueueManager {
 
     private static final Logger LOG = LoggerFactory.getLogger(ReceiveQueueManager.class);
-    private Map<String, Integer> limits = new HashMap<>();
-    private Map<String, Integer> queued = new HashMap<>();
-    private Map<String, ReceiveQueue> receiveQueues = new HashMap<>();
-
-    public ReceiveQueueManager() {
-    }
+    private final Map<String, Integer> limits = new HashMap<>();
+    private final Map<String, Integer> queued = new HashMap<>();
+    private final Map<String, ReceiveQueue> receiveQueues = new HashMap<>();
 
     public void addInProgress(String nick, String message) {
-        getQueue(nick).find(message).ifPresent(r -> r.setStatus(QueueStatus.REQUESTED));
+        synchronized (this) {
+            getQueue(nick).find(message).ifPresent(r -> r.setStatus(QueueStatus.REQUESTED));
+        }
     }
 
     public void retry(String nick, String filename) {
-        List<ReceiveQueue.ReceiveQueueItem> foundItems = getQueue(nick)
-            .getItems().stream()
-            .filter(i -> i.getFilename().toLowerCase().contains(filename.toLowerCase()))
-            .collect(Collectors.toList());
+        synchronized (this) {
+            List<ReceiveQueue.ReceiveQueueItem> foundItems = getQueue(nick)
+                .getItems().stream()
+                .filter(i -> i.getFilename().toLowerCase().contains(filename.toLowerCase()))
+                .collect(Collectors.toList());
 
-        if (foundItems.size() > 1) {
-            LOG.warn("Found " + foundItems.size() + " items to retry for " + nick + ":" + filename);
-        } else {
-            LOG.info("Retrying !" + nick + " " + filename);
+            if (foundItems.size() > 1) {
+                LOG.warn("Found " + foundItems.size() + " items to retry for " + nick + ":" + filename);
+            } else {
+                LOG.info("Retrying !" + nick + " " + filename);
+            }
+
+            foundItems.forEach(i -> i.setStatus(QueueStatus.PENDING));
         }
-
-        foundItems.forEach(i -> i.setStatus(QueueStatus.PENDING));
     }
 
     // TODO: remove
     public Map<String, Queue<String>> getInProgress() {
-        LinkedHashMap<String, Queue<String>> map = new LinkedHashMap<>();
-        for (Map.Entry<String, ReceiveQueue> entry : receiveQueues.entrySet()) {
-            Queue<String> queue = new LinkedList<>();
-            for (ReceiveQueue.ReceiveQueueItem item : entry.getValue().getItems()) {
-                if (item.getStatus() == QueueStatus.REQUESTED) {
-                    queue.offer(item.getFilename());
+        synchronized (this) {
+            LinkedHashMap<String, Queue<String>> map = new LinkedHashMap<>();
+            for (Map.Entry<String, ReceiveQueue> entry : receiveQueues.entrySet()) {
+                Queue<String> queue = new LinkedList<>();
+                for (ReceiveQueue.ReceiveQueueItem item : entry.getValue().getItems()) {
+                    if (item.getStatus() == QueueStatus.REQUESTED) {
+                        queue.offer(item.getFilename());
+                    }
                 }
+                map.put(entry.getKey(), queue);
             }
-            map.put(entry.getKey(), queue);
-        }
 
-        return map;
+            return map;
+        }
     }
 
     public boolean markCompleted(String nick, String filename) {
-        Optional<ReceiveQueue.ReceiveQueueItem> found = getQueue(nick).getItems().stream()
-            .filter(i -> i.getFilename().contains(filename))
-            .findFirst();
+        synchronized (this) {
+            LOG.info("Marking {} - {} completed", nick, filename);
+            ReceiveQueue queue = getQueue(nick);
+            Optional<ReceiveQueue.ReceiveQueueItem> found = queue.getItems().stream()
+                .filter(i -> i.getFilename().contains(filename))
+                .findFirst();
 
-        return found.map(receiveQueueItem -> getQueue(nick).removeItem(receiveQueueItem))
-            .orElse(false);
+            Boolean wasDeleted = found.map(queue::removeItem)
+                .orElse(false);
+
+            if (queue.isEmpty()) {
+                receiveQueues.remove(nick);
+            }
+            return wasDeleted;
+        }
     }
 
     public Optional<String> poll(String nick) {
-        ReceiveQueue queue = getQueue(nick);
+        synchronized (this) {
+            ReceiveQueue queue = getQueue(nick);
 
-        // dump queue to log
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Queue for [{}]", nick);
-            queue.getItems().stream()
-                .map(ReceiveQueue.ReceiveQueueItem::toString)
-                .forEach(s -> LOG.debug("- {}", s));
-        }
+            // dump queue to log
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Queue for [{}]", nick);
+                queue.getItems().stream()
+                    .map(ReceiveQueue.ReceiveQueueItem::toString)
+                    .forEach(s -> LOG.debug("- {}", s));
+            }
 
-        if (!queue.isEmpty() && this.inc(nick)) {
-            return queue.poll().map(ReceiveQueue.ReceiveQueueItem::getFilename);
-        } else {
-            return Optional.empty();
+            if (!queue.isEmpty() && this.inc(nick)) {
+                return queue.poll().map(ReceiveQueue.ReceiveQueueItem::getFilename);
+            } else {
+                return Optional.empty();
+            }
         }
     }
 
@@ -129,7 +143,10 @@ public class ReceiveQueueManager {
     }
 
     public void enqueue(String nick, String message) {
-        getQueue(nick).enqueue(message);
+        synchronized (this) {
+            LOG.info("Enqueueing {} - {}", nick, message);
+            getQueue(nick).enqueue(message);
+        }
     }
 
     public Map<String, ReceiveQueue> getQueues() {
