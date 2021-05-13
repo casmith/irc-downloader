@@ -70,6 +70,7 @@ public class ReceiveQueueManager {
                 .orElse(false);
 
             if (queue.isEmpty()) {
+                LOG.info("Removing empty queue [{}]", nick);
                 receiveQueues.remove(nick);
             }
             return wasDeleted;
@@ -144,8 +145,9 @@ public class ReceiveQueueManager {
 
     public void enqueue(String nick, String message) {
         synchronized (this) {
-            LOG.info("Enqueueing {} - {}", nick, message);
-            getQueue(nick).enqueue(message);
+            ReceiveQueue queue = getQueue(nick);
+            LOG.info("Enqueueing [{}] - [{}], count={}", nick, message, queue.size());
+            queue.enqueue(message);
         }
     }
 
