@@ -69,6 +69,11 @@ public class ReceiveQueueManager {
             Boolean wasDeleted = found.map(queue::removeItem)
                 .orElse(false);
 
+            if (!wasDeleted) {
+                LOG.error("Failed to remove {} from [{}]", filename,
+                    queue.getItems().stream().map(ReceiveQueue.ReceiveQueueItem::getFilename).collect(Collectors.joining(", ")));
+            }
+
             if (queue.isEmpty()) {
                 LOG.info("Removing empty queue [{}]", nick);
                 receiveQueues.remove(nick);
