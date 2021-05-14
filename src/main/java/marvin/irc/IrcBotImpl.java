@@ -2,6 +2,7 @@ package marvin.irc;
 
 import com.google.common.collect.ImmutableSortedSet;
 import marvin.config.BotConfig;
+import marvin.data.QueueEntryDao;
 import marvin.irc.events.DownloadCompleteEvent;
 import marvin.irc.events.Event;
 import marvin.irc.events.EventSource;
@@ -44,7 +45,7 @@ public class IrcBotImpl implements IrcBot {
     private PircBotX bot;
 
     @Inject
-    public IrcBotImpl(BotConfig config, ReceiveQueueManager queueManager, Producer producer) {
+    public IrcBotImpl(BotConfig config, ReceiveQueueManager queueManager, QueueEntryDao queueEntryDao, Producer producer) {
         this(config.getServer(),
                 config.getPort(),
                 config.getNick(),
@@ -55,6 +56,7 @@ public class IrcBotImpl implements IrcBot {
                 config.getDownloadDirectory(),
                 config.getDownloadDirectories(),
                 queueManager,
+                queueEntryDao,
                 producer);
     }
 
@@ -68,6 +70,7 @@ public class IrcBotImpl implements IrcBot {
                       String downloadDirectory,
                       Map<String, File> downloadDirectories,
                       ReceiveQueueManager queueManager,
+                      QueueEntryDao queueEntryDao,
                       Producer producer) {
         this.adminPassword = adminPassword;
         this.requestChannel = requestChannel;
@@ -87,7 +90,7 @@ public class IrcBotImpl implements IrcBot {
                 .setAutoReconnectDelay(new StaticDelay(5000))
                 .setAutoReconnect(true)
                 .addListener(new QueueProcessorListener(requestChannel, "queue.txt"))
-                .addListener(new IncomingFileTransferListener(eventSource, configuration, queueManager, producer))
+                .addListener(new IncomingFileTransferListener(eventSource, configuration, queueManager, producer, queueEntryDao))
                 .addListener(new ListenerAdapter() {
                     @Override
                     public void onPrivateMessage(PrivateMessageEvent event) {

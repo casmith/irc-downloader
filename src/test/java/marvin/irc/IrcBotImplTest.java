@@ -19,6 +19,7 @@ public class IrcBotImplTest {
         "downloadDir",
         Collections.emptyMap(),
         new ReceiveQueueManager(null),
+        null,
         new NoopProducer());
 
     @Test

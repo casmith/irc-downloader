@@ -1,9 +1,11 @@
 package marvin.irc;
 
+import marvin.data.QueueEntryDao;
 import marvin.irc.events.DownloadCompleteEvent;
 import marvin.irc.events.DownloadStartedEvent;
 import marvin.irc.events.EventSource;
 import marvin.messaging.Producer;
+import marvin.model.QueueEntry;
 import org.apache.commons.io.FilenameUtils;
 import org.pircbotx.User;
 import org.pircbotx.dcc.ReceiveFileTransfer;
@@ -25,15 +27,17 @@ public class IncomingFileTransferListener extends ListenerAdapter {
     private final ReceiveQueueManager queueManager;
     private final Configuration configuration;
     private final Producer producer;
+    private final QueueEntryDao queueEntryDao;
 
     public IncomingFileTransferListener(EventSource eventSource,
                                         Configuration configuration,
                                         ReceiveQueueManager queueManager,
-                                        Producer producer) {
+                                        Producer producer, QueueEntryDao queueEntryDao) {
         this.eventSource = eventSource;
         this.configuration = configuration;
         this.queueManager = queueManager;
         this.producer = producer;
+        this.queueEntryDao = queueEntryDao;
     }
 
     @Override
@@ -47,7 +51,14 @@ public class IncomingFileTransferListener extends ListenerAdapter {
         }
 
         boolean success = false;
-        File file = getDownloadFile(event.getSafeFilename());
+        QueueEntry queueEntry = queueEntryDao.find(nick, event.getSafeFilename());
+
+        if (queueEntry == null) {
+            LOG.warn("Discarding incoming file transfer {} {} because queue entry was not found", nick, event.getSafeFilename());
+            return;
+        }
+
+        File file = getDownloadFile(event.getSafeFilename(), queueEntry.getBatch());
         LOG.info("Receiving {} from {}", file.getName(), sender);
         this.eventSource.publish(new DownloadStartedEvent(nick, file.getName()));
         long bytes = -1;
@@ -76,9 +87,11 @@ public class IncomingFileTransferListener extends ListenerAdapter {
         }
     }
 
-    public File getDownloadFile(String fileName) {
+    public File getDownloadFile(String fileName, String batch) {
         File directory = configuration.getDirectory(fileName);
-        String filePath = directory + File.separator + fileName;
+        File batchDirectory = new File(directory + File.separator + batch);
+        batchDirectory.mkdirs(); // ensure the directory exists
+        String filePath = directory + File.separator + batch + File.separator + fileName;
         return new File(filePath);
     }
 

@@ -1,5 +1,7 @@
 package marvin.irc;
 
+import marvin.data.JdbcTemplate;
+import marvin.data.sqlite3.QueueEntrySqlite3Dao;
 import marvin.irc.IncomingFileTransferListener.Configuration;
 import marvin.messaging.NoopProducer;
 import marvin.messaging.Producer;
@@ -15,9 +17,10 @@ public class IncomingFileTransferListenerTest {
 
     @Test
     public void testGetDownloadFile() {
-        IncomingFileTransferListener incomingFileTransferListener = new IncomingFileTransferListener(null, new Configuration("/downloads"), null, new NoopProducer());
-        File downloadFile = incomingFileTransferListener.getDownloadFile("song.mp3");
-        assertEquals("/downloads/song.mp3", downloadFile.getAbsolutePath());
+        QueueEntrySqlite3Dao dao = new QueueEntrySqlite3Dao(new JdbcTemplate("jdbc:sqlite:./marvin.db"));
+        IncomingFileTransferListener incomingFileTransferListener = new IncomingFileTransferListener(null, new Configuration("/downloads"), null, new NoopProducer(), dao);
+        File downloadFile = incomingFileTransferListener.getDownloadFile("song.mp3", "batch1");
+        assertEquals("/downloads/batch1/song.mp3", downloadFile.getAbsolutePath());
     }
 
     @Test
