@@ -19,6 +19,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import static java.io.File.separator;
+
 public class IncomingFileTransferListener extends ListenerAdapter {
 
     private static final Logger LOG = LoggerFactory.getLogger(IncomingFileTransferListener.class);
@@ -53,10 +55,11 @@ public class IncomingFileTransferListener extends ListenerAdapter {
         boolean success = false;
         QueueEntry queueEntry = queueEntryDao.find(nick, event.getSafeFilename());
 
-        if (queueEntry == null) {
-            LOG.warn("Discarding incoming file transfer {} {} because queue entry was not found", nick, event.getSafeFilename());
-            return;
-        }
+        // it's not safe to assume there will always be a queue entry because lists are requested separately
+//        if (queueEntry == null) {
+//            LOG.warn("Discarding incoming file transfer {} {} because queue entry was not found", nick, event.getSafeFilename());
+//            return;
+//        }
 
         File file = getDownloadFile(event.getSafeFilename(), queueEntry.getBatch());
         LOG.info("Receiving {} from {}", file.getName(), sender);
@@ -88,11 +91,20 @@ public class IncomingFileTransferListener extends ListenerAdapter {
     }
 
     public File getDownloadFile(String fileName, String batch) {
+
+        File downloadDirectory = getDownloadDirectory(fileName, batch);
+        return new File(downloadDirectory + separator + batch + separator + fileName);
+    }
+
+    public File getDownloadDirectory(String fileName, String batch) {
         File directory = configuration.getDirectory(fileName);
-        File batchDirectory = new File(directory + File.separator + batch);
-        batchDirectory.mkdirs(); // ensure the directory exists
-        String filePath = directory + File.separator + batch + File.separator + fileName;
-        return new File(filePath);
+        if (batch != null && !batch.isEmpty()) {
+            File batchDirectory = new File(directory + separator + batch);
+            batchDirectory.mkdirs(); // ensure the directory exists
+            return batchDirectory;
+        } else {
+            return directory;
+        }
     }
 
     public ReceiveFileTransfer acceptTransfer(IncomingFileTransferEvent event, File file) throws IOException, InterruptedException {
