@@ -23,14 +23,14 @@ public class QueueEntrySqlite3DaoTest {
     @Test
     public void testInsert() {
         int initialCount = dao.selectAll().size();
-        dao.insert(new QueueEntry("someguy", "!someguy blah.mp3", "REQUESTED", "#mp3passion", LocalDateTime.now()));
+        dao.insert(new QueueEntry("someguy", "batch1", "!someguy blah.mp3", "REQUESTED", "#mp3passion", LocalDateTime.now()));
         assertEquals(initialCount + 1, dao.selectAll().size());
     }
 
     @Test
     public void testSelectAll() {
-        dao.insert(new QueueEntry("someguy", "!someguy blah.mp3", "REQUESTED", "#mp3passion", LocalDateTime.now()));
-        dao.insert(new QueueEntry("someguy", "!someguy blah2.mp3", "REQUESTED", "#mp3passion", LocalDateTime.now().minusDays(1)));
+        dao.insert(new QueueEntry("someguy", "batch1", "!someguy blah.mp3", "REQUESTED", "#mp3passion", LocalDateTime.now()));
+        dao.insert(new QueueEntry("someguy", "batch1", "!someguy blah2.mp3", "REQUESTED", "#mp3passion", LocalDateTime.now().minusDays(1)));
         List<QueueEntry> all = dao.selectAll();
         assertEquals(2, all.size());
         assertEquals("!someguy blah.mp3", all.get(0).getRequestString());
