@@ -5,6 +5,7 @@ import marvin.queue.ReceiveQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
 import java.util.Map;
 
 public class ReceiveQueueProcessor {
@@ -15,6 +16,7 @@ public class ReceiveQueueProcessor {
 
     private ReceiveQueueManager queueManager;
 
+    @Inject
     public ReceiveQueueProcessor(IrcBot bot, BotConfig config, ReceiveQueueManager queueManager) {
         this.bot = bot;
         this.config = config;
