@@ -10,7 +10,7 @@ public class QueueEntry {
     private final String batch;
     private final LocalDateTime timestamp;
 
-    public QueueEntry(String name, String requestString, String batch, String status, String channel, LocalDateTime timestamp) {
+    public QueueEntry(String name, String batch, String requestString, String status, String channel, LocalDateTime timestamp) {
         this.name = name;
         this.requestString = requestString;
         this.status = status;

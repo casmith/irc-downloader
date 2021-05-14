@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 public class QueueEntrySqlite3DaoTest {
     private QueueEntrySqlite3Dao dao;
@@ -34,6 +35,16 @@ public class QueueEntrySqlite3DaoTest {
         List<QueueEntry> all = dao.selectAll();
         assertEquals(2, all.size());
         assertEquals("!someguy blah.mp3", all.get(0).getRequestString());
+    }
+
+    @Test
+    public void testFind() {
+        dao.insert(new QueueEntry("someguy", "batch1", "!someguy blah.mp3", "REQUESTED", "#mp3passion", LocalDateTime.now()));
+        dao.insert(new QueueEntry("someguy", "batch1", "!someguy blah2.mp3", "REQUESTED", "#mp3passion", LocalDateTime.now().minusDays(1)));
+        QueueEntry entry = dao.find("someguy", "blah.mp3");
+        assertNotNull("entry is null", entry);
+        assertEquals(entry.getRequestString(), "!someguy blah.mp3");
+//        assertEquals("!someguy blah.mp3", all.get(0).getRequestString());
     }
 
 }

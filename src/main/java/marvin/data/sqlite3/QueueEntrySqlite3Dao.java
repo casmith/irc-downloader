@@ -31,6 +31,23 @@ public class QueueEntrySqlite3Dao
     }
 
     @Override
+    public QueueEntry find(final String nick, final String requestLike) {
+        List<QueueEntry> entries = jdbcTemplate.query("SELECT name, batch, request_string, status, channel, timestamp FROM queue_entries WHERE name = ? and request_string LIKE ? ORDER BY timestamp DESC", new Object[]{nick, "%" + requestLike + "%"}, new RowMapper<QueueEntry>() {
+            @Override
+            public QueueEntry mapRow(ResultSet rs) throws SQLException {
+                return new QueueEntry(
+                    rs.getString("name"),
+                    rs.getString("batch"),
+                    rs.getString("request_string"),
+                    rs.getString("status"),
+                    rs.getString("channel"),
+                    rs.getTimestamp("timestamp").toLocalDateTime());
+            }
+        });
+        return !entries.isEmpty() ? entries.get(0) : null;
+    }
+
+    @Override
     public void insert(QueueEntry queueEntry) {
         Connection conn = jdbcTemplate.connect();
         try (PreparedStatement statement = conn.prepareStatement("insert into queue_entries (name, batch, request_string, status, channel, timestamp) values (?, ?, ?, ?, ?, ?)")) {
@@ -60,7 +77,6 @@ public class QueueEntrySqlite3Dao
                     rs.getTimestamp("timestamp").toLocalDateTime());
             }
         });
-
     }
 
     @Override

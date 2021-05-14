@@ -71,4 +71,25 @@ public class JdbcTemplate {
             throw new DatabaseException("Failed to query data", e);
         }
     }
+    public <T> List<T> query(String sql, Object[] args, RowMapper<T> rowMapper) {
+        Connection conn = connect();
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            int i = 0;
+            for (Object arg : args) {
+                if (arg instanceof String) {
+                    stmt.setString(++i, (String) arg);
+                }
+                // todo: support more than strings
+            }
+
+            ResultSet rs = stmt.executeQuery();
+            List<T> results = new ArrayList<>();
+            while (rs.next()) {
+                results.add(rowMapper.mapRow(rs));
+            }
+            return results;
+        } catch (SQLException e) {
+            throw new DatabaseException("Failed to query data", e);
+        }
+    }
 }

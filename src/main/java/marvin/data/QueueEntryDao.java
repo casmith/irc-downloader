@@ -9,4 +9,6 @@ public interface QueueEntryDao {
     void insert(QueueEntry queueEntry);
     List<QueueEntry> selectAll();
     void truncate();
+    QueueEntry find(String nick, String requestLike);
+//    List<QueueEntry> findBatch(String nick, String batch);
 }
