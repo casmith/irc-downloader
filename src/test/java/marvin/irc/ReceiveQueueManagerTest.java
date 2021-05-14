@@ -1,5 +1,9 @@
 package marvin.irc;
 
+import marvin.data.JdbcTemplate;
+import marvin.data.QueueEntryDao;
+import marvin.data.sqlite3.QueueEntrySqlite3Dao;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Optional;
@@ -8,7 +12,15 @@ import static org.junit.Assert.*;
 
 public class ReceiveQueueManagerTest {
 
-    private ReceiveQueueManager receiveQueueManager = new ReceiveQueueManager();
+    private QueueEntryDao dao;
+    private ReceiveQueueManager receiveQueueManager;
+
+    @Before
+    public void setUp() {
+         dao = new QueueEntrySqlite3Dao(new JdbcTemplate("jdbc:sqlite:./marvin.db"));
+         receiveQueueManager =  new ReceiveQueueManager(dao);
+         dao.truncate();
+    }
 
     @Test
     public void testMarkInProgress() {

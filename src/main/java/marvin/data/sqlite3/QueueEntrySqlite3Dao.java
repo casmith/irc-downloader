@@ -38,12 +38,12 @@ public class QueueEntrySqlite3Dao
 
     @Override
     public List<QueueEntry> findByNickAndStatus(final String nick, final QueueStatus status) {
-        return jdbcTemplate.query("SELECT name, batch, request_string, status, channel, timestamp FROM queue_entries WHERE name = ? and status = ? ORDER BY timestamp DESC", new Object[]{nick, status.toString()}, new QueueEntryRowMapper());
+        return jdbcTemplate.query("SELECT name, batch, request_string, status, channel, timestamp FROM queue_entries WHERE name = ? and status = ? ORDER BY timestamp", new Object[]{nick, status.toString()}, new QueueEntryRowMapper());
     }
 
     @Override
     public List<QueueEntry> findByStatus(QueueStatus status) {
-        return jdbcTemplate.query("SELECT name, batch, request_string, status, channel, timestamp FROM queue_entries WHERE status = ? ORDER BY name, timestamp DESC", new Object[]{status.toString()}, new QueueEntryRowMapper());
+        return jdbcTemplate.query("SELECT name, batch, request_string, status, channel, timestamp FROM queue_entries WHERE status = ? ORDER BY name, timestamp", new Object[]{status.toString()}, new QueueEntryRowMapper());
     }
 
     @Override
@@ -53,7 +53,7 @@ public class QueueEntrySqlite3Dao
 
     @Override
     public QueueEntry find(final String nick, final String requestLike) {
-        List<QueueEntry> entries = jdbcTemplate.query("SELECT name, batch, request_string, status, channel, timestamp FROM queue_entries WHERE name = ? and request_string LIKE ? ORDER BY timestamp DESC", new Object[]{nick, "%" + requestLike + "%"}, new QueueEntryRowMapper());
+        List<QueueEntry> entries = jdbcTemplate.query("SELECT name, batch, request_string, status, channel, timestamp FROM queue_entries WHERE name = ? and request_string LIKE ? ORDER BY timestamp", new Object[]{nick, "%" + requestLike + "%"}, new QueueEntryRowMapper());
         return !entries.isEmpty() ? entries.get(0) : null;
     }
 
@@ -75,7 +75,7 @@ public class QueueEntrySqlite3Dao
 
     @Override
     public List<QueueEntry> selectAll() {
-        return jdbcTemplate.select("SELECT name, batch, request_string, status, channel, timestamp FROM queue_entries ORDER BY timestamp DESC", new QueueEntryRowMapper());
+        return jdbcTemplate.select("SELECT name, batch, request_string, status, channel, timestamp FROM queue_entries ORDER BY timestamp", new QueueEntryRowMapper());
     }
 
     @Override

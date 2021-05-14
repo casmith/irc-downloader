@@ -18,7 +18,7 @@ public class IrcBotImplTest {
         "#requestChannel",
         "downloadDir",
         Collections.emptyMap(),
-        new ReceiveQueueManager(),
+        new ReceiveQueueManager(null),
         new NoopProducer());
 
     @Test
