@@ -5,6 +5,7 @@ import marvin.data.JdbcTemplate;
 import marvin.data.QueueEntryDao;
 import marvin.data.RowMapper;
 import marvin.model.QueueEntry;
+import marvin.queue.QueueStatus;
 
 import java.sql.*;
 import java.util.List;
@@ -31,19 +32,28 @@ public class QueueEntrySqlite3Dao
     }
 
     @Override
+    public void delete(QueueEntry queueEntry) {
+        jdbcTemplate.execute("delete from queue_entries where name = ? and request_string like ?", queueEntry.getName(), "%" + queueEntry.getRequestString() + "%");
+    }
+
+    @Override
+    public List<QueueEntry> findByNickAndStatus(final String nick, final QueueStatus status) {
+        return jdbcTemplate.query("SELECT name, batch, request_string, status, channel, timestamp FROM queue_entries WHERE name = ? and status = ? ORDER BY timestamp DESC", new Object[]{nick, status.toString()}, new QueueEntryRowMapper());
+    }
+
+    @Override
+    public List<QueueEntry> findByStatus(QueueStatus status) {
+        return jdbcTemplate.query("SELECT name, batch, request_string, status, channel, timestamp FROM queue_entries WHERE status = ? ORDER BY name, timestamp DESC", new Object[]{status.toString()}, new QueueEntryRowMapper());
+    }
+
+    @Override
+    public void updateStatus(QueueEntry queueEntry, QueueStatus requested) {
+        jdbcTemplate.execute("UPDATE queue_entries SET status = ? WHERE request_string = ?", requested.toString(), queueEntry.getRequestString());
+    }
+
+    @Override
     public QueueEntry find(final String nick, final String requestLike) {
-        List<QueueEntry> entries = jdbcTemplate.query("SELECT name, batch, request_string, status, channel, timestamp FROM queue_entries WHERE name = ? and request_string LIKE ? ORDER BY timestamp DESC", new Object[]{nick, "%" + requestLike + "%"}, new RowMapper<QueueEntry>() {
-            @Override
-            public QueueEntry mapRow(ResultSet rs) throws SQLException {
-                return new QueueEntry(
-                    rs.getString("name"),
-                    rs.getString("batch"),
-                    rs.getString("request_string"),
-                    rs.getString("status"),
-                    rs.getString("channel"),
-                    rs.getTimestamp("timestamp").toLocalDateTime());
-            }
-        });
+        List<QueueEntry> entries = jdbcTemplate.query("SELECT name, batch, request_string, status, channel, timestamp FROM queue_entries WHERE name = ? and request_string LIKE ? ORDER BY timestamp DESC", new Object[]{nick, "%" + requestLike + "%"}, new QueueEntryRowMapper());
         return !entries.isEmpty() ? entries.get(0) : null;
     }
 
@@ -65,22 +75,25 @@ public class QueueEntrySqlite3Dao
 
     @Override
     public List<QueueEntry> selectAll() {
-        return jdbcTemplate.select("SELECT name, batch, request_string, status, channel, timestamp FROM queue_entries ORDER BY timestamp DESC", new RowMapper<QueueEntry>() {
-            @Override
-            public QueueEntry mapRow(ResultSet rs) throws SQLException {
-                return new QueueEntry(
-                    rs.getString("name"),
-                    rs.getString("batch"),
-                    rs.getString("request_string"),
-                    rs.getString("status"),
-                    rs.getString("channel"),
-                    rs.getTimestamp("timestamp").toLocalDateTime());
-            }
-        });
+        return jdbcTemplate.select("SELECT name, batch, request_string, status, channel, timestamp FROM queue_entries ORDER BY timestamp DESC", new QueueEntryRowMapper());
     }
 
     @Override
     public void truncate() {
         jdbcTemplate.execute("delete from queue_entries; vacuum;");
+    }
+
+    public static class QueueEntryRowMapper extends RowMapper<QueueEntry> {
+
+        @Override
+        public QueueEntry mapRow(ResultSet rs) throws SQLException {
+            return new QueueEntry(
+                rs.getString("name"),
+                rs.getString("batch"),
+                rs.getString("request_string"),
+                rs.getString("status"),
+                rs.getString("channel"),
+                rs.getTimestamp("timestamp").toLocalDateTime());
+        }
     }
 }
