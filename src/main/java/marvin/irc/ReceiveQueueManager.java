@@ -58,12 +58,18 @@ public class ReceiveQueueManager {
         }
     }
 
+
+    /** replaces spaces with underscores to make comparisons easier */
+    private String normalizeFilename(String filename) {
+        return filename.replace(" ", "_");
+    }
+
     public boolean markCompleted(String nick, String filename) {
         synchronized (this) {
             LOG.info("Marking {} - {} completed", nick, filename);
             ReceiveQueue queue = getQueue(nick);
             Optional<ReceiveQueue.ReceiveQueueItem> found = queue.getItems().stream()
-                .filter(i -> i.getFilename().contains(filename))
+                .filter(i -> normalizeFilename(i.getFilename()).contains(normalizeFilename(filename)))
                 .findFirst();
 
             Boolean wasDeleted = found.map(queue::removeItem)

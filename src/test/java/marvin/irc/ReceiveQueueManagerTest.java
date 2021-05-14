@@ -18,6 +18,10 @@ public class ReceiveQueueManagerTest {
         assertNull(receiveQueueManager.getInProgress().get("server"));
         assertFalse(receiveQueueManager.markCompleted("server", "4 EVER - Spune-Mi Cine (Smekerit).mp3"));
         assertFalse(receiveQueueManager.markCompleted("server2", "4 EVER - Spune-Mi Cine (Smekerit).mp3"));
+
+        receiveQueueManager.enqueue("server", "!server 4 EVER - Spune-Mi Cine (Smekerit).mp3  ::INFO:: 5.80Mb");
+        assertTrue(receiveQueueManager.markCompleted("server", "4_EVER_-_Spune-Mi_Cine_(Smekerit).mp3"));
+        assertNull(receiveQueueManager.getInProgress().get("server"));
     }
 
     @Test
