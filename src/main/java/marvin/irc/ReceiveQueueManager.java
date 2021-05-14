@@ -8,6 +8,7 @@ import marvin.queue.ReceiveQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -22,7 +23,7 @@ public class ReceiveQueueManager {
     private final Map<String, Integer> queued = new HashMap<>();
     private final QueueEntryDao queueEntryDao;
 
-
+    @Inject
     public ReceiveQueueManager(QueueEntryDao queueEntryDao) {
         this.queueEntryDao = queueEntryDao;
     }

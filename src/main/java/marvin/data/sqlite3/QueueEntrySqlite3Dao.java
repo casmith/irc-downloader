@@ -1,5 +1,6 @@
 package marvin.data.sqlite3;
 
+import marvin.config.BotConfig;
 import marvin.data.DatabaseException;
 import marvin.data.JdbcTemplate;
 import marvin.data.QueueEntryDao;
@@ -7,6 +8,7 @@ import marvin.data.RowMapper;
 import marvin.model.QueueEntry;
 import marvin.queue.QueueStatus;
 
+import javax.inject.Inject;
 import java.sql.*;
 import java.util.List;
 
@@ -14,6 +16,15 @@ public class QueueEntrySqlite3Dao
     implements QueueEntryDao {
 
     private JdbcTemplate jdbcTemplate;
+
+    @Inject
+    public QueueEntrySqlite3Dao(BotConfig config) {
+        this("jdbc:sqlite:" + config.getConfigDirectoryPath() + "/marvin.db");
+    }
+
+    public QueueEntrySqlite3Dao(String url) {
+        this(new JdbcTemplate(url));
+    }
 
     public QueueEntrySqlite3Dao(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
