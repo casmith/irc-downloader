@@ -91,9 +91,8 @@ public class IncomingFileTransferListener extends ListenerAdapter {
     }
 
     public File getDownloadFile(String fileName, String batch) {
-
         File downloadDirectory = getDownloadDirectory(fileName, batch);
-        return new File(downloadDirectory + separator + batch + separator + fileName);
+        return new File(downloadDirectory + separator + fileName);
     }
 
     public File getDownloadDirectory(String fileName, String batch) {
