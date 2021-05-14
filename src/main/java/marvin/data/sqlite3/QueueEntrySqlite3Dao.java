@@ -85,6 +85,11 @@ public class QueueEntrySqlite3Dao
     }
 
     @Override
+    public void resetAll() {
+        jdbcTemplate.execute("update queue_entries set status = 'PENDING'");
+    }
+
+    @Override
     public List<QueueEntry> selectAll() {
         return jdbcTemplate.select("SELECT name, batch, request_string, status, channel, timestamp FROM queue_entries ORDER BY timestamp", new QueueEntryRowMapper());
     }

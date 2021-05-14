@@ -91,6 +91,7 @@ public class Client {
         this.knownUserDao.createTable();
         this.listFileDao.createTable();
         this.queueEntryDao.createTable();
+        this.queueEntryDao.resetAll(); // reset all statuses to "pending" after restart
         registerHandlers();
         start();
     }
