@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Path("/queue")
@@ -34,6 +35,7 @@ public class QueueResource {
     @Path("/")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response enqueue(QueueModel model) {
+        String batch = UUID.randomUUID().toString();
         LOG.info("In enqueue method with " + model.getServers().size() + " servers");
         LOG.info("QueueManager is " + queueManager.hashCode());
         for (QueueModel.QueueServerModel server : model.getServers()) {
@@ -41,7 +43,7 @@ public class QueueResource {
             for (QueueRequest request : server.getRequests()) {
                 LOG.info("Enqueuing " + request);
                 // TODO: enqueue the filename rather than the message
-                queueManager.enqueue(server.getNick(), request.getRequest());
+                queueManager.enqueue(server.getNick(), request.getRequest(), batch);
             }
         }
         return Response.status(200).build();

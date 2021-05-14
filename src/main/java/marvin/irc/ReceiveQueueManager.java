@@ -157,10 +157,10 @@ public class ReceiveQueueManager {
         }
     }
 
-    public void enqueue(String nick, String message) {
+    public void enqueue(String nick, String message, String batch) {
         synchronized (this) {
             LOG.info("Enqueueing [{}] - [{}]", nick, message);
-            QueueEntry queueEntry = new QueueEntry(nick, "", message, PENDING.toString(), "", LocalDateTime.now());
+            QueueEntry queueEntry = new QueueEntry(nick, batch, message, PENDING.toString(), "", LocalDateTime.now());
             queueEntryDao.insert(queueEntry);
         }
     }
