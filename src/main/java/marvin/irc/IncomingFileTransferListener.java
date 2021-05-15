@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static java.io.File.separator;
@@ -53,7 +54,11 @@ public class IncomingFileTransferListener extends ListenerAdapter {
         }
 
         boolean success = false;
+        String batch = null;
         QueueEntry queueEntry = queueEntryDao.find(nick, event.getSafeFilename());
+        if (queueEntry != null) {
+            batch = queueEntry.getBatch();
+        }
 
         // it's not safe to assume there will always be a queue entry because lists are requested separately
 //        if (queueEntry == null) {
@@ -61,7 +66,7 @@ public class IncomingFileTransferListener extends ListenerAdapter {
 //            return;
 //        }
 
-        File file = getDownloadFile(event.getSafeFilename(), queueEntry.getBatch());
+        File file = getDownloadFile(event.getSafeFilename(), batch);
         LOG.info("Receiving {} from {}", file.getName(), sender);
         this.eventSource.publish(new DownloadStartedEvent(nick, file.getName()));
         long bytes = -1;
@@ -80,6 +85,10 @@ public class IncomingFileTransferListener extends ListenerAdapter {
             if (!queueManager.markCompleted(nick, event.getSafeFilename())) {
                 LOG.warn("Nothing to mark completed for {} filename {}", nick, event.getSafeFilename());
             }
+            if (batch != null && queueEntryDao.findByBatch(batch).isEmpty()) {
+                this.producer.publish("batch-download-complete", batch);
+            }
+
             success = true;
         } catch (Throwable e) {
             LOG.error("File transfer failed", e);

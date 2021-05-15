@@ -16,5 +16,5 @@ public interface QueueEntryDao {
     void delete(QueueEntry queueEntry);
     List<QueueEntry> findByStatus(QueueStatus status);
     void resetAll();
-//    List<QueueEntry> findBatch(String nick, String batch);
+    List<QueueEntry> findByBatch(String batch);
 }

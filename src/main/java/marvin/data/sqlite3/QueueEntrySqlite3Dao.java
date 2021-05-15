@@ -95,6 +95,11 @@ public class QueueEntrySqlite3Dao
     }
 
     @Override
+    public List<QueueEntry> findByBatch(String batch) {
+        return jdbcTemplate.query("SELECT name, batch, request_string, status, channel, timestamp FROM queue_entries WHERE batch = ? ORDER BY timestamp", new Object[]{batch}, new QueueEntryRowMapper());
+    }
+
+    @Override
     public void truncate() {
         jdbcTemplate.execute("delete from queue_entries; vacuum;");
     }
