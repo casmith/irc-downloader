@@ -1,10 +1,10 @@
 package marvin.irc;
 
+import marvin.config.DownloadDirectoryMapper;
 import marvin.irc.events.DownloadCompleteEvent;
 import marvin.irc.events.DownloadStartedEvent;
 import marvin.irc.events.EventSource;
 import marvin.messaging.Producer;
-import org.apache.commons.io.FilenameUtils;
 import org.pircbotx.User;
 import org.pircbotx.dcc.ReceiveFileTransfer;
 import org.pircbotx.hooks.ListenerAdapter;
@@ -14,8 +14,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 public class IncomingFileTransferListener extends ListenerAdapter {
 
@@ -94,25 +92,22 @@ public class IncomingFileTransferListener extends ListenerAdapter {
     }
 
     public static class Configuration {
-        Map<String, File> mappings = new HashMap<>();
-        File defaultDirectory;
+        private final DownloadDirectoryMapper downloadDirectoryMapper;
 
         public Configuration(String defaultDirectory) {
-            this(new File(defaultDirectory));
+            this(new DownloadDirectoryMapper(defaultDirectory));
         }
 
-        public Configuration(File defaultDirectory) {
-            this.defaultDirectory = defaultDirectory;
-        }
-
-        public Configuration withExtension(String extension, File directory) {
-            mappings.put(extension, directory);
-            return this;
+        public Configuration(DownloadDirectoryMapper downloadDirectoryMapper) {
+            this.downloadDirectoryMapper = downloadDirectoryMapper;
         }
 
         public File getDirectory(String filename) {
-            File file = mappings.get(FilenameUtils.getExtension(filename));
-            return (file != null) ? file: defaultDirectory;
+            return downloadDirectoryMapper.map(filename);
+        }
+
+        public void withMapping(String mapping, File destination) {
+            downloadDirectoryMapper.add(mapping, destination);
         }
     }
 }

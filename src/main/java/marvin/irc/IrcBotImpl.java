@@ -73,7 +73,7 @@ public class IrcBotImpl implements IrcBot {
         this.requestChannel = requestChannel;
         this.controlChannel = controlChannel;
         IncomingFileTransferListener.Configuration configuration = new IncomingFileTransferListener.Configuration(downloadDirectory);
-        downloadDirectories.forEach(configuration::withExtension);
+        downloadDirectories.forEach(configuration::withMapping);
         this.configuration = new Configuration.Builder()
                 .addServer(server, port)
                 .setName(nick)
