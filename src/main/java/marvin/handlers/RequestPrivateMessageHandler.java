@@ -7,6 +7,8 @@ import marvin.irc.ReceiveQueueManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.UUID;
+
 public class RequestPrivateMessageHandler implements PrivateMessageHandler {
 
     private static final Logger LOG = LoggerFactory.getLogger(RequestPrivateMessageHandler.class);
@@ -31,10 +33,11 @@ public class RequestPrivateMessageHandler implements PrivateMessageHandler {
     }
 
     private void enqueue(String sender, String message) {
+        String batch = UUID.randomUUID().toString();
         // nick is assumed to be the text between the ! and the first space
         // TODO: enqueue the filename, not the message
         String nick = message.split(" ")[0].substring(1);
-        queueManager.enqueue(nick, message);
+        queueManager.enqueue(nick, message, batch);
         LOG.info("Enqueued '" + message + "'");
     }
 }

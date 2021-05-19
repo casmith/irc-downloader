@@ -8,6 +8,7 @@ import marvin.config.ModuleFactory;
 import marvin.data.CompletedXferDao;
 import marvin.data.KnownUserDao;
 import marvin.data.ListFileDao;
+import marvin.data.QueueEntryDao;
 import marvin.handlers.*;
 import marvin.irc.*;
 import marvin.irc.events.DownloadCompleteEvent;
@@ -34,6 +35,7 @@ public class Client {
     private final SendQueueProcessor sendQueueProcessor;
     private final KnownUserDao knownUserDao;
     private final ListFileDao listFileDao;
+    private final QueueEntryDao queueEntryDao;
     private final Injector injector;
     private final UserManager userManager;
     private final ListGenerator listGenerator;
@@ -46,6 +48,7 @@ public class Client {
                   CompletedXferDao completedXferDao,
                   KnownUserDao knownUserDao,
                   ListFileDao listFileDao,
+                  QueueEntryDao queueEntryDao,
                   IrcBot bot,
                   ListGenerator listGenerator,
                   UserManager userManager) {
@@ -59,6 +62,7 @@ public class Client {
         this.completedXferDao = completedXferDao;
         this.knownUserDao = knownUserDao;
         this.listFileDao = listFileDao;
+        this.queueEntryDao = queueEntryDao;
         this.advertiser = new Advertiser(bot, config, listGenerator);
         this.receiveQueueProcessor = new ReceiveQueueProcessor(bot, config, queueManager);
         this.sendQueueProcessor = new SendQueueProcessor(bot, sendQueueManager);
@@ -86,6 +90,8 @@ public class Client {
         this.completedXferDao.createTable();
         this.knownUserDao.createTable();
         this.listFileDao.createTable();
+        this.queueEntryDao.createTable();
+        this.queueEntryDao.resetAll(); // reset all statuses to "pending" after restart
         registerHandlers();
         start();
     }

@@ -1,8 +1,12 @@
 package marvin.irc;
 
 import marvin.config.BotConfig;
+import marvin.queue.ReceiveQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.inject.Inject;
+import java.util.Map;
 
 public class ReceiveQueueProcessor {
 
@@ -12,6 +16,7 @@ public class ReceiveQueueProcessor {
 
     private ReceiveQueueManager queueManager;
 
+    @Inject
     public ReceiveQueueProcessor(IrcBot bot, BotConfig config, ReceiveQueueManager queueManager) {
         this.bot = bot;
         this.config = config;
@@ -19,8 +24,9 @@ public class ReceiveQueueProcessor {
     }
 
     public void process() {
-        LOG.debug("Processing {} queues...", queueManager.getQueues().size());
-        queueManager.getQueues().keySet().forEach((nick) -> {
+        Map<String, ReceiveQueue> queues = queueManager.getQueues();
+        LOG.debug("Processing {} queues...", queues.size());
+        queues.keySet().forEach((nick) -> {
             if (bot.isNickOnline(nick)) {
                 LOG.debug("[{}] is online", nick);
                 queueManager.poll(nick)

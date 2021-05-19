@@ -9,9 +9,11 @@ import marvin.config.RmqHost;
 import marvin.data.CompletedXferDao;
 import marvin.data.KnownUserDao;
 import marvin.data.ListFileDao;
+import marvin.data.QueueEntryDao;
 import marvin.data.sqlite3.CompletedXferSqlite3Dao;
 import marvin.data.sqlite3.KnownUserSqlite3Dao;
 import marvin.data.sqlite3.ListFileSqlite3Dao;
+import marvin.data.sqlite3.QueueEntrySqlite3Dao;
 import marvin.irc.IrcBot;
 import marvin.irc.IrcBotImpl;
 import marvin.list.ListGenerator;
@@ -51,6 +53,7 @@ public class MarvinModule implements Module {
         binder.bind(CompletedXferDao.class).to(CompletedXferSqlite3Dao.class);
         binder.bind(KnownUserDao.class).to(KnownUserSqlite3Dao.class);
         binder.bind(ListFileDao.class).to(ListFileSqlite3Dao.class);
+        binder.bind(QueueEntryDao.class).to(QueueEntrySqlite3Dao.class);
 
         // bind resources
         binder.bind(HistoryResource.class);

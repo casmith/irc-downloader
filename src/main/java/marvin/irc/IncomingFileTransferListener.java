@@ -1,10 +1,13 @@
 package marvin.irc;
 
+import marvin.config.Config;
 import marvin.config.DownloadDirectoryMapper;
+import marvin.data.QueueEntryDao;
 import marvin.irc.events.DownloadCompleteEvent;
 import marvin.irc.events.DownloadStartedEvent;
 import marvin.irc.events.EventSource;
 import marvin.messaging.Producer;
+import marvin.model.QueueEntry;
 import org.pircbotx.User;
 import org.pircbotx.dcc.ReceiveFileTransfer;
 import org.pircbotx.hooks.ListenerAdapter;
@@ -15,6 +18,8 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 
+import static java.io.File.separator;
+
 public class IncomingFileTransferListener extends ListenerAdapter {
 
     private static final Logger LOG = LoggerFactory.getLogger(IncomingFileTransferListener.class);
@@ -23,15 +28,17 @@ public class IncomingFileTransferListener extends ListenerAdapter {
     private final ReceiveQueueManager queueManager;
     private final Configuration configuration;
     private final Producer producer;
+    private final QueueEntryDao queueEntryDao;
 
     public IncomingFileTransferListener(EventSource eventSource,
                                         Configuration configuration,
                                         ReceiveQueueManager queueManager,
-                                        Producer producer) {
+                                        Producer producer, QueueEntryDao queueEntryDao) {
         this.eventSource = eventSource;
         this.configuration = configuration;
         this.queueManager = queueManager;
         this.producer = producer;
+        this.queueEntryDao = queueEntryDao;
     }
 
     @Override
@@ -45,7 +52,19 @@ public class IncomingFileTransferListener extends ListenerAdapter {
         }
 
         boolean success = false;
-        File file = getDownloadFile(event.getSafeFilename());
+        String batch = null;
+        QueueEntry queueEntry = queueEntryDao.find(nick, event.getSafeFilename());
+        if (queueEntry != null) {
+            batch = queueEntry.getBatch();
+        }
+
+        // it's not safe to assume there will always be a queue entry because lists are requested separately
+//        if (queueEntry == null) {
+//            LOG.warn("Discarding incoming file transfer {} {} because queue entry was not found", nick, event.getSafeFilename());
+//            return;
+//        }
+
+        File file = getDownloadFile(event.getSafeFilename(), batch);
         LOG.info("Receiving {} from {}", file.getName(), sender);
         this.eventSource.publish(new DownloadStartedEvent(nick, file.getName()));
         long bytes = -1;
@@ -64,6 +83,10 @@ public class IncomingFileTransferListener extends ListenerAdapter {
             if (!queueManager.markCompleted(nick, event.getSafeFilename())) {
                 LOG.warn("Nothing to mark completed for {} filename {}", nick, event.getSafeFilename());
             }
+            if (batch != null && queueEntryDao.findByBatch(batch).isEmpty()) {
+                this.producer.publish("batch-download-complete", batch);
+            }
+
             success = true;
         } catch (Throwable e) {
             LOG.error("File transfer failed", e);
@@ -74,10 +97,20 @@ public class IncomingFileTransferListener extends ListenerAdapter {
         }
     }
 
-    public File getDownloadFile(String fileName) {
+    public File getDownloadFile(String fileName, String batch) {
+        File downloadDirectory = getDownloadDirectory(fileName, batch);
+        return new File(downloadDirectory + separator + fileName);
+    }
+
+    public File getDownloadDirectory(String fileName, String batch) {
         File directory = configuration.getDirectory(fileName);
-        String filePath = directory + File.separator + fileName;
-        return new File(filePath);
+        if (batch != null && !batch.isEmpty()) {
+            File batchDirectory = new File(directory + separator + batch);
+            batchDirectory.mkdirs(); // ensure the directory exists
+            return batchDirectory;
+        } else {
+            return directory;
+        }
     }
 
     public ReceiveFileTransfer acceptTransfer(IncomingFileTransferEvent event, File file) throws IOException, InterruptedException {
@@ -106,8 +139,9 @@ public class IncomingFileTransferListener extends ListenerAdapter {
             return downloadDirectoryMapper.map(filename);
         }
 
-        public void withMapping(String mapping, File destination) {
+        public Configuration withMapping(String mapping, File destination) {
             downloadDirectoryMapper.add(mapping, destination);
+            return this;
         }
     }
 }

@@ -32,6 +32,16 @@ public class JdbcTemplate {
         }
     }
 
+    public void execute(String sql, Object... params) {
+        Connection conn = connect();
+        try (PreparedStatement statement = conn.prepareStatement(sql)) {
+            setParams(statement, params);
+            statement.execute();
+        } catch (SQLException e) {
+            throw new DatabaseException("Failed to execute query", e);
+        }
+    }
+
     public <T> List<T> select(String sql, RowMapper<T> rowMapper) {
         List<T> results = new ArrayList<>();
         try (Connection conn = this.connect();
@@ -69,6 +79,33 @@ public class JdbcTemplate {
             return results;
         } catch (SQLException e) {
             throw new DatabaseException("Failed to query data", e);
+        }
+    }
+    public <T> List<T> query(String sql, Object[] args, RowMapper<T> rowMapper) {
+        Connection conn = connect();
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            setParams(stmt, args);
+
+            ResultSet rs = stmt.executeQuery();
+            List<T> results = new ArrayList<>();
+            while (rs.next()) {
+                results.add(rowMapper.mapRow(rs));
+            }
+            return results;
+        } catch (SQLException e) {
+            throw new DatabaseException("Failed to query data", e);
+        }
+    }
+
+    private void setParams(PreparedStatement stmt, Object[] args) throws SQLException {
+        int i = 0;
+        for (Object arg : args) {
+            if (arg instanceof String) {
+                stmt.setString(++i, (String) arg);
+            } else {
+                throw new DatabaseException("Unsupported Parameter type");
+            }
+            // todo: support more than strings
         }
     }
 }

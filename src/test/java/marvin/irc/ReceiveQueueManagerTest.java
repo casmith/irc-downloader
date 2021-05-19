@@ -1,5 +1,9 @@
 package marvin.irc;
 
+import marvin.data.JdbcTemplate;
+import marvin.data.QueueEntryDao;
+import marvin.data.sqlite3.QueueEntrySqlite3Dao;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Optional;
@@ -8,25 +12,32 @@ import static org.junit.Assert.*;
 
 public class ReceiveQueueManagerTest {
 
-    private ReceiveQueueManager receiveQueueManager = new ReceiveQueueManager();
+    private ReceiveQueueManager receiveQueueManager;
+
+    @Before
+    public void setUp() {
+        QueueEntryDao dao = new QueueEntrySqlite3Dao(new JdbcTemplate("jdbc:sqlite:./marvin.db"));
+         receiveQueueManager =  new ReceiveQueueManager(dao);
+         dao.truncate();
+    }
 
     @Test
     public void testMarkInProgress() {
-        receiveQueueManager.enqueue("server", "!server 4 EVER - Spune-Mi Cine (Smekerit).mp3  ::INFO:: 5.80Mb");
+        receiveQueueManager.enqueue("server", "!server 4 EVER - Spune-Mi Cine (Smekerit).mp3  ::INFO:: 5.80Mb", "batch1");
         receiveQueueManager.addInProgress("server", "!server 4 EVER - Spune-Mi Cine (Smekerit).mp3  ::INFO:: 5.80Mb");
         assertTrue(receiveQueueManager.markCompleted("server", "4 EVER - Spune-Mi Cine (Smekerit).mp3"));
         assertNull(receiveQueueManager.getInProgress().get("server"));
         assertFalse(receiveQueueManager.markCompleted("server", "4 EVER - Spune-Mi Cine (Smekerit).mp3"));
         assertFalse(receiveQueueManager.markCompleted("server2", "4 EVER - Spune-Mi Cine (Smekerit).mp3"));
 
-        receiveQueueManager.enqueue("server", "!server 4 EVER - Spune-Mi Cine (Smekerit).mp3  ::INFO:: 5.80Mb");
+        receiveQueueManager.enqueue("server", "!server 4 EVER - Spune-Mi Cine (Smekerit).mp3  ::INFO:: 5.80Mb", "batch1");
         assertTrue(receiveQueueManager.markCompleted("server", "4_EVER_-_Spune-Mi_Cine_(Smekerit).mp3"));
         assertNull(receiveQueueManager.getInProgress().get("server"));
     }
 
     @Test
     public void testAddInProgress() {
-        receiveQueueManager.enqueue("server", "filename.mp3");
+        receiveQueueManager.enqueue("server", "filename.mp3", "batch1");
 
         receiveQueueManager.addInProgress("server", "filename.mp3");
         assertEquals(1, receiveQueueManager.getInProgress().get("server").size());
@@ -40,7 +51,7 @@ public class ReceiveQueueManagerTest {
 
     @Test
     public void testPoll_nonEmptyQueue() {
-        receiveQueueManager.enqueue("server", "filename.mp3");
+        receiveQueueManager.enqueue("server", "filename.mp3", "batch1");
         Optional<String> message = receiveQueueManager.poll("server");
         assertTrue(message.isPresent());
     }
@@ -48,11 +59,11 @@ public class ReceiveQueueManagerTest {
     @Test
     public void testRetry() {
 
-        receiveQueueManager.enqueue("server", "filename.mp3");
-        receiveQueueManager.enqueue("server", "filename2.mp3");
-        receiveQueueManager.enqueue("server", "filename3.mp3");
-        receiveQueueManager.enqueue("server", "filename4.mp3");
-        receiveQueueManager.enqueue("server", "filename5.mp3");
+        receiveQueueManager.enqueue("server", "filename.mp3", "batch1");
+        receiveQueueManager.enqueue("server", "filename2.mp3", "batch1");
+        receiveQueueManager.enqueue("server", "filename3.mp3", "batch1");
+        receiveQueueManager.enqueue("server", "filename4.mp3", "batch1");
+        receiveQueueManager.enqueue("server", "filename5.mp3", "batch1");
 
         receiveQueueManager.addInProgress("server", "filename.mp3");
         receiveQueueManager.addInProgress("server", "filename2.mp3");

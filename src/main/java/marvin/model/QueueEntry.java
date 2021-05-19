@@ -3,22 +3,28 @@ package marvin.model;
 import java.time.LocalDateTime;
 
 public class QueueEntry {
-    private String name;
-    private String requestString;
-    private String status;
-    private String channel;
-    private LocalDateTime timestamp;
+    private final String name;
+    private final String requestString;
+    private final String status;
+    private final String channel;
+    private final String batch;
+    private final LocalDateTime timestamp;
 
-    public QueueEntry(String name, String requestString, String status, String channel, LocalDateTime timestamp) {
+    public QueueEntry(String name, String batch, String requestString, String status, String channel, LocalDateTime timestamp) {
         this.name = name;
         this.requestString = requestString;
         this.status = status;
         this.channel = channel;
+        this.batch = batch;
         this.timestamp = timestamp;
     }
 
     public String getName() {
         return name;
+    }
+
+    public String getBatch() {
+        return batch;
     }
 
     public String getRequestString() {
