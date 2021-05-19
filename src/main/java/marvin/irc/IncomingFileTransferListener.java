@@ -140,7 +140,7 @@ public class IncomingFileTransferListener extends ListenerAdapter {
         }
 
         public Configuration withMapping(String mapping, File destination) {
-            downloadDirectoryMapper.add(mapping, destination);
+            downloadDirectoryMapper.add(mapping.replace("\"", ""), destination);
             return this;
         }
     }
