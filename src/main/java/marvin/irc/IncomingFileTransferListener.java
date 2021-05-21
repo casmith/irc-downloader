@@ -1,5 +1,7 @@
 package marvin.irc;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import marvin.config.Config;
 import marvin.config.DownloadDirectoryMapper;
 import marvin.data.QueueEntryDao;
@@ -8,6 +10,8 @@ import marvin.irc.events.DownloadStartedEvent;
 import marvin.irc.events.EventSource;
 import marvin.messaging.Producer;
 import marvin.model.QueueEntry;
+import marvin.service.HistoryService;
+import marvin.web.history.HistoryModel;
 import org.pircbotx.User;
 import org.pircbotx.dcc.ReceiveFileTransfer;
 import org.pircbotx.hooks.ListenerAdapter;
@@ -17,6 +21,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import static java.io.File.separator;
 
@@ -29,16 +34,20 @@ public class IncomingFileTransferListener extends ListenerAdapter {
     private final Configuration configuration;
     private final Producer producer;
     private final QueueEntryDao queueEntryDao;
+    private final HistoryService historyService;
 
     public IncomingFileTransferListener(EventSource eventSource,
                                         Configuration configuration,
                                         ReceiveQueueManager queueManager,
-                                        Producer producer, QueueEntryDao queueEntryDao) {
+                                        Producer producer,
+                                        QueueEntryDao queueEntryDao,
+                                        HistoryService historyService) {
         this.eventSource = eventSource;
         this.configuration = configuration;
         this.queueManager = queueManager;
         this.producer = producer;
         this.queueEntryDao = queueEntryDao;
+        this.historyService = historyService;
     }
 
     @Override
@@ -80,6 +89,9 @@ public class IncomingFileTransferListener extends ListenerAdapter {
             bytes = fileTransfer.getFileSize();
             long kbps = (bytes - 1024) / seconds;
             LOG.info("Done downloading {} in {}s ({} KiB/s)", file.getAbsolutePath(), seconds, kbps);
+
+            publishHistoryUpdate();
+
             if (!queueManager.markCompleted(nick, event.getSafeFilename())) {
                 LOG.warn("Nothing to mark completed for {} filename {}", nick, event.getSafeFilename());
             }
@@ -94,6 +106,18 @@ public class IncomingFileTransferListener extends ListenerAdapter {
             long duration = System.currentTimeMillis() - start;
             this.eventSource.publish(new DownloadCompleteEvent(nick, file.getName(), bytes, duration, success));
             this.producer.enqueue("download-complete", file.getName());
+        }
+    }
+
+    private void publishHistoryUpdate() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        List<HistoryModel> history = historyService.getHistory();
+        String message;
+        try {
+            message = objectMapper.writeValueAsString(history);
+            this.producer.publishTopic("history-update", message);
+        } catch (JsonProcessingException e) {
+            LOG.error("Failed to publish history", e);
         }
     }
 
