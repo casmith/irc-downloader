@@ -14,8 +14,10 @@ import marvin.data.sqlite3.CompletedXferSqlite3Dao;
 import marvin.data.sqlite3.KnownUserSqlite3Dao;
 import marvin.data.sqlite3.ListFileSqlite3Dao;
 import marvin.data.sqlite3.QueueEntrySqlite3Dao;
+import marvin.irc.IncomingFileTransferListener;
 import marvin.irc.IrcBot;
 import marvin.irc.IrcBotImpl;
+import marvin.irc.events.EventSource;
 import marvin.list.ListGenerator;
 import marvin.messaging.Producer;
 import marvin.messaging.RabbitMqProducer;
@@ -48,6 +50,8 @@ public class MarvinModule implements Module {
 //        binder.bind(ReceiveQueueManager.class);
         binder.bind(UserManager.class);
         binder.bind(ListGenerator.class);
+
+        binder.bind(IncomingFileTransferListener.class);
 
         binder.bind(IrcBot.class).to(IrcBotImpl.class);
 

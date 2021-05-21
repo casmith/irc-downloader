@@ -35,18 +35,18 @@ public class IrcBotImpl implements IrcBot {
     private final String requestChannel;
     private final String controlChannel;
     private final Configuration configuration;
-    private final EventSource eventSource = new EventSource();
     private final List<MessageHandler> messageHandlers = new ArrayList<>();
     private final List<PrivateMessageHandler> privateMessageHandlers = new ArrayList<>();
     private final List<NoticeHandler> noticeHandlers = new ArrayList<>();
     private final boolean useIdent = false;
 
     private final List<String> channels = new ArrayList<>();
+    private final EventSource eventSource;
 
     private PircBotX bot;
 
     @Inject
-    public IrcBotImpl(BotConfig config, ReceiveQueueManager queueManager, QueueEntryDao queueEntryDao, Producer producer, HistoryService historyService) {
+    public IrcBotImpl(BotConfig config, ReceiveQueueManager queueManager, IncomingFileTransferListener incomingFileTransferListener, EventSource eventSource) {
         this(config.getServer(),
                 config.getPort(),
                 config.getNick(),
@@ -57,9 +57,8 @@ public class IrcBotImpl implements IrcBot {
                 config.getDownloadDirectory(),
                 config.getDownloadDirectories(),
                 queueManager,
-                queueEntryDao,
-                producer,
-                historyService
+                incomingFileTransferListener,
+                eventSource
             );
     }
 
@@ -73,9 +72,9 @@ public class IrcBotImpl implements IrcBot {
                       String downloadDirectory,
                       Map<String, File> downloadDirectories,
                       ReceiveQueueManager queueManager,
-                      QueueEntryDao queueEntryDao,
-                      Producer producer,
-                      HistoryService historyService) {
+                      IncomingFileTransferListener incomingFileTransferListener,
+                      EventSource eventSource) {
+        this.eventSource = eventSource;
         this.adminPassword = adminPassword;
         this.requestChannel = requestChannel;
         this.controlChannel = controlChannel;
@@ -94,7 +93,7 @@ public class IrcBotImpl implements IrcBot {
                 .setAutoReconnectDelay(new StaticDelay(5000))
                 .setAutoReconnect(true)
                 .addListener(new QueueProcessorListener(requestChannel, "queue.txt"))
-                .addListener(new IncomingFileTransferListener(eventSource, configuration, queueManager, producer, queueEntryDao, historyService))
+                .addListener(incomingFileTransferListener)
                 .addListener(new ListenerAdapter() {
                     @Override
                     public void onPrivateMessage(PrivateMessageEvent event) {

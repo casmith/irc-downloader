@@ -1,5 +1,6 @@
 package marvin.irc;
 
+import marvin.irc.events.EventSource;
 import marvin.messaging.NoopProducer;
 import marvin.messaging.Producer;
 import org.junit.Test;
@@ -24,8 +25,8 @@ public class IrcBotImplTest {
             Collections.emptyMap(),
             new ReceiveQueueManager(null, producer),
             null,
-            producer,
-            null);
+            new EventSource()
+        );
     }
 
     @Test
