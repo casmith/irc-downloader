@@ -3,6 +3,7 @@ package marvin.irc;
 import marvin.data.JdbcTemplate;
 import marvin.data.QueueEntryDao;
 import marvin.data.sqlite3.QueueEntrySqlite3Dao;
+import marvin.messaging.NoopProducer;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -17,7 +18,7 @@ public class ReceiveQueueManagerTest {
     @Before
     public void setUp() {
         QueueEntryDao dao = new QueueEntrySqlite3Dao(new JdbcTemplate("jdbc:sqlite:./marvin.db"));
-         receiveQueueManager =  new ReceiveQueueManager(dao);
+         receiveQueueManager =  new ReceiveQueueManager(dao, new NoopProducer());
          dao.truncate();
     }
 

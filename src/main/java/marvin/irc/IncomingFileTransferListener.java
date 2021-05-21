@@ -84,7 +84,7 @@ public class IncomingFileTransferListener extends ListenerAdapter {
                 LOG.warn("Nothing to mark completed for {} filename {}", nick, event.getSafeFilename());
             }
             if (batch != null && queueEntryDao.findByBatch(batch).isEmpty()) {
-                this.producer.publish("batch-download-complete", batch);
+                this.producer.enqueue("batch-download-complete", batch);
             }
 
             success = true;
@@ -93,7 +93,7 @@ public class IncomingFileTransferListener extends ListenerAdapter {
         } finally {
             long duration = System.currentTimeMillis() - start;
             this.eventSource.publish(new DownloadCompleteEvent(nick, file.getName(), bytes, duration, success));
-            this.producer.publish("download-complete", file.getName());
+            this.producer.enqueue("download-complete", file.getName());
         }
     }
 

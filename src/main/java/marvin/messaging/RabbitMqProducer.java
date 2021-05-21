@@ -1,5 +1,6 @@
 package marvin.messaging;
 
+import com.rabbitmq.client.BuiltinExchangeType;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
@@ -20,7 +21,7 @@ public class RabbitMqProducer implements Producer {
         this.connectionFactory.setHost(host);
     }
 
-    public void publish(String queueName, String message) {
+    public void enqueue(String queueName, String message) {
         try (Connection connection = connectionFactory.newConnection();
              Channel channel = connection.createChannel()) {
             channel.queueDeclare(queueName, false, false, false, null);
@@ -28,6 +29,17 @@ public class RabbitMqProducer implements Producer {
             LOG.info("Sent [{}] on queue {}", message, queueName);
         } catch (Exception e) {
             LOG.error("Failed to publish message to queue {} on host {}", queueName, this.connectionFactory.getHost());
+        }
+    }
+
+    public void publishTopic(String topicName, String message) {
+        try (Connection connection = connectionFactory.newConnection();
+             Channel channel = connection.createChannel()) {
+            channel.exchangeDeclare(topicName, BuiltinExchangeType.FANOUT);
+            channel.basicPublish(topicName, "", null, message.getBytes());
+            LOG.info("Sent [{}] on exchange {}", message, topicName);
+        } catch (Exception e) {
+            LOG.error("Failed to publish message to exchange {} on host {}", topicName, this.connectionFactory.getHost());
         }
     }
 }

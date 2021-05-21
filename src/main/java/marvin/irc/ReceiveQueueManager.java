@@ -1,16 +1,22 @@
 package marvin.irc;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Singleton;
 import marvin.data.QueueEntryDao;
+import marvin.messaging.Producer;
 import marvin.model.QueueEntry;
 import marvin.queue.QueueStatus;
 import marvin.queue.ReceiveQueue;
+import marvin.web.queue.QueueModel;
+import marvin.web.queue.QueueRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static marvin.queue.QueueStatus.PENDING;
 import static marvin.queue.QueueStatus.REQUESTED;
@@ -22,10 +28,13 @@ public class ReceiveQueueManager {
     private final Map<String, Integer> limits = new HashMap<>();
     private final Map<String, Integer> queued = new HashMap<>();
     private final QueueEntryDao queueEntryDao;
+    private final Producer producer;
 
     @Inject
-    public ReceiveQueueManager(QueueEntryDao queueEntryDao) {
+    public ReceiveQueueManager(QueueEntryDao queueEntryDao,
+                               Producer producer) {
         this.queueEntryDao = queueEntryDao;
+        this.producer = producer;
     }
 
     public void addInProgress(String nick, String message) {
@@ -34,6 +43,7 @@ public class ReceiveQueueManager {
             if (queueEntry != null) {
                 LOG.info("Marking {} as REQUESTED", message);
                 queueEntryDao.updateStatus(queueEntry, REQUESTED);
+                publishQueueStatus();
             } else {
                 LOG.info("Nothing to set in progress for {} / {}", nick, message);
             }
@@ -46,6 +56,7 @@ public class ReceiveQueueManager {
             if (queueEntry != null) {
                 LOG.info("Retrying !" + nick + " " + filename);
                 queueEntryDao.updateStatus(queueEntry, PENDING);
+                publishQueueStatus();
             } else {
                 LOG.info("Nothing to retry for {} / {}", nick, filename);
             }
@@ -97,6 +108,7 @@ public class ReceiveQueueManager {
                 LOG.error("Failed to remove {} from queue", filename);
                 return false;
             } else {
+                publishQueueStatus();
                 queueEntryDao.delete(queueEntry);
                 return true;
             }
@@ -109,6 +121,7 @@ public class ReceiveQueueManager {
             if (!queueEntries.isEmpty() && this.inc(nick)) {
                 QueueEntry queueEntry = queueEntries.get(0);
                 queueEntryDao.updateStatus(queueEntry, REQUESTED);
+                publishQueueStatus();
                 return Optional.of(queueEntry.getRequestString());
             } else {
                 return Optional.empty();
@@ -162,6 +175,7 @@ public class ReceiveQueueManager {
             LOG.info("Enqueueing [{}] - [{}]", nick, message);
             QueueEntry queueEntry = new QueueEntry(nick, batch, message, PENDING.toString(), "", LocalDateTime.now());
             queueEntryDao.insert(queueEntry);
+            publishQueueStatus();
         }
     }
 
@@ -180,5 +194,33 @@ public class ReceiveQueueManager {
         Integer current = getCurrent(nick);
         Integer limit = getLimit(nick);
         LOG.info("Queue for {}: {}/{}", nick, current, limit);
+    }
+
+    private void publishQueueStatus() {
+        ObjectMapper mapper = new ObjectMapper();
+        String message = null;
+        try {
+            message = mapper.writeValueAsString(buildQueueModel());
+        } catch (JsonProcessingException e) {
+            LOG.error("Failed to convert queue to a json payload", e);
+        }
+        this.producer.publishTopic("queue-updated", message);
+    }
+
+
+    // TODO: below shamelessly copied from QueueResource
+    private QueueModel buildQueueModel() {
+        QueueModel queueModel = new QueueModel();
+        this.getQueues()
+            .forEach((nick, queue) -> queueModel.getServers().add(buildModel(nick, queue)));
+        return queueModel;
+    }
+
+    private QueueModel.QueueServerModel buildModel(String nick, ReceiveQueue queue) {
+        QueueModel.QueueServerModel qsm = new QueueModel.QueueServerModel(nick);
+        qsm.getRequests().addAll(queue.getItems().stream()
+            .map(i -> new QueueRequest(i.getFilename(), i.getStatus().toString()))
+            .collect(Collectors.toList()));
+        return qsm;
     }
 }

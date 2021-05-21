@@ -2,6 +2,10 @@ package marvin.messaging;
 
 public class NoopProducer implements Producer {
     @Override
-    public void publish(String queue, String message) {
+    public void enqueue(String queue, String message) {
+    }
+
+    @Override
+    public void publishTopic(String topicName, String message) {
     }
 }

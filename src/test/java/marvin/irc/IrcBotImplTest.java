@@ -9,18 +9,23 @@ import java.util.Collections;
 import static org.junit.Assert.assertEquals;
 
 public class IrcBotImplTest {
-    private IrcBotImpl ircBot = new IrcBotImpl("server",
-        6667,
-        "testbot",
-        "password",
-        "adminPassword",
-        "#control",
-        "#requestChannel",
-        "downloadDir",
-        Collections.emptyMap(),
-        new ReceiveQueueManager(null),
-        null,
-        new NoopProducer());
+    private IrcBotImpl ircBot;
+
+    {
+        NoopProducer producer = new NoopProducer();
+        ircBot = new IrcBotImpl("server",
+            6667,
+            "testbot",
+            "password",
+            "adminPassword",
+            "#control",
+            "#requestChannel",
+            "downloadDir",
+            Collections.emptyMap(),
+            new ReceiveQueueManager(null, producer),
+            null,
+            producer);
+    }
 
     @Test
     public void formatMessage() {
