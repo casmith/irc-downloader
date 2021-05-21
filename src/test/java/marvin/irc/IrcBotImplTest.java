@@ -22,7 +22,7 @@ public class IrcBotImplTest {
             "#requestChannel",
             "downloadDir",
             Collections.emptyMap(),
-            new ReceiveQueueManager(null, producer),
+            new ReceiveQueueManager(null, null, producer),
             null,
             new EventSource()
         );

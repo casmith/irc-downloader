@@ -8,15 +8,13 @@ import marvin.messaging.Producer;
 import marvin.model.QueueEntry;
 import marvin.queue.QueueStatus;
 import marvin.queue.ReceiveQueue;
-import marvin.web.queue.QueueModel;
-import marvin.web.queue.QueueRequest;
+import marvin.service.QueueService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static marvin.queue.QueueStatus.PENDING;
 import static marvin.queue.QueueStatus.REQUESTED;
@@ -26,15 +24,17 @@ public class ReceiveQueueManager {
 
     private static final Logger LOG = LoggerFactory.getLogger(ReceiveQueueManager.class);
     private final Map<String, Integer> limits = new HashMap<>();
-    private final Map<String, Integer> queued = new HashMap<>();
     private final QueueEntryDao queueEntryDao;
     private final Producer producer;
+    private final QueueService queueService;
 
     @Inject
-    public ReceiveQueueManager(QueueEntryDao queueEntryDao,
+    public ReceiveQueueManager(QueueService queueService,
+                               QueueEntryDao queueEntryDao,
                                Producer producer) {
         this.queueEntryDao = queueEntryDao;
         this.producer = producer;
+        this.queueService = queueService;
     }
 
     public void addInProgress(String nick, String message) {
@@ -80,10 +80,6 @@ public class ReceiveQueueManager {
             enqueue.setStatus(QueueStatus.valueOf(queueEntry.getStatus()));
         }
         return map;
-    }
-
-    public ReceiveQueue getQueue(String nick) {
-        return getQueues().get(nick);
     }
 
     private Map<String, Queue<String>> entriesToMap(List<QueueEntry> queueEntries) {
@@ -143,10 +139,6 @@ public class ReceiveQueueManager {
         }
     }
 
-    private Integer getCurrent(String nick) {
-        return queued.getOrDefault(nick, 0);
-    }
-
     public Integer getLimit(String nick) {
         nick = nick.toLowerCase();
         return limits.getOrDefault(nick, 10);
@@ -157,27 +149,10 @@ public class ReceiveQueueManager {
         ObjectMapper mapper = new ObjectMapper();
         String message = null;
         try {
-            message = mapper.writeValueAsString(buildQueueModel());
+            message = mapper.writeValueAsString(queueService.getQueue());
         } catch (JsonProcessingException e) {
             LOG.error("Failed to convert queue to a json payload", e);
         }
         this.producer.publishTopic("queue-updated", message);
-    }
-
-
-    // TODO: below shamelessly copied from QueueResource
-    private QueueModel buildQueueModel() {
-        QueueModel queueModel = new QueueModel();
-        this.getQueues()
-            .forEach((nick, queue) -> queueModel.getServers().add(buildModel(nick, queue)));
-        return queueModel;
-    }
-
-    private QueueModel.QueueServerModel buildModel(String nick, ReceiveQueue queue) {
-        QueueModel.QueueServerModel qsm = new QueueModel.QueueServerModel(nick);
-        qsm.getRequests().addAll(queue.getItems().stream()
-            .map(i -> new QueueRequest(i.getFilename(), i.getStatus().toString()))
-            .collect(Collectors.toList()));
-        return qsm;
     }
 }

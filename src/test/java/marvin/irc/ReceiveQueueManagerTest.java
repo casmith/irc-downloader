@@ -4,6 +4,8 @@ import marvin.data.JdbcTemplate;
 import marvin.data.QueueEntryDao;
 import marvin.data.sqlite3.QueueEntrySqlite3Dao;
 import marvin.messaging.NoopProducer;
+import marvin.service.QueueService;
+import marvin.service.QueueServiceImpl;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -14,12 +16,15 @@ import static org.junit.Assert.*;
 public class ReceiveQueueManagerTest {
 
     private ReceiveQueueManager receiveQueueManager;
+    private QueueService queueService;
+    private QueueEntryDao dao;
 
     @Before
     public void setUp() {
-        QueueEntryDao dao = new QueueEntrySqlite3Dao(new JdbcTemplate("jdbc:sqlite:./marvin.db"));
-         receiveQueueManager =  new ReceiveQueueManager(dao, new NoopProducer());
-         dao.truncate();
+        dao = new QueueEntrySqlite3Dao(new JdbcTemplate("jdbc:sqlite:./marvin.db"));
+        queueService = new QueueServiceImpl(dao);
+        receiveQueueManager = new ReceiveQueueManager(queueService, dao, new NoopProducer());
+        dao.truncate();
     }
 
     @Test
@@ -72,11 +77,11 @@ public class ReceiveQueueManagerTest {
         receiveQueueManager.addInProgress("server", "filename4.mp3");
         receiveQueueManager.addInProgress("server", "filename5.mp3");
         assertEquals(1, receiveQueueManager.getInProgress().size());
-        assertEquals(5, receiveQueueManager.getQueue("server").size());
+        assertEquals(5, queueService.getQueueForNick("server").size());
 
         receiveQueueManager.retry("server", "filename.mp3");
 
         assertEquals(4, receiveQueueManager.getInProgress().get("server").size());
-        assertEquals("filename.mp3", receiveQueueManager.getQueue("server").getItems().get(0).getFilename());
+        assertEquals("filename.mp3", queueService.getQueueForNick("server").getItems().get(0).getFilename());
     }
 }

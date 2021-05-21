@@ -2,6 +2,7 @@ package marvin.irc;
 
 import marvin.config.BotConfig;
 import marvin.queue.ReceiveQueue;
+import marvin.service.QueueService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,11 +14,12 @@ public class ReceiveQueueProcessor {
     private static final Logger LOG = LoggerFactory.getLogger(ReceiveQueueProcessor.class);
     private final IrcBot bot;
     private final BotConfig config;
-
-    private ReceiveQueueManager queueManager;
+    private final ReceiveQueueManager queueManager;
 
     @Inject
-    public ReceiveQueueProcessor(IrcBot bot, BotConfig config, ReceiveQueueManager queueManager) {
+    public ReceiveQueueProcessor(IrcBot bot,
+                                 BotConfig config,
+                                 ReceiveQueueManager queueManager) {
         this.bot = bot;
         this.config = config;
         this.queueManager = queueManager;
