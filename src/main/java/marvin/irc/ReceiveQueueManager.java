@@ -108,8 +108,8 @@ public class ReceiveQueueManager {
                 LOG.error("Failed to remove {} from queue", filename);
                 return false;
             } else {
-                publishQueueStatus();
                 queueEntryDao.delete(queueEntry);
+                publishQueueStatus();
                 return true;
             }
         }
@@ -197,6 +197,7 @@ public class ReceiveQueueManager {
     }
 
     private void publishQueueStatus() {
+        LOG.info("Publishing queue status");
         ObjectMapper mapper = new ObjectMapper();
         String message = null;
         try {
