@@ -2,13 +2,10 @@ package marvin.irc;
 
 import com.google.common.collect.ImmutableSortedSet;
 import marvin.config.BotConfig;
-import marvin.data.QueueEntryDao;
 import marvin.irc.events.DownloadCompleteEvent;
 import marvin.irc.events.Event;
 import marvin.irc.events.EventSource;
 import marvin.irc.events.Listener;
-import marvin.messaging.Producer;
-import marvin.service.HistoryService;
 import org.pircbotx.*;
 import org.pircbotx.delay.StaticDelay;
 import org.pircbotx.exception.IrcException;
@@ -153,7 +150,6 @@ public class IrcBotImpl implements IrcBot {
                 if (event instanceof DownloadCompleteEvent) {
                     DownloadCompleteEvent dce = (DownloadCompleteEvent) event;
                     LOG.info("Download completed [{}]", dce.toString());
-                    queueManager.dec(dce.getNick());
                     if (!dce.isSuccess()) {
                         messageControlChannel("Download {0} from {1} failed", dce.getFileName(), dce.getNick());
                         queueManager.retry(dce.getNick(), dce.getFileName());
@@ -265,10 +261,6 @@ public class IrcBotImpl implements IrcBot {
     @Override
     public void sendPrivateMessage(String recipient, String message) {
         bot.sendIRC().message(recipient, message);
-    }
-
-    public EventSource getEventSource() {
-        return eventSource;
     }
 
     @Override

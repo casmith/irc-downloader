@@ -9,8 +9,8 @@ import org.junit.Test;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static marvin.queue.QueueStatus.REQUESTED;
+import static org.junit.Assert.*;
 
 public class QueueEntrySqlite3DaoTest {
     private QueueEntrySqlite3Dao dao;
@@ -51,10 +51,10 @@ public class QueueEntrySqlite3DaoTest {
     public void testUpdate() {
         QueueEntry queueEntry = new QueueEntry("someguy", "batch1", "!someguy blah.mp3", QueueStatus.PENDING.toString(), "#mp3passion", LocalDateTime.now());
         dao.insert(queueEntry);
-        dao.updateStatus(queueEntry, QueueStatus.REQUESTED);
+        dao.updateStatus(queueEntry, REQUESTED);
         QueueEntry found = dao.find("someguy", "!someguy blah.mp3");
         assertNotNull("missing entry record", found);
-        assertEquals(QueueStatus.REQUESTED.toString(), found.getStatus());
+        assertEquals(REQUESTED.toString(), found.getStatus());
     }
 
     @Test
@@ -67,4 +67,16 @@ public class QueueEntrySqlite3DaoTest {
         assertEquals(1, found.size());
     }
 
+    @Test
+    public void testDequeue() {
+        for (int i = 0; i < 20; i++) {
+            QueueEntry queueEntry = new QueueEntry("someguy", "batch1", "!someguy blah[" + i + "].mp3", QueueStatus.PENDING.toString(), "#mp3passion", LocalDateTime.now().plusSeconds(i));
+            dao.insert(queueEntry);
+        }
+        QueueEntry firstQueuedEntry = dao.dequeue("someguy", 1);
+        dao.updateStatus(firstQueuedEntry, REQUESTED);
+
+        assertNotNull(firstQueuedEntry);
+        assertNull(dao.dequeue("someguy", 1));
+    }
 }

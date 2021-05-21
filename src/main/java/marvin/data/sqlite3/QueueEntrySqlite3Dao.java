@@ -58,8 +58,8 @@ public class QueueEntrySqlite3Dao
     }
 
     @Override
-    public void updateStatus(QueueEntry queueEntry, QueueStatus requested) {
-        jdbcTemplate.execute("UPDATE queue_entries SET status = ? WHERE request_string = ?", requested.toString(), queueEntry.getRequestString());
+    public void updateStatus(QueueEntry queueEntry, QueueStatus status) {
+        jdbcTemplate.execute("UPDATE queue_entries SET status = ? WHERE request_string = ?", status.toString(), queueEntry.getRequestString());
     }
 
     @Override
@@ -97,6 +97,19 @@ public class QueueEntrySqlite3Dao
     @Override
     public List<QueueEntry> findByBatch(String batch) {
         return jdbcTemplate.query("SELECT name, batch, request_string, status, channel, timestamp FROM queue_entries WHERE batch = ? ORDER BY timestamp", new Object[]{batch}, new QueueEntryRowMapper());
+    }
+
+    @Override
+    public QueueEntry dequeue(String nick, int queueLimit) {
+        List<QueueEntry> entries = jdbcTemplate.query("SELECT * FROM queue_entries WHERE name = ? " +
+                "AND (select count(*) FROM queue_entries WHERE name = ? " +
+                "AND status <> ?) < ? " +
+                "ORDER BY timestamp",
+            new Object[]{nick, nick, QueueStatus.PENDING.toString(), queueLimit}, new QueueEntryRowMapper());
+        if (!entries.isEmpty()) {
+            return entries.get(0);
+        }
+        return null;
     }
 
     @Override

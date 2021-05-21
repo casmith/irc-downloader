@@ -102,10 +102,12 @@ public class JdbcTemplate {
         for (Object arg : args) {
             if (arg instanceof String) {
                 stmt.setString(++i, (String) arg);
+            } else if (arg instanceof Integer) {
+                stmt.setInt(++i, (int)arg);
             } else {
                 throw new DatabaseException("Unsupported Parameter type");
             }
-            // todo: support more than strings
+            // todo: support more than strings and ints
         }
     }
 }

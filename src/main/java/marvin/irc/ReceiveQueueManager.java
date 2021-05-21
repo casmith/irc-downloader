@@ -95,11 +95,6 @@ public class ReceiveQueueManager {
         return map;
     }
 
-    /** replaces spaces with underscores to make comparisons easier */
-    private String normalizeFilename(String filename) {
-        return filename.replace(" ", "_");
-    }
-
     public boolean markCompleted(String nick, String filename) {
         synchronized (this) {
             LOG.info("Marking {} - {} completed", nick, filename);
@@ -117,9 +112,8 @@ public class ReceiveQueueManager {
 
     public Optional<String> poll(String nick) {
         synchronized (this) {
-            List<QueueEntry> queueEntries = queueEntryDao.findByNickAndStatus(nick, PENDING);
-            if (!queueEntries.isEmpty() && this.inc(nick)) {
-                QueueEntry queueEntry = queueEntries.get(0);
+            QueueEntry queueEntry = queueEntryDao.dequeue(nick, getLimit(nick));
+            if (queueEntry != null) {
                 queueEntryDao.updateStatus(queueEntry, REQUESTED);
                 publishQueueStatus();
                 return Optional.of(queueEntry.getRequestString());
@@ -129,36 +123,6 @@ public class ReceiveQueueManager {
         }
     }
 
-    // TODO: remove
-    public boolean dec(String nick) {
-        synchronized (this) {
-            nick = nick.toLowerCase();
-            boolean success = false;
-            Integer current = getCurrent(nick);
-            if (current > 0) {
-                queued.put(nick, --current);
-                success = true;
-                printStats(nick);
-            }
-            return success;
-        }
-    }
-
-    // TODO: remove
-    public boolean inc(String nick) {
-        synchronized (this) {
-            nick = nick.toLowerCase();
-            boolean success = false;
-            Integer limit = getLimit(nick);
-            Integer current = getCurrent(nick);
-            if (current < limit) {
-                queued.put(nick, ++current);
-                success = true;
-                printStats(nick);
-            }
-            return success;
-        }
-    }
     public void updateLimit(String nick, int limit) {
         // artificially cap at 10 for testing
         if (limit > 10) {
@@ -183,17 +147,9 @@ public class ReceiveQueueManager {
         return queued.getOrDefault(nick, 0);
     }
 
-    // TODO: remove, move to ReceiveQueue
     public Integer getLimit(String nick) {
         nick = nick.toLowerCase();
         return limits.getOrDefault(nick, 10);
-    }
-
-    private void printStats(String nick) {
-        nick = nick.toLowerCase();
-        Integer current = getCurrent(nick);
-        Integer limit = getLimit(nick);
-        LOG.info("Queue for {}: {}/{}", nick, current, limit);
     }
 
     private void publishQueueStatus() {

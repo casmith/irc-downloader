@@ -2,7 +2,6 @@ package marvin.irc;
 
 import marvin.irc.events.EventSource;
 import marvin.messaging.NoopProducer;
-import marvin.messaging.Producer;
 import org.junit.Test;
 
 import java.util.Collections;
@@ -10,7 +9,7 @@ import java.util.Collections;
 import static org.junit.Assert.assertEquals;
 
 public class IrcBotImplTest {
-    private IrcBotImpl ircBot;
+    private final IrcBotImpl ircBot;
 
     {
         NoopProducer producer = new NoopProducer();
@@ -32,8 +31,8 @@ public class IrcBotImplTest {
     @Test
     public void formatMessage() {
         assertEquals("Just a plain message",
-                ircBot.formatMessage("Just a plain message"));
+            ircBot.formatMessage("Just a plain message"));
         assertEquals("A message with three arguments",
-                ircBot.formatMessage("A message {0} {1} {2}", "with", "three", "arguments"));
+            ircBot.formatMessage("A message {0} {1} {2}", "with", "three", "arguments"));
     }
 }
