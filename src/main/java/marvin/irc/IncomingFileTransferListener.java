@@ -115,7 +115,7 @@ public class IncomingFileTransferListener extends ListenerAdapter {
         String message;
         try {
             message = objectMapper.writeValueAsString(history);
-            this.producer.publishTopic("history-update", message);
+            this.producer.publishTopic("history-updated", message);
         } catch (JsonProcessingException e) {
             LOG.error("Failed to publish history", e);
         }
