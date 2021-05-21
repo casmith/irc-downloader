@@ -8,6 +8,7 @@ import marvin.irc.events.Event;
 import marvin.irc.events.EventSource;
 import marvin.irc.events.Listener;
 import marvin.messaging.Producer;
+import marvin.service.HistoryService;
 import org.pircbotx.*;
 import org.pircbotx.delay.StaticDelay;
 import org.pircbotx.exception.IrcException;
@@ -45,7 +46,7 @@ public class IrcBotImpl implements IrcBot {
     private PircBotX bot;
 
     @Inject
-    public IrcBotImpl(BotConfig config, ReceiveQueueManager queueManager, QueueEntryDao queueEntryDao, Producer producer) {
+    public IrcBotImpl(BotConfig config, ReceiveQueueManager queueManager, QueueEntryDao queueEntryDao, Producer producer, HistoryService historyService) {
         this(config.getServer(),
                 config.getPort(),
                 config.getNick(),
@@ -57,7 +58,9 @@ public class IrcBotImpl implements IrcBot {
                 config.getDownloadDirectories(),
                 queueManager,
                 queueEntryDao,
-                producer);
+                producer,
+                historyService
+            );
     }
 
     public IrcBotImpl(String server,
@@ -71,7 +74,8 @@ public class IrcBotImpl implements IrcBot {
                       Map<String, File> downloadDirectories,
                       ReceiveQueueManager queueManager,
                       QueueEntryDao queueEntryDao,
-                      Producer producer) {
+                      Producer producer,
+                      HistoryService historyService) {
         this.adminPassword = adminPassword;
         this.requestChannel = requestChannel;
         this.controlChannel = controlChannel;
@@ -90,7 +94,7 @@ public class IrcBotImpl implements IrcBot {
                 .setAutoReconnectDelay(new StaticDelay(5000))
                 .setAutoReconnect(true)
                 .addListener(new QueueProcessorListener(requestChannel, "queue.txt"))
-                .addListener(new IncomingFileTransferListener(eventSource, configuration, queueManager, producer, queueEntryDao))
+                .addListener(new IncomingFileTransferListener(eventSource, configuration, queueManager, producer, queueEntryDao, historyService))
                 .addListener(new ListenerAdapter() {
                     @Override
                     public void onPrivateMessage(PrivateMessageEvent event) {

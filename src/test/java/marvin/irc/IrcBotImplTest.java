@@ -24,7 +24,8 @@ public class IrcBotImplTest {
             Collections.emptyMap(),
             new ReceiveQueueManager(null, producer),
             null,
-            producer);
+            producer,
+            null);
     }
 
     @Test
