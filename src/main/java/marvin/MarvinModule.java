@@ -19,6 +19,8 @@ import marvin.irc.IrcBotImpl;
 import marvin.list.ListGenerator;
 import marvin.messaging.Producer;
 import marvin.messaging.RabbitMqProducer;
+import marvin.service.HistoryService;
+import marvin.service.HistoryServiceImpl;
 import marvin.web.MarvinServletContextListener;
 import marvin.web.history.HistoryResource;
 import marvin.web.queue.QueueResource;
@@ -54,6 +56,9 @@ public class MarvinModule implements Module {
         binder.bind(KnownUserDao.class).to(KnownUserSqlite3Dao.class);
         binder.bind(ListFileDao.class).to(ListFileSqlite3Dao.class);
         binder.bind(QueueEntryDao.class).to(QueueEntrySqlite3Dao.class);
+
+        // services
+        binder.bind(HistoryService.class).to(HistoryServiceImpl.class);
 
         // bind resources
         binder.bind(HistoryResource.class);

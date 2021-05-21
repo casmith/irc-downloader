@@ -15,6 +15,7 @@ public class DatabaseListManagerTest {
     @Before
     public void setUp() {
         dao = new ListFileSqlite3Dao("jdbc:sqlite:./marvin.db");
+        dao.createTable();
     }
 
     @Test
@@ -22,7 +23,6 @@ public class DatabaseListManagerTest {
         ListManager listManager = new DatabaseListManager(dao);
         listManager.add("butthead");
         listManager.add("beavis");
-
 
         assertFalse("list manager was able to add a value which should already be present",
             listManager.add("butthead"));
