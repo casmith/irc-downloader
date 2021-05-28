@@ -37,7 +37,7 @@ public class RabbitMqProducer implements Producer {
              Channel channel = connection.createChannel()) {
             channel.exchangeDeclare(topicName, BuiltinExchangeType.FANOUT);
             channel.basicPublish(topicName, "", null, message.getBytes());
-            LOG.info("Sent [{}] on exchange {}", message, topicName);
+//            LOG.info("Sent [{}] on exchange {}", message, topicName);
         } catch (Exception e) {
             LOG.error("Failed to publish message to exchange {} on host {}", topicName, this.connectionFactory.getHost());
         }
