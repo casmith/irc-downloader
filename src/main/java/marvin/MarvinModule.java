@@ -53,8 +53,6 @@ public class MarvinModule implements Module {
         binder.bind(UserManager.class);
         binder.bind(ListGenerator.class);
 
-        binder.bind(IncomingFileTransferListener.class);
-
         binder.bind(IrcBot.class).to(IrcBotImpl.class);
 
         // bind DAOs

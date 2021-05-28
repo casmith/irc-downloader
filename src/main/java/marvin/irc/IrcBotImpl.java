@@ -2,10 +2,13 @@ package marvin.irc;
 
 import com.google.common.collect.ImmutableSortedSet;
 import marvin.config.BotConfig;
+import marvin.data.QueueEntryDao;
 import marvin.irc.events.DownloadCompleteEvent;
 import marvin.irc.events.Event;
 import marvin.irc.events.EventSource;
 import marvin.irc.events.Listener;
+import marvin.messaging.Producer;
+import marvin.service.HistoryService;
 import org.pircbotx.*;
 import org.pircbotx.delay.StaticDelay;
 import org.pircbotx.exception.IrcException;
@@ -43,20 +46,27 @@ public class IrcBotImpl implements IrcBot {
     private PircBotX bot;
 
     @Inject
-    public IrcBotImpl(BotConfig config, ReceiveQueueManager queueManager, IncomingFileTransferListener incomingFileTransferListener, EventSource eventSource) {
+    public IrcBotImpl(BotConfig config,
+                      ReceiveQueueManager queueManager,
+                      EventSource eventSource,
+                      Producer producer,
+                      QueueEntryDao queueEntryDao,
+                      HistoryService historyService) {
         this(config.getServer(),
-                config.getPort(),
-                config.getNick(),
-                config.getPassword(),
-                config.getAdminPassword(),
-                config.getControlChannel(),
-                config.getRequestChannel(),
-                config.getDownloadDirectory(),
-                config.getDownloadDirectories(),
-                queueManager,
-                incomingFileTransferListener,
-                eventSource
-            );
+            config.getPort(),
+            config.getNick(),
+            config.getPassword(),
+            config.getAdminPassword(),
+            config.getControlChannel(),
+            config.getRequestChannel(),
+            config.getDownloadDirectory(),
+            config.getDownloadDirectories(),
+            queueManager,
+            eventSource,
+            producer,
+            queueEntryDao,
+            historyService
+        );
     }
 
     public IrcBotImpl(String server,
@@ -69,8 +79,11 @@ public class IrcBotImpl implements IrcBot {
                       String downloadDirectory,
                       Map<String, File> downloadDirectories,
                       ReceiveQueueManager queueManager,
-                      IncomingFileTransferListener incomingFileTransferListener,
-                      EventSource eventSource) {
+                      EventSource eventSource,
+                      Producer producer,
+                      QueueEntryDao queueEntryDao,
+                      HistoryService historyService
+                      ) {
         this.eventSource = eventSource;
         this.adminPassword = adminPassword;
         this.requestChannel = requestChannel;
@@ -90,7 +103,7 @@ public class IrcBotImpl implements IrcBot {
                 .setAutoReconnectDelay(new StaticDelay(5000))
                 .setAutoReconnect(true)
                 .addListener(new QueueProcessorListener(requestChannel, "queue.txt"))
-                .addListener(incomingFileTransferListener)
+                .addListener(new IncomingFileTransferListener(eventSource, configuration, queueManager, producer, queueEntryDao, historyService))
                 .addListener(new ListenerAdapter() {
                     @Override
                     public void onPrivateMessage(PrivateMessageEvent event) {
