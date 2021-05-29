@@ -92,14 +92,14 @@ public class IncomingFileTransferListener extends ListenerAdapter {
             long kbps = (bytes - 1024) / seconds;
             LOG.info("Done downloading {} in {}s ({} KiB/s)", file.getAbsolutePath(), seconds, kbps);
 
-            publishHistoryUpdate();
-
             if (!queueManager.markCompleted(nick, event.getSafeFilename())) {
                 LOG.warn("Nothing to mark completed for {} filename {}", nick, event.getSafeFilename());
             }
             if (batch != null && queueEntryDao.findByBatch(batch).isEmpty()) {
                 this.producer.enqueue("batch-download-complete", batch);
             }
+
+            publishHistoryUpdate();
 
             success = true;
         } catch (Throwable e) {
