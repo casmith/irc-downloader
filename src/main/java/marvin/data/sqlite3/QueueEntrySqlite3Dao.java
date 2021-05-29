@@ -104,8 +104,8 @@ public class QueueEntrySqlite3Dao
         List<QueueEntry> entries = jdbcTemplate.query("SELECT * FROM queue_entries WHERE name = ? " +
                 "AND (select count(*) FROM queue_entries WHERE name = ? " +
                 "AND status <> ?) < ? " +
-                "ORDER BY timestamp",
-            new Object[]{nick, nick, QueueStatus.PENDING.toString(), queueLimit}, new QueueEntryRowMapper());
+                "AND STATUS = ? ORDER BY timestamp",
+            new Object[]{nick, nick, QueueStatus.PENDING.toString(), queueLimit, QueueStatus.PENDING.toString()}, new QueueEntryRowMapper());
         if (!entries.isEmpty()) {
             return entries.get(0);
         }

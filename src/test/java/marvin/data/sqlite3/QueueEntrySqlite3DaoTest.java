@@ -78,5 +78,14 @@ public class QueueEntrySqlite3DaoTest {
 
         assertNotNull(firstQueuedEntry);
         assertNull(dao.dequeue("someguy", 1));
+        // dequeue 9 more with a queue limit of 10
+        for (int i = 0; i < 9; i++) {
+            QueueEntry dequeued = dao.dequeue("someguy", 10);
+            assertNotNull(dequeued);
+            dao.updateStatus(dequeued, REQUESTED);
+        }
+        // the 11th dequeued should be null
+        assertNull(dao.dequeue("someguy", 10));
+
     }
 }
