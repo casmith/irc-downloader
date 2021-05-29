@@ -141,7 +141,7 @@ public class ReceiveQueueManager {
 
     public Integer getLimit(String nick) {
         nick = nick.toLowerCase();
-        return limits.getOrDefault(nick, 10);
+        return limits.getOrDefault(nick, 1);
     }
 
     private void publishQueueStatus() {
