@@ -5,6 +5,7 @@ import marvin.data.DatabaseException;
 import marvin.irc.events.DownloadCompleteEvent;
 import marvin.irc.events.Event;
 import marvin.irc.events.Listener;
+import marvin.messaging.Producer;
 import marvin.model.CompletedXfer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,11 +17,13 @@ public class CompletedXferListener implements Listener {
 
     private static final Logger LOG = LoggerFactory.getLogger(CompletedXferListener.class);
 
-    private CompletedXferDao completedXferDao;
+    private final CompletedXferDao completedXferDao;
+    private final Producer producer;
 
     @Inject
-    public CompletedXferListener(CompletedXferDao completedXferDao) {
+    public CompletedXferListener(CompletedXferDao completedXferDao, Producer producer) {
         this.completedXferDao = completedXferDao;
+        this.producer = producer;
     }
 
     @Override
@@ -30,6 +33,10 @@ public class CompletedXferListener implements Listener {
             long bytes = dce.isSuccess() ? dce.getBytes() : -1; // indicate failed transfer by setting bytes to -1
             completedXferDao.insert(
                 new CompletedXfer(dce.getNick(), "", dce.getFileName(), bytes, LocalDateTime.now()));
+
+            if (dce.isSuccess()) {
+                this.producer.enqueue("download-complete", dce.getFileName());
+            }
 
         } catch (DatabaseException e) {
             LOG.error("Error recording completed xfer", e);

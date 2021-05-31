@@ -13,6 +13,7 @@ import marvin.handlers.*;
 import marvin.irc.*;
 import marvin.irc.events.DownloadCompleteEvent;
 import marvin.list.*;
+import marvin.messaging.Producer;
 import marvin.web.JettyServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,6 +40,7 @@ public class Client {
     private final Injector injector;
     private final UserManager userManager;
     private final ListGenerator listGenerator;
+    private final Producer producer;
     private boolean isRunning;
 
     @Inject
@@ -51,7 +53,8 @@ public class Client {
                   QueueEntryDao queueEntryDao,
                   IrcBot bot,
                   ListGenerator listGenerator,
-                  UserManager userManager) {
+                  UserManager userManager,
+                  Producer producer) {
         this.config = config;
         this.queueManager = queueManager;
         this.sendQueueManager = new SendQueueManager();
@@ -68,6 +71,7 @@ public class Client {
         this.sendQueueProcessor = new SendQueueProcessor(bot, sendQueueManager);
         this.listGrabber = initListGrabber(knownUserDao, bot, config);
         this.injector = injector;
+        this.producer = producer;
     }
 
     private ListGrabber initListGrabber(KnownUserDao knownUserDao, IrcBot bot, BotConfig config) {
@@ -135,7 +139,7 @@ public class Client {
         bot.registerPrivateMessageHandler(new RequestPrivateMessageHandler(bot, queueManager, userManager));
         bot.registerPrivateMessageHandler(new ShutdownPrivateMessageHandler(bot, userManager));
         bot.registerNoticeHandler(new QueueLimitNoticeHandler(queueManager));
-        bot.on(DownloadCompleteEvent.class, new CompletedXferListener(completedXferDao));
+        bot.on(DownloadCompleteEvent.class, new CompletedXferListener(completedXferDao, producer));
     }
 
     private void start() {

@@ -2,7 +2,6 @@ package marvin.irc;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import marvin.config.Config;
 import marvin.config.DownloadDirectoryMapper;
 import marvin.data.QueueEntryDao;
 import marvin.irc.events.DownloadCompleteEvent;
@@ -69,12 +68,6 @@ public class IncomingFileTransferListener extends ListenerAdapter {
             batch = queueEntry.getBatch();
         }
 
-        // it's not safe to assume there will always be a queue entry because lists are requested separately
-//        if (queueEntry == null) {
-//            LOG.warn("Discarding incoming file transfer {} {} because queue entry was not found", nick, event.getSafeFilename());
-//            return;
-//        }
-
         File file = getDownloadFile(event.getSafeFilename(), batch);
         LOG.info("Receiving {} from {}", file.getName(), sender);
         this.eventSource.publish(new DownloadStartedEvent(nick, file.getName()));
@@ -107,7 +100,6 @@ public class IncomingFileTransferListener extends ListenerAdapter {
         } finally {
             long duration = System.currentTimeMillis() - start;
             this.eventSource.publish(new DownloadCompleteEvent(nick, file.getName(), bytes, duration, success));
-            this.producer.enqueue("download-complete", file.getName());
         }
     }
 
@@ -132,14 +124,16 @@ public class IncomingFileTransferListener extends ListenerAdapter {
         File directory = configuration.getDirectory(fileName);
         if (batch != null && !batch.isEmpty()) {
             File batchDirectory = new File(directory + separator + batch);
-            batchDirectory.mkdirs(); // ensure the directory exists
+            if (batchDirectory.mkdirs()) {
+                LOG.debug("Created directory {}", batchDirectory.getAbsolutePath());
+            }
             return batchDirectory;
         } else {
             return directory;
         }
     }
 
-    public ReceiveFileTransfer acceptTransfer(IncomingFileTransferEvent event, File file) throws IOException, InterruptedException {
+    public ReceiveFileTransfer acceptTransfer(IncomingFileTransferEvent event, File file) throws IOException {
         if (file.exists()) {
             // resume doesn't seem to work, so clear the existing file and start over
             boolean delete = file.delete();
