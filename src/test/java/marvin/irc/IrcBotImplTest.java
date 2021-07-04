@@ -22,6 +22,8 @@ public class IrcBotImplTest {
             "#requestChannel",
             "downloadDir",
             Collections.emptyMap(),
+            "localhost",
+            Collections.emptyList(),
             new ReceiveQueueManager(null, null, producer),
             new EventSource(),
             null, null, null

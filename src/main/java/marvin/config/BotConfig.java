@@ -9,6 +9,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class BotConfig {
@@ -25,6 +26,9 @@ public class BotConfig {
     private final String server;
     private final Config features;
     private final String rmqHost;
+    private final String dccPublicAddress;
+    private final List<Integer> dccPorts;
+
     private final Map<String, File> downloadDirectories = new HashMap<>();
 
     public BotConfig(Config config, String configDirectoryPath) {
@@ -48,6 +52,10 @@ public class BotConfig {
             directories.entrySet()
                 .forEach(entry -> downloadDirectories.put(entry.getKey(), new File(directories.getString(entry.getKey()))));
         }
+
+        this.dccPublicAddress = config.getConfig("dcc").getString("publicAddress");
+        this.dccPorts = config.getConfig("dcc").getIntList("ports");
+
     }
 
     public String getAdminPassword() {
@@ -100,6 +108,14 @@ public class BotConfig {
 
     public boolean isFeatureEnabled(String feature) {
         return features.hasPath(feature) && features.getBoolean(feature);
+    }
+
+    public String getDccPublicAddress() {
+        return dccPublicAddress;
+    }
+
+    public List<Integer> getDccPorts() {
+        return dccPorts;
     }
 
     public Map<String, File> getDownloadDirectories() {

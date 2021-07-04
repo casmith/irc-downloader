@@ -9,6 +9,7 @@ import marvin.irc.events.EventSource;
 import marvin.irc.events.Listener;
 import marvin.messaging.Producer;
 import marvin.service.HistoryService;
+import org.apache.commons.lang3.StringUtils;
 import org.pircbotx.*;
 import org.pircbotx.delay.StaticDelay;
 import org.pircbotx.exception.IrcException;
@@ -21,6 +22,8 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.io.File;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -61,6 +64,8 @@ public class IrcBotImpl implements IrcBot {
             config.getRequestChannel(),
             config.getDownloadDirectory(),
             config.getDownloadDirectories(),
+            config.getDccPublicAddress(),
+            config.getDccPorts(),
             queueManager,
             eventSource,
             producer,
@@ -78,6 +83,8 @@ public class IrcBotImpl implements IrcBot {
                       String requestChannel,
                       String downloadDirectory,
                       Map<String, File> downloadDirectories,
+                      String dccPublicAddress,
+                      List<Integer> dccPorts,
                       ReceiveQueueManager queueManager,
                       EventSource eventSource,
                       Producer producer,
@@ -90,72 +97,86 @@ public class IrcBotImpl implements IrcBot {
         this.controlChannel = controlChannel;
         IncomingFileTransferListener.Configuration configuration = new IncomingFileTransferListener.Configuration(downloadDirectory);
         downloadDirectories.forEach(configuration::withMapping);
-        this.configuration = new Configuration.Builder()
-                .addServer(server, port)
-                .setName(nick)
-                .setRealName(nick)
-                .setLogin(nick)
-                .setServerPassword(password)
-                .addAutoJoinChannel(controlChannel)
-                .addAutoJoinChannel(requestChannel)
-                .setIdentServerEnabled(useIdent)
-                .setAutoReconnectAttempts(10)
-                .setAutoReconnectDelay(new StaticDelay(5000))
-                .setAutoReconnect(true)
-                .addListener(new QueueProcessorListener(requestChannel, "queue.txt"))
-                .addListener(new IncomingFileTransferListener(eventSource, configuration, queueManager, producer, queueEntryDao, historyService))
-                .addListener(new ListenerAdapter() {
-                    @Override
-                    public void onPrivateMessage(PrivateMessageEvent event) {
-                        IrcBotImpl.this.onPrivateMessage(event);
-                    }
+        Configuration.Builder builder = new Configuration.Builder()
+            .addServer(server, port)
+            .setName(nick)
+            .setRealName(nick)
+            .setLogin(nick)
+            .setServerPassword(password)
+            .addAutoJoinChannel(controlChannel)
+            .addAutoJoinChannel(requestChannel)
+            .setIdentServerEnabled(useIdent)
+            .setAutoReconnectAttempts(10)
+            .setAutoReconnectDelay(new StaticDelay(5000))
+            .setAutoReconnect(true)
+            .addListener(new QueueProcessorListener(requestChannel, "queue.txt"))
+            .addListener(new IncomingFileTransferListener(eventSource, configuration, queueManager, producer, queueEntryDao, historyService))
+            .addListener(new ListenerAdapter() {
+                @Override
+                public void onPrivateMessage(PrivateMessageEvent event) {
+                    IrcBotImpl.this.onPrivateMessage(event);
+                }
 
-                    @Override
-                    public void onNotice(NoticeEvent event) throws Exception {
-                        super.onNotice(event);
-                        String message = Colors.removeColors(event.getMessage());
-                        String nick = getNick(event.getUser());
-                        noticeHandlers.forEach(handler -> handler.onNotice(nick, message));
-                    }
+                @Override
+                public void onNotice(NoticeEvent event) throws Exception {
+                    super.onNotice(event);
+                    String message = Colors.removeColors(event.getMessage());
+                    String nick = getNick(event.getUser());
+                    noticeHandlers.forEach(handler -> handler.onNotice(nick, message));
+                }
 
-                    @Override
-                    public void onMessage(MessageEvent event) throws Exception {
-                        super.onMessage(event);
-                        String nick = getNick(event.getUser());
-                        String channelName = event.getChannel().getName();
-                        String message = Colors.removeColors(event.getMessage());
-                        final UserHostmask userHostmask = event.getUserHostmask();
-                        final String hostmask = userHostmask.getHostmask();
-                        messageHandlers.forEach(handler -> handler.onMessage(channelName, nick, message, hostmask));
-                    }
+                @Override
+                public void onMessage(MessageEvent event) throws Exception {
+                    super.onMessage(event);
+                    String nick = getNick(event.getUser());
+                    String channelName = event.getChannel().getName();
+                    String message = Colors.removeColors(event.getMessage());
+                    final UserHostmask userHostmask = event.getUserHostmask();
+                    final String hostmask = userHostmask.getHostmask();
+                    messageHandlers.forEach(handler -> handler.onMessage(channelName, nick, message, hostmask));
+                }
 
-                    @Override
-                    public void onJoin(JoinEvent event) throws Exception {
-                        super.onJoin(event);
-                        User user = event.getUser();
-                        if (user != null) {
-                            String joiningNick = user.getNick();
-                            if (nick.equals(joiningNick)) {
-                                // NOTE: this is a good indication of when the bot should be considered "ready"
-                                LOG.info("Joining channel [{}]", event.getChannel().getName());
-                                channels.add(event.getChannel().getName());
-                            }
+                @Override
+                public void onJoin(JoinEvent event) throws Exception {
+                    super.onJoin(event);
+                    User user = event.getUser();
+                    if (user != null) {
+                        String joiningNick = user.getNick();
+                        if (nick.equals(joiningNick)) {
+                            // NOTE: this is a good indication of when the bot should be considered "ready"
+                            LOG.info("Joining channel [{}]", event.getChannel().getName());
+                            channels.add(event.getChannel().getName());
                         }
                     }
+                }
 
-                    @Override
-                    public void onPart(PartEvent event) throws Exception {
-                        super.onPart(event);
-                        User user = event.getUser();
-                        if (user != null) {
-                            String partingNick = user.getNick();
-                            if (nick.equals(partingNick)) {
-                                LOG.info("Parting channel [{}]", event.getChannel().getName());
-                                channels.remove(event.getChannel().getName());
-                            }
+                @Override
+                public void onPart(PartEvent event) throws Exception {
+                    super.onPart(event);
+                    User user = event.getUser();
+                    if (user != null) {
+                        String partingNick = user.getNick();
+                        if (nick.equals(partingNick)) {
+                            LOG.info("Parting channel [{}]", event.getChannel().getName());
+                            channels.remove(event.getChannel().getName());
                         }
                     }
-                })
+                }
+            });
+
+        if (StringUtils.isNotBlank(dccPublicAddress)) {
+            try {
+                builder.setDccPublicAddress(InetAddress.getByName(dccPublicAddress));
+            } catch (UnknownHostException e) {
+                LOG.error("Invalid dcc public address specified: " + dccPublicAddress, e);
+            }
+        }
+
+        if (!dccPorts.isEmpty()) {
+            builder.setDccPorts(dccPorts);
+        }
+
+        this.configuration = builder
                 .buildConfiguration();
 
         eventSource.subscribe(event -> {
