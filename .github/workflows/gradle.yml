@@ -54,7 +54,7 @@ jobs:
       with:
         context: .
         push: true
-        tags: casmith/marvinbot:latest
+        tags: casmith/marvinbot:${{ github.run_number }},casmith/marvinbot:latest
         platforms: linux/amd64,linux/arm64
 
 #    - name: "Deploy"
