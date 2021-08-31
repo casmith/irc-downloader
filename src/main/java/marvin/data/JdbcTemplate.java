@@ -24,8 +24,8 @@ public class JdbcTemplate {
     }
 
     public void execute(String sql) {
-        Connection conn = connect();
-        try (Statement statement = conn.createStatement()) {
+        try (Connection conn = connect();
+             Statement statement = conn.createStatement()) {
             statement.execute(sql);
         } catch (SQLException e) {
             throw new DatabaseException("Failed to execute query", e);
@@ -33,8 +33,8 @@ public class JdbcTemplate {
     }
 
     public void execute(String sql, Object... params) {
-        Connection conn = connect();
-        try (PreparedStatement statement = conn.prepareStatement(sql)) {
+        try (Connection conn = connect();
+             PreparedStatement statement = conn.prepareStatement(sql)) {
             setParams(statement, params);
             statement.execute();
         } catch (SQLException e) {
@@ -58,8 +58,8 @@ public class JdbcTemplate {
     }
 
     public void prepareStatement(String sql, Consumer<PreparedStatement> consumer) {
-        Connection conn = connect();
-        try (PreparedStatement statement = conn.prepareStatement(sql)) {
+        try (Connection conn = connect();
+             PreparedStatement statement = conn.prepareStatement(sql)) {
             consumer.accept(statement);
             statement.execute();
         } catch (SQLException e) {
@@ -68,8 +68,8 @@ public class JdbcTemplate {
     }
 
     public <T> List<T> query(String sql, Consumer<PreparedStatement> consumer, RowMapper<T> rowMapper) {
-        Connection conn = connect();
-        try (PreparedStatement statement = conn.prepareStatement(sql)) {
+        try (Connection conn = connect();
+             PreparedStatement statement = conn.prepareStatement(sql)) {
             List<T> results = new ArrayList<>();
             consumer.accept(statement);
             ResultSet rs = statement.executeQuery();
@@ -82,8 +82,8 @@ public class JdbcTemplate {
         }
     }
     public <T> List<T> query(String sql, Object[] args, RowMapper<T> rowMapper) {
-        Connection conn = connect();
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (Connection conn = connect();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
             setParams(stmt, args);
 
             ResultSet rs = stmt.executeQuery();
