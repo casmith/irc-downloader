@@ -2,6 +2,9 @@ FROM openjdk:11-jdk-slim
 COPY build/libs/irc-music-downloader-1.0-SNAPSHOT-uber.jar /root/marvin.jar
 #COPY dist/marvin /root/webroot
 CMD java \
+    -verbose:gc
+    -Xmx128m
+    -Dcom.sun.management.jmxremote.rmi.port=9010 \
     -Dcom.sun.management.jmxremote.port=9010 \
     -Dcom.sun.management.jmxremote.local.only=false \
     -Dcom.sun.management.jmxremote.authenticate=false \
