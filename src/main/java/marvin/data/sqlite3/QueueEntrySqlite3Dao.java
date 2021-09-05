@@ -70,8 +70,9 @@ public class QueueEntrySqlite3Dao
 
     @Override
     public void insert(QueueEntry queueEntry) {
-        Connection conn = jdbcTemplate.connect();
-        try (PreparedStatement statement = conn.prepareStatement("insert into queue_entries (name, batch, request_string, status, channel, timestamp) values (?, ?, ?, ?, ?, ?)")) {
+
+        try (Connection conn = jdbcTemplate.connect();
+             PreparedStatement statement = conn.prepareStatement("insert into queue_entries (name, batch, request_string, status, channel, timestamp) values (?, ?, ?, ?, ?, ?)")) {
             statement.setString(1, queueEntry.getName());
             statement.setString(2, queueEntry.getBatch());
             statement.setString(3, queueEntry.getRequestString());

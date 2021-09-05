@@ -22,8 +22,7 @@ public class KnownUserSqlite3Dao
 
     @Inject
     public KnownUserSqlite3Dao(BotConfig config) {
-        this("jdbc:sq" +
-            "lite:" + config.getConfigDirectoryPath() + "/marvin.db");
+        this("jdbc:sqlite:" + config.getConfigDirectoryPath() + "/marvin.db");
     }
 
     public KnownUserSqlite3Dao(String url) {
@@ -43,8 +42,8 @@ public class KnownUserSqlite3Dao
 
     @Override
     public void insert(KnownUser knownUser) {
-        Connection conn = jdbcTemplate.connect();
-        try (PreparedStatement statement = conn.prepareStatement("insert into known_users (name, nick, host, last_seen) values (?, ?, ?, ?) on conflict (name, nick, host) do update set last_seen=excluded.last_seen")) {
+        try (Connection conn = jdbcTemplate.connect();
+             PreparedStatement statement = conn.prepareStatement("insert into known_users (name, nick, host, last_seen) values (?, ?, ?, ?) on conflict (name, nick, host) do update set last_seen=excluded.last_seen")) {
             statement.setString(1, knownUser.getName());
             statement.setString(2, knownUser.getNick());
             statement.setString(3, knownUser.getHost());

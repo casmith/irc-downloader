@@ -37,8 +37,8 @@ public class CompletedXferSqlite3Dao implements CompletedXferDao {
     }
 
     public void insert(CompletedXfer completedXfer) {
-        Connection conn = jdbcTemplate.connect();
-        try (PreparedStatement statement = conn.prepareStatement("insert into completed_xfers (nick, channel, file, filesize, timestamp) values (?, ?, ?, ?, ?)")) {
+        try (Connection conn = jdbcTemplate.connect();
+             PreparedStatement statement = conn.prepareStatement("insert into completed_xfers (nick, channel, file, filesize, timestamp) values (?, ?, ?, ?, ?)")) {
             statement.setString(1, completedXfer.getNick());
             statement.setString(2, completedXfer.getChannel());
             statement.setString(3, completedXfer.getFile());
