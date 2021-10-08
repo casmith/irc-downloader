@@ -55,7 +55,7 @@ public class CompletedXferSqlite3Dao implements CompletedXferDao {
     }
 
     public List<CompletedXfer> select(DaoFilter filter) {
-        String query = "SELECT nick, channel, file, filesize, timestamp FROM completed_xfers ORDER BY timestamp DESC";
+        String query = "SELECT nick, channel, file, filesize, timestamp FROM completed_xfers ORDER BY timestamp DESC LIMIT 50";
         query = applyLimit(filter.getLimit(), query);
         return jdbcTemplate.select(query, new RowMapper<CompletedXfer>() {
             @Override
