@@ -2,7 +2,6 @@ package marvin.irc;
 
 import marvin.config.BotConfig;
 import marvin.queue.ReceiveQueue;
-import marvin.service.QueueService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,17 +25,21 @@ public class ReceiveQueueProcessor {
     }
 
     public void process() {
-        Map<String, ReceiveQueue> queues = queueManager.getQueues();
-        LOG.debug("Processing {} queues...", queues.size());
-        queues.keySet().forEach((nick) -> {
-            if (bot.isNickOnline(nick)) {
-                LOG.debug("[{}] is online", nick);
-                queueManager.poll(nick)
-                    .ifPresent(this::requestFile);
-            } else {
-                LOG.debug("[{}] is OFFLINE", nick);
-            }
-        });
+        try {
+            Map<String, ReceiveQueue> queues = queueManager.getQueues();
+            LOG.debug("Processing {} queues...", queues.size());
+            queues.keySet().forEach((nick) -> {
+                if (bot.isNickOnline(nick)) {
+                    LOG.debug("[{}] is online", nick);
+                    queueManager.poll(nick)
+                        .ifPresent(this::requestFile);
+                } else {
+                    LOG.debug("[{}] is OFFLINE", nick);
+                }
+            });
+        } catch (Exception e) {
+            LOG.warn("Exception while trying to process queues", e);
+        }
     }
 
     private void requestFile(String message) {

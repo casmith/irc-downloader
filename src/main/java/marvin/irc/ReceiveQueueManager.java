@@ -72,14 +72,16 @@ public class ReceiveQueueManager {
     }
 
     public Map<String, ReceiveQueue> getQueues() {
-        List<QueueEntry> queueEntries = queueEntryDao.selectAll();
-        LinkedHashMap<String, ReceiveQueue> map = new LinkedHashMap<>();
-        for (QueueEntry queueEntry : queueEntries) {
-            ReceiveQueue queue = map.computeIfAbsent(queueEntry.getName(), ReceiveQueue::new);
-            ReceiveQueue.ReceiveQueueItem enqueue = queue.enqueue(queueEntry.getRequestString());
-            enqueue.setStatus(QueueStatus.valueOf(queueEntry.getStatus()));
+        synchronized (this) {
+            List<QueueEntry> queueEntries = queueEntryDao.selectAll();
+            LinkedHashMap<String, ReceiveQueue> map = new LinkedHashMap<>();
+            for (QueueEntry queueEntry : queueEntries) {
+                ReceiveQueue queue = map.computeIfAbsent(queueEntry.getName(), ReceiveQueue::new);
+                ReceiveQueue.ReceiveQueueItem enqueue = queue.enqueue(queueEntry.getRequestString());
+                enqueue.setStatus(QueueStatus.valueOf(queueEntry.getStatus()));
+            }
+            return map;
         }
-        return map;
     }
 
     private Map<String, Queue<String>> entriesToMap(List<QueueEntry> queueEntries) {
