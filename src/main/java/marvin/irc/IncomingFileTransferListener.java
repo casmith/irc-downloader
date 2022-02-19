@@ -91,15 +91,13 @@ public class IncomingFileTransferListener extends ListenerAdapter {
             if (batch != null && queueEntryDao.findByBatch(batch).isEmpty()) {
                 this.producer.enqueue("batch-download-complete", batch);
             }
-
-            publishHistoryUpdate();
-
             success = true;
         } catch (Throwable e) {
             LOG.error("File transfer failed", e);
         } finally {
             long duration = System.currentTimeMillis() - start;
             this.eventSource.publish(new DownloadCompleteEvent(nick, file.getName(), bytes, duration, success));
+            publishHistoryUpdate();
         }
     }
 
