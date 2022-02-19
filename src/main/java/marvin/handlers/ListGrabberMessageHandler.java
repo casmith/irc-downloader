@@ -19,12 +19,9 @@ public class ListGrabberMessageHandler implements MessageHandler {
 
     @Override
     public void onMessage(String channelName, String nick, String message, String hostmask) {
-        LOG.debug("{} {}", channelName, message);
-
         if (listGrabber.check(message)) {
             listGrabber.updateLastSeen(nick, message, hostmask);
         }
-
         try {
             if (listGrabber.grab(channelName, message)) {
                 bot.messageControlChannel("Requested list from {0}", nick);
