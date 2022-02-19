@@ -7,7 +7,7 @@
     </appender>
     <logger name="org.pircbotx" level="WARN"/>
     <logger name="org.eclipse.jetty" level="INFO"/>
-    <root level="debug">
+    <root level="info">
         <appender-ref ref="STDOUT" />
     </root>
 </configuration>
