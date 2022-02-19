@@ -37,7 +37,7 @@ public class ReceiveQueueProcessor {
                     LOG.debug("[{}] is OFFLINE", nick);
                 }
             });
-        } catch (Throwable e) {
+        } catch (Exception e) {
             LOG.warn("Exception while trying to process queues", e);
         }
     }

@@ -188,14 +188,18 @@ public class Client {
         LOG.info("Starting receive queue processor");
         new Thread(() -> {
             while (isRunning) {
-                if (bot.isOnline()) {
-                    ensureChannel(bot.getControlChannel());
-                    ensureChannel(bot.getRequestChannel());
-                    this.receiveQueueProcessor.process();
-                } else {
-                    LOG.warn("Bot is not online");
+                try {
+                    if (bot.isOnline()) {
+                        ensureChannel(bot.getControlChannel());
+                        ensureChannel(bot.getRequestChannel());
+                        this.receiveQueueProcessor.process();
+                    } else {
+                        LOG.warn("Bot is not online");
+                    }
+                    sleep(5);
+                } catch (Exception e) {
+                    LOG.info("Error processing receive queue", e);
                 }
-                sleep(5);
             }
             LOG.info("Receive queue processor has stopped");
         }).start();
