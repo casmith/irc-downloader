@@ -39,7 +39,7 @@ public class CompletedXferSqlite3DaoTest {
 
     @Test
     public void testSelectAll() {
-      dao.insert(new CompletedXfer("someguy", "#marvinbot", "blah.mp3", 1024L, LocalDateTime.now()));
+      dao.insert(new CompletedXfer("someguy", "#marvinbot", "blah.mp3", 1024L, LocalDateTime.now().minusSeconds(1)));
       dao.insert(new CompletedXfer("someguy", "#marvinbot", "blah2.mp3", 1024L, LocalDateTime.now()));
       List<CompletedXfer> all = dao.selectAll();
       assertEquals(2, all.size());
