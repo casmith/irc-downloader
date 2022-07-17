@@ -10,8 +10,8 @@ import java.util.function.Consumer;
 
 public class QueueProcessorListener extends ListenerAdapter {
 
-    private String channel;
-    private String fileName;
+    private final String channel;
+    private final String fileName;
 
     public QueueProcessorListener(String channel, String fileName) {
         this.channel = channel;
@@ -52,13 +52,13 @@ public class QueueProcessorListener extends ListenerAdapter {
 
     private void requestDownload(JoinEvent event, String s) {
         System.out.println("Requesting " + s);
-        event.getBot().send().message(this.channel, s);
+        event.getBot().sendIRC().message(this.channel, s);
         sleep(30);
     }
 
     private void sleep(int s) {
         try {
-            Thread.sleep(s * 1000);
+            Thread.sleep(s * 1000L);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

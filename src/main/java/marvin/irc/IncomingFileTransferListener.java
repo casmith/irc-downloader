@@ -81,7 +81,7 @@ public class IncomingFileTransferListener extends ListenerAdapter {
             if (seconds == 0) {
                 seconds = 1;
             }
-            bytes = fileTransfer.getFileSize();
+            bytes = fileTransfer.getFileTransferStatus().getFileSize();
             long kbps = (bytes - 1024) / seconds;
             LOG.info("Done downloading {} in {}s ({} KiB/s)", file.getAbsolutePath(), seconds, kbps);
 

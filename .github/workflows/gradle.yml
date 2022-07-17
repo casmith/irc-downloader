@@ -36,8 +36,8 @@ jobs:
     - name: Build with Gradle
       run: ./gradlew dist
       env:
-        USERNAME: ${{ secrets.GH_USERNAME }}
-        TOKEN: ${{ secrets.GH_TOKEN }}
+        GH_USERNAME: ${{ secrets.GH_USERNAME }}
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
     - name: Login to DockerHub
       uses: docker/login-action@v1
