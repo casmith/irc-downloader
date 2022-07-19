@@ -29,7 +29,7 @@ public class Advertiser {
     }
 
     public String getAdvert(String nick, ListGenerator listGenerator) {
-        return MessageFormat.format("Type: {0} for my list of {1} files ({2} GiB) "
+        return MessageFormat.format("Type: @{0} for my list of {1} files ({2} GiB) "
                         + "Updated: {3} == "
                         //                                "Free Slots: 0/10 == " +
                         //                                "Files in Que: 0 == " +
