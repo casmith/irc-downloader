@@ -6,6 +6,7 @@ import marvin.queue.ReceiveQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.print.attribute.standard.Media;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -47,6 +48,22 @@ public class QueueResource {
             }
         }
         return Response.status(200).build();
+    }
+
+    @DELETE
+    @Path("/{nick}/{requestString}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response delete(@PathParam("nick") String nick,
+                           @PathParam("requestString") String requestString) {
+        try {
+            if (queueManager.markCompleted(nick, requestString)) {
+                return Response.status(200).build();
+            } else {
+                return Response.status(400).build();
+            }
+        } catch (Exception e) {
+            return Response.status(500).build();
+        }
     }
 
     public QueueModel buildQueueModel() {
